@@ -118,6 +118,52 @@ def test_l0_prompt_contains_exact_prior_response_and_normalized_error() -> None:
     assert normalized_error in prompt
 
 
+def test_l2_prompt_contains_complete_prior_source_contract_and_topology_history() -> None:
+    prior_source = "def build(params):\n    return complete_prior_source"
+    envelope = {
+        "schema_version": "executable-cadquery-repair-envelope-v1",
+        "repair_level": "L2",
+        "previous_complete_source": prior_source,
+        "expected_output_policy": [
+            {"output_id": "shaft_coupling", "expected_solid_count": 1},
+        ],
+        "topology_result": {
+            "detected_solid_count": 14,
+            "expected_solid_count": 1,
+            "shell_count": 39,
+            "volume_mm3": -3652.1,
+            "bounding_box_mm": {"size_x": 82.46, "size_y": 35.0, "size_z": 82.46},
+        },
+        "topology_attempt_history": [
+            {"source_hash": "attempt-1", "topology_result": {"detected_solid_count": 5}},
+        ],
+        "replacement_instruction": "Return one complete replacement implementation.",
+    }
+    request = ModelGenerationRequest(
+        project_name="Rotational mechanical part",
+        original_intent="fixture",
+        user_instruction="fixture",
+        current_source=prior_source,
+        executable_design_contract={
+            "schema_version": "executable-cadquery-design-contract-v1",
+            "outputs": [{"output_id": "shaft_coupling", "required": True, "expected_solid_count": 1}],
+            "requirements": [{"requirement_id": "coaxial_diameters", "expected": {"diameters": [36, 28, 20]}}],
+        },
+        executable_repair_envelope=envelope,
+    )
+
+    prompt = GeminiCliProvider(model="gemini-test").build_cadquery_prompt(request)
+
+    assert prior_source in prompt
+    assert '"expected_solid_count": 1' in prompt
+    assert '"detected_solid_count": 14' in prompt
+    assert '"shell_count": 39' in prompt
+    assert '"volume_mm3": -3652.1' in prompt
+    assert '"size_x": 82.46' in prompt
+    assert '"source_hash": "attempt-1"' in prompt
+    assert "Return one complete replacement implementation." in prompt
+
+
 def test_executable_flag_selects_experimental_workflow_service(monkeypatch, tmp_path) -> None:
     from app.api import validated_cadquery
 

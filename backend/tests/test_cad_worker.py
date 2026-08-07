@@ -702,6 +702,49 @@ def build(params):
 
 
 @pytest.mark.asyncio
+async def test_build_failure_records_safe_failing_operation_diagnostics(tmp_path: Path) -> None:
+    source = """
+import cadquery as cq
+from volundr_cad.runtime import PrintableOutput, Product
+
+PARAMETERS = []
+
+def build(params):
+    support = cq.Workplane("XY").box(70.0, 45.0, 12.0)
+    holes = cq.Workplane("XY").workplane(offset=-6.0).pushPoints([(-20.0, 0.0), (20.0, 0.0)]).circle(2.5).extrude(20.0)
+    support = support.cut(holes)
+    pocket = cq.Workplane("XY").workplane(offset=4.0).rect(30.6, 20.6).extrude(10.0)
+    support = support.cut(pocket)
+    support = support.faces(">Z").edges().chamfer(2.0)
+    return Product(
+        parameters=PARAMETERS,
+        outputs=[PrintableOutput(output_id="support", label="Support", model=support, component_id="support", expected_solid_count=1, allow_disconnected_solids=False)],
+    )
+"""
+
+    result = await CadQueryCliRunner(
+        workspace_root=tmp_path / "jobs",
+        timeout_seconds=30,
+    ).compile(
+        source,
+        job_id="structured-build-failure",
+        requested_outputs=[{"output_id": "support", "required": True}],
+    )
+
+    assert result.success is False
+    diagnostics = result.execution_diagnostics or {}
+    assert diagnostics["active_phase"] == "build_function"
+    assert diagnostics["failure_operation"] == "chamfer"
+    assert diagnostics["failure_exception_type"] == "StdFail_NotDone"
+    assert diagnostics["failure_message"] == "BRep_API: command not done"
+    assert diagnostics["failure_source_function"] == "build"
+    assert isinstance(diagnostics["failure_source_line"], int)
+    rendered = json.dumps(diagnostics, sort_keys=True)
+    assert "Traceback" not in rendered
+    assert "/usr/local/" not in rendered
+
+
+@pytest.mark.asyncio
 async def test_operation_shape_counts_are_bounded_to_expensive_operations(tmp_path: Path) -> None:
     source = """
 import cadquery as cq

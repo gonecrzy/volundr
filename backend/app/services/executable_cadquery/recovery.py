@@ -568,6 +568,8 @@ class RecoveryRouter:
                 return "python_type_error"
             if "selector" in message or "selector" in exception_type:
                 return "cadquery_selector_error"
+            if exception_type.startswith("stdfail") or "brep_api" in message or "command not done" in message:
+                return "cadquery_api_error"
             if exception_type == "attributeerror" and any(
                 token in message for token in ("cadquery", "workplane", "ocp")
             ):

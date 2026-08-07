@@ -65,7 +65,11 @@ def build_executable_cadquery_repair_envelope(
     if repair_level not in {"L0", "L1", "L2", "L3", "L4"}:
         raise ValueError(f"unsupported executable repair level: {repair_level}")
     worker = _structured_facts(worker_result)
+    if not isinstance(worker, Mapping):
+        worker = {}
     contract = _structured_facts(design_contract)
+    if not isinstance(contract, Mapping):
+        contract = {}
     output_ids = sorted(
         str(item.get("output_id"))
         for item in contract.get("outputs", [])
@@ -77,6 +81,36 @@ def build_executable_cadquery_repair_envelope(
             for item in worker.get("output_ids", [])
             if item is not None
         )
+    expected_output_policy = [
+        {
+            key: item[key]
+            for key in ("output_id", "required", "expected_solid_count", "allow_disconnected_solids")
+            if key in item
+        }
+        for item in contract.get("outputs", [])
+        if isinstance(item, Mapping) and item.get("output_id")
+    ]
+    topology = _structured_facts(topology_result)
+    if not isinstance(topology, Mapping):
+        topology = {}
+    topology_outputs = topology.get("outputs") if isinstance(topology, Mapping) else None
+    if isinstance(topology_outputs, Mapping):
+        failing_output_ids = sorted(
+            str(output_id)
+            for output_id, item in topology_outputs.items()
+            if isinstance(item, Mapping) and item.get("valid") is False
+        )
+        preserved_valid_output_ids = sorted(
+            str(output_id)
+            for output_id, item in topology_outputs.items()
+            if isinstance(item, Mapping) and item.get("valid") is True
+        )
+    else:
+        output_id = topology.get("output_id") if isinstance(topology, Mapping) else None
+        failing_output_ids = [str(output_id)] if topology.get("valid") is False and output_id else []
+        preserved_valid_output_ids = [str(output_id)] if topology.get("valid") is True and output_id else []
+    structured_history = _structured_facts(repair_history or [])
+    execution_diagnostic = _structured_facts(worker.get("execution_diagnostics") or worker.get("diagnostics") or {})
     return {
         "schema_version": REPAIR_ENVELOPE_SCHEMA_VERSION,
         "repair_level": repair_level,
@@ -90,6 +124,9 @@ def build_executable_cadquery_repair_envelope(
         "source_dialect_hash": cadquery_v1_source_dialect_hash(),
         "canonical_source_skeleton": CADQUERY_V1_SOURCE_SKELETON,
         "canonical_source_skeleton_hash": cadquery_v1_source_skeleton_hash(),
+        "replacement_instruction": (
+            "Return one complete replacement implementation; do not return a patch, excerpt, or construction strategy."
+        ),
         "previous_complete_source": previous_source,
         "previous_source_hash": previous_source_hash,
         "previous_result_hash": previous_result_hash,
@@ -97,7 +134,16 @@ def build_executable_cadquery_repair_envelope(
         "prior_normalized_error": _redact_normalized_error(previous_normalized_error),
         "provider_attempt": _structured_facts(provider_attempt),
         "worker_result": worker,
-        "topology_result": _structured_facts(topology_result),
+        "execution_diagnostic": execution_diagnostic,
+        "expected_output_policy": expected_output_policy,
+        "topology_result": topology,
+        "topology_attempt_history": [
+            item
+            for item in structured_history
+            if isinstance(item, Mapping) and item.get("topology_result") is not None
+        ],
+        "failing_output_ids": failing_output_ids,
+        "preserved_valid_output_ids": preserved_valid_output_ids,
         "semantic_result": _structured_facts(semantic_result),
         "protected_facts": _structured_facts(protected_facts or []),
         "repair_history": _structured_facts(repair_history or []),
@@ -127,8 +173,12 @@ def compare_executable_progress(
         after_outputs = set(after.get("completed_output_ids") or [])
         if after_outputs > before_outputs:
             reasons.append("additional_required_output")
-        if before.get("error_signature") and before.get("error_signature") != after.get("error_signature"):
+        before_error_signature = before.get("error_signature") or before.get("failure_signature")
+        after_error_signature = after.get("error_signature") or after.get("failure_signature")
+        if before_error_signature and before_error_signature != after_error_signature:
             reasons.append("prior_error_signature_removed")
+        if before.get("diagnostic_signature") and before.get("diagnostic_signature") != after.get("diagnostic_signature"):
+            reasons.append("execution_diagnostic_changed")
     elif repair_level == "L2":
         if before.get("valid") is not True and after.get("valid") is True:
             reasons.append("topology_became_valid")

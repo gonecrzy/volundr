@@ -95,6 +95,7 @@ def test_repair_envelope_matches_snapshot(level: str) -> None:
         ("execution", {"exception_type": "NameError"}, "python_name_error"),
         ("execution", {"exception_type": "TypeError"}, "python_type_error"),
         ("execution", {"exception_type": "SelectorError"}, "cadquery_selector_error"),
+        ("execution", {"exception_type": "StdFail_NotDone", "message": "BRep_API: command not done"}, "cadquery_api_error"),
         ("execution", {"timed_out": True}, "worker_timeout"),
         ("execution", {"worker_failure_class": "worker_environment_failure"}, "worker_environment_failure"),
         ("topology", {"empty": True}, "empty_shape"),
@@ -128,6 +129,23 @@ def test_l1_progress_accepts_later_phase_and_additional_output() -> None:
 
     assert comparison["measurable_progress"] is True
     assert comparison["progress_reasons"] == ["later_execution_phase", "additional_required_output"]
+
+
+def test_l1_progress_requires_changed_execution_diagnostics() -> None:
+    comparison = compare_executable_progress(
+        "L1",
+        previous={
+            "diagnostic_signature": "StdFail_NotDone|chamfer|BRep_API: command not done",
+            "failure_signature": "BRep_API: command not done",
+        },
+        current={
+            "diagnostic_signature": "AttributeError|arc|Workplane has no attribute arc",
+            "failure_signature": "Workplane has no attribute arc",
+        },
+    )
+
+    assert comparison["measurable_progress"] is True
+    assert "execution_diagnostic_changed" in comparison["progress_reasons"]
 
 
 def test_l3_progress_requires_fewer_failures_without_protected_regression() -> None:
@@ -293,6 +311,61 @@ def test_l2_envelope_preserves_source_contract_output_policy_and_topology_measur
     assert envelope["design_contract"] == contract
     assert envelope["design_contract"]["outputs"] == contract["outputs"]
     assert envelope["topology_result"] == topology
+
+
+def test_repair_envelope_identifies_execution_failure_and_preserved_outputs() -> None:
+    contract = {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "outputs": [
+            {"output_id": "base", "required": True, "expected_solid_count": 1, "allow_disconnected_solids": False},
+            {"output_id": "lid", "required": True, "expected_solid_count": 1, "allow_disconnected_solids": False},
+        ],
+    }
+    topology = {
+        "valid": False,
+        "outputs": {
+            "base": {"output_id": "base", "valid": True, "detected_solid_count": 1, "expected_solid_count": 1},
+            "lid": {"output_id": "lid", "valid": False, "detected_solid_count": None, "expected_solid_count": 1},
+        },
+    }
+    worker = {
+        "phase": "build_function",
+        "execution_diagnostics": {
+            "active_phase": "build_function",
+            "failure_operation": "chamfer",
+            "failure_exception_type": "StdFail_NotDone",
+            "failure_message": "BRep_API: command not done",
+        },
+    }
+    history = [{"source_hash": "topology-1", "topology_result": topology}]
+
+    envelope = build_executable_cadquery_repair_envelope(
+        repair_level="L2",
+        generation_session_id="session-1",
+        logical_operation_id="operation-2",
+        parent_operation_id="operation-1",
+        repair_ordinal=1,
+        previous_source="complete prior source",
+        previous_source_hash="source-hash",
+        previous_result_hash="result-hash",
+        design_contract=contract,
+        worker_result=worker,
+        topology_result=topology,
+        repair_history=history,
+    )
+
+    assert envelope["previous_complete_source"] == "complete prior source"
+    assert envelope["expected_output_policy"] == [
+        {"output_id": "base", "required": True, "expected_solid_count": 1, "allow_disconnected_solids": False},
+        {"output_id": "lid", "required": True, "expected_solid_count": 1, "allow_disconnected_solids": False},
+    ]
+    assert envelope["topology_attempt_history"] == history
+    assert envelope["failing_output_ids"] == ["lid"]
+    assert envelope["preserved_valid_output_ids"] == ["base"]
+    assert envelope["execution_diagnostic"] == worker["execution_diagnostics"]
+    assert envelope["replacement_instruction"] == (
+        "Return one complete replacement implementation; do not return a patch, excerpt, or construction strategy."
+    )
 
 
 def test_protected_fact_regression_is_immediate_stop() -> None:

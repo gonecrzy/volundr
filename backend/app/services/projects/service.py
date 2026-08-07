@@ -1489,6 +1489,8 @@ class ProjectService:
         source_hash: str,
         parameter_hash: str,
         parameter_values: dict[str, Any],
+        execution_diagnostics: dict[str, Any] | None = None,
+        execution_timing: dict[str, Any] | None = None,
     ) -> Path:
         revision_dir = self._revision_dir(revision.project_id, revision.id)
         outputs = list(
@@ -1530,6 +1532,32 @@ class ProjectService:
                 for output in outputs
             ],
         }
+        if isinstance(execution_diagnostics, dict):
+            payload["diagnostics"] = {
+                key: value
+                for key, value in execution_diagnostics.items()
+                if key in {
+                    "active_phase",
+                    "active_output_id",
+                    "active_function",
+                    "active_operation",
+                    "last_completed_operation",
+                    "last_started_incomplete_operation",
+                    "failure_phase",
+                    "failure_operation",
+                    "failure_exception_type",
+                    "failure_message",
+                    "failure_source_function",
+                    "failure_source_line",
+                    "completed_output_ids",
+                    "incomplete_output_ids",
+                    "per_output_results",
+                    "source_hash",
+                }
+                and value is not None
+            }
+        if isinstance(execution_timing, dict):
+            payload["execution_timing"] = execution_timing
         path = revision_dir / "execution-manifest.json"
         self._write_json(path, payload)
         return path
@@ -11949,6 +11977,17 @@ class ProjectService:
         revision.source_path = self._relative(source_path)
         revision.source_hash = source_hash
         revision.source_contract_version = "cadquery-v1"
+        if execution_manifest_relative_path is None:
+            execution_manifest_relative_path = self._relative(
+                self._write_revision_execution_manifest(
+                    revision=revision,
+                    source_hash=source_hash,
+                    parameter_hash=parameter_hash,
+                    parameter_values=compile_parameter_values,
+                    execution_diagnostics=getattr(result, "execution_diagnostics", None),
+                    execution_timing=getattr(result, "execution_timing", None),
+                )
+            )
         revision.execution_manifest_path = execution_manifest_relative_path
         revision.ai_output_path = ai_output_relative_path
         revision.compile_log_path = self._relative(compile_log_path)

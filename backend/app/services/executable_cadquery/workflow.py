@@ -608,6 +608,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     "phase": "completed" if revision.status == "succeeded" else "failed",
                     "output_ids": [item.output_id for item in revision.outputs],
                     "revision_id": revision.id,
+                    "execution_diagnostics": self._persisted_worker_diagnostics(revision),
                 }
                 topology_by_output = {
                     item.output_id: self._json(item.topology_metadata_json)
@@ -631,15 +632,25 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         self.data_dir,
                         revision_output.stl_path,
                     )
+                persisted_worker_failure = self._persisted_worker_failure(revision)
                 topology_invalid = topology_result.get("valid") is False
-                if topology_invalid:
+                if persisted_worker_failure is not None:
+                    failure_boundary, failure_class = persisted_worker_failure
+                    worker_diagnostics = self._persisted_worker_diagnostics(revision)
+                    provider_attempt["diagnostic"] = worker_diagnostics
+                    normalized_error = safe_diagnostic(
+                        str(
+                            worker_diagnostics.get("failure_message")
+                            or worker_diagnostics.get("message")
+                            or ""
+                        )
+                    ) or None
+                elif topology_invalid:
                     failure_boundary = "topology"
                     topology_evidence = topology_result
                     if len(topology_by_output) == 1:
                         topology_evidence = next(iter(topology_by_output.values()), topology_result)
                     failure_class = classify_executable_failure("topology", topology_evidence)
-                elif (worker_failure := self._persisted_worker_failure(revision)) is not None:
-                    failure_boundary, failure_class = worker_failure
                 elif output is None or len(stl_paths) != len(revision.outputs):
                     failure_boundary = "artifact"
                     failure_class = classify_executable_failure("artifact", {"stl_failure": True})
@@ -727,7 +738,21 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             diagnostic_signature = json.dumps(
                 {
                     key: diagnostic.get(key)
-                    for key in ("code", "line", "column", "node_type", "enclosing_scope", "message")
+                    for key in (
+                        "code",
+                        "line",
+                        "column",
+                        "node_type",
+                        "enclosing_scope",
+                        "message",
+                        "active_phase",
+                        "failure_phase",
+                        "failure_operation",
+                        "failure_exception_type",
+                        "failure_message",
+                        "failure_source_function",
+                        "failure_source_line",
+                    )
                 },
                 sort_keys=True,
             )
@@ -1113,7 +1138,12 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             return None
 
         phase = str(diagnostics.get("active_phase") or "").lower()
-        message = str(diagnostics.get("message") or "")
+        message = str(
+            diagnostics.get("failure_message")
+            or diagnostics.get("message")
+            or ""
+        )
+        exception_type = str(diagnostics.get("failure_exception_type") or "")
         if phase in {"build_function", "module_import", "source_execution", "execution"}:
             exception_match = re.search(
                 r"\b([A-Za-z_][A-Za-z0-9_]*(?:Error|Exception))\b",
@@ -1121,7 +1151,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             )
             evidence = {
                 "message": safe_diagnostic(message),
-                "exception_type": exception_match.group(1) if exception_match else None,
+                "exception_type": exception_type or (exception_match.group(1) if exception_match else None),
             }
             return (
                 "execution",
@@ -1151,6 +1181,17 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 ),
             )
         return None
+
+    def _persisted_worker_diagnostics(self, revision: Revision) -> dict[str, Any]:
+        manifest_path = self._resolve_optional(getattr(revision, "execution_manifest_path", None))
+        if manifest_path is None:
+            return {}
+        try:
+            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {}
+        diagnostics = payload.get("diagnostics") if isinstance(payload, Mapping) else None
+        return dict(diagnostics) if isinstance(diagnostics, Mapping) else {}
 
     def _reevaluate_revision_evidence(
         self,
@@ -1183,6 +1224,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             "phase": "completed" if revision.status == "succeeded" else "failed",
             "output_ids": [item.output_id for item in outputs],
             "revision_id": revision.id,
+            "execution_diagnostics": self._persisted_worker_diagnostics(revision),
         }
         stl_paths: dict[str, Path] = {}
         for output in outputs:
@@ -1198,7 +1240,14 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         failure_class: str
         diagnostic: dict[str, Any] = {}
         normalized_error: str | None = None
-        if topology_result.get("valid") is False:
+        persisted_worker_failure = self._persisted_worker_failure(revision)
+        if persisted_worker_failure is not None:
+            failure_boundary, failure_class = persisted_worker_failure
+            diagnostic = self._persisted_worker_diagnostics(revision)
+            normalized_error = safe_diagnostic(
+                str(diagnostic.get("failure_message") or diagnostic.get("message") or "")
+            ) or None
+        elif topology_result.get("valid") is False:
             failure_boundary = "topology"
             topology_evidence: Mapping[str, Any] = topology_result
             for item in topology_by_output.values():
@@ -1206,8 +1255,6 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     topology_evidence = item
                     break
             failure_class = classify_executable_failure("topology", topology_evidence)
-        elif (worker_failure := self._persisted_worker_failure(revision)) is not None:
-            failure_boundary, failure_class = worker_failure
         elif not outputs or len(stl_paths) != len(outputs):
             failure_boundary = "artifact"
             failure_class = classify_executable_failure("artifact", {"stl_failure": True})

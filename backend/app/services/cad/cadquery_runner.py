@@ -506,6 +506,12 @@ class CadQueryCliRunner:
             ),
             "last_completed_operation": state.get("last_completed_operation"),
             "last_started_incomplete_operation": state.get("last_started_incomplete_operation"),
+            "failure_phase": state.get("failure_phase"),
+            "failure_operation": state.get("failure_operation"),
+            "failure_exception_type": state.get("failure_exception_type"),
+            "failure_message": state.get("failure_message"),
+            "failure_source_function": state.get("failure_source_function"),
+            "failure_source_line": state.get("failure_source_line"),
             "completed_output_ids": completed_output_ids,
             "incomplete_output_ids": incomplete_output_ids,
             "per_output_results": per_output,
@@ -698,6 +704,7 @@ _CADQUERY_RUNNER_SOURCE = """
 import hashlib
 import importlib.util
 import json
+import re
 import resource
 import signal
 import sys
@@ -750,6 +757,45 @@ def _write_diagnostic_state():
         tmp_path.replace(_DIAGNOSTIC_STATE_PATH)
     except OSError:
         pass
+
+
+def _safe_exception_message(exc):
+    message = " ".join(str(exc).split())
+    message = re.sub(
+        r"(?i)(?:GEMINI_API_KEY_2|GEMINI_API_KEY|api[_-]?key|authorization|token)\\s*[=:]\\s*[^\\s,;]+",
+        "[redacted]",
+        message,
+    )
+    message = re.sub(r"(?i)(?:/root/|/home/|/users/|[A-Za-z]:[\\/])[^\\s,;]+", "[path]", message)
+    return message[:800]
+
+
+def _record_failure(exc):
+    if _DIAGNOSTIC_STATE.get("failure_exception_type"):
+        return
+    source_frame = None
+    traceback = exc.__traceback__
+    while traceback is not None:
+        frame = traceback.tb_frame
+        if frame.f_globals.get("__name__") == "volundr_generated_model":
+            source_frame = frame
+        traceback = traceback.tb_next
+    stack_frame = sys._getframe()
+    while stack_frame is not None:
+        if stack_frame.f_globals.get("__name__") == "volundr_generated_model":
+            source_frame = stack_frame
+            break
+        stack_frame = stack_frame.f_back
+    operation = _ACTIVE_OPERATION if isinstance(_ACTIVE_OPERATION, dict) else {}
+    _DIAGNOSTIC_STATE.update({
+        "failure_phase": _DIAGNOSTIC_STATE.get("active_phase"),
+        "failure_operation": operation.get("name"),
+        "failure_exception_type": type(exc).__name__,
+        "failure_message": _safe_exception_message(exc),
+        "failure_source_function": source_frame.f_code.co_name if source_frame is not None else _DIAGNOSTIC_STATE.get("active_function"),
+        "failure_source_line": source_frame.f_lineno if source_frame is not None else None,
+    })
+    _write_diagnostic_state()
 
 
 def _set_phase(phase):
@@ -1020,6 +1066,9 @@ def _install_operation_timing():
                 result = _original(self, *args, **kwargs)
                 after = _shape_complexity(result) if _name in _COUNTED_OPERATION_NAMES else None
                 return result
+            except Exception as exc:
+                _record_failure(exc)
+                raise
             finally:
                 elapsed_ms = round((time.perf_counter() - started) * 1000, 3)
                 completed = {
@@ -1128,6 +1177,9 @@ def main() -> int:
         _set_phase("output_materialization")
         outputs = _execute_product_outputs(product, requested_outputs, output_dir)
         _complete_phase("output_materialization")
+    except Exception as exc:
+        _record_failure(exc)
+        raise
     finally:
         sys.setprofile(None)
         _restore_operation_timing(originals)
