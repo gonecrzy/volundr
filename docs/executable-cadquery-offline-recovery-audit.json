@@ -1,0 +1,178 @@
+{
+  "schema_version": "executable-cadquery-offline-recovery-audit-v1",
+  "cycle": "credential-freeze-and-offline-recovery-audit",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "credential_commit": "e4b2b9e",
+  "credential_work_frozen": true,
+  "phase2_started": false,
+  "gemini_calls_in_this_cycle": 0,
+  "preserved_findings": {
+    "hard_coded_contract_fallback_discovery": {
+      "severity": "major_application_defect",
+      "status": "preserved",
+      "evidence": "docs/executable-cadquery-recovery-cycle-01.json"
+    },
+    "original_wrong_package_review": {
+      "status": "blind_FAIL_preserved",
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/project-01-independent-review.json"
+    },
+    "project_01_second_review": {
+      "status": "guided_adjudication",
+      "blind": false,
+      "independent_status": "PASS via deterministic neutral B-Rep measurement",
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-contract-project-01/neutral-measurement-report.json"
+    },
+    "contract_manifest_injection": "qualification-harness mechanism only; not the intended product contract source"
+  },
+  "project_03_offline_recovery": {
+    "status": "blocked_without_geometry_change",
+    "historical_application_classification": {
+      "failure_class": "stl_export_failure",
+      "observed_boundary": "artifact",
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-wave-01/live-api-key1-contract-project-03/project-03-result.json"
+    },
+    "latest_worker_evidence": {
+      "source_hash": "9673b3de2482d2daf6065373c5c8fe3a45cd65083309e9c91a32c1b386a6fe4d",
+      "active_phase": "build_function",
+      "failure": "AttributeError: Workplane has no attribute arc",
+      "output_status": "not_attempted",
+      "artifacts": []
+    },
+    "frozen_geometry_evidence": {
+      "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
+      "active_phase": "topology_analysis",
+      "failure": "output shape is invalid",
+      "detected_solid_count": 1,
+      "expected_solid_count": 1,
+      "volume_mm3": 0.0000171814351049,
+      "bounding_box_mm": {"size_x": 10.0, "size_y": 10.0, "size_z": 6.0},
+      "artifacts": []
+    },
+    "boundary_result": "The historical artifact label is an application defect for the latest run; worker evidence proves source/execution causality. No valid existing B-Rep was found.",
+    "application_fix": "Persisted worker active phase now takes precedence over inferred missing-export evidence.",
+    "artifact_regeneration": "not performed; no valid existing geometry",
+    "package_generation": "not performed",
+    "independent_review": "not run; no final package",
+    "provider_convergence": "not assigned"
+  },
+  "l2_topology_audit": {
+    "repair_level": "L2",
+    "ceiling_before_and_after": 2,
+    "ceiling_raise_justified": false,
+    "envelope_schema": "executable-cadquery-repair-envelope-v1",
+    "historical_full_envelope_persisted_in_compact_project_records": false,
+    "current_builder_proves_fields": [
+      "previous_complete_source",
+      "previous_source_hash",
+      "previous_result_hash",
+      "design_contract",
+      "design_contract.outputs expected output policy",
+      "topology_result precise measurements when worker supplied them",
+      "worker_result",
+      "semantic_result",
+      "protected_facts",
+      "repair_history",
+      "prior_provider_response",
+      "prior_normalized_error",
+      "requested_delta"
+    ],
+    "prompt_changed": false,
+    "projects": {
+      "project-02": {
+        "ownership": "solid-count/topology blocker",
+        "failure_class": "solid_count_mismatch",
+        "first_unresolved_boundary": "topology",
+        "worker_boundary_healthy": true,
+        "attempts": [
+          {
+            "ordinal": 1,
+            "source_hash": "9de125adf814cbbbc6cba2a9903bf5ad4d3b7307e367a5298defe188689a9b5a",
+            "normalized_failure_in_project_record": null,
+            "topology": {"valid": false, "detected_solid_count": 5, "expected_solid_count": 1, "shell_count": 5, "volume_mm3": 0.0, "bounding_box_mm": {"size_x": 82.4621125124, "size_y": 2.5, "size_z": 82.4621125124}},
+            "source_changed_from_prior_attempt": true,
+            "objective_topology_progress": false
+          },
+          {
+            "ordinal": 2,
+            "source_hash": "9ab9c0612a0a0dd29fd5a4b8d25259df609d45cc04e2b54c0d067ec5ff5059bf",
+            "normalized_failure_in_project_record": null,
+            "topology": {"valid": false, "detected_solid_count": 14, "expected_solid_count": 1, "shell_count": 39, "volume_mm3": -3652.1014597981, "bounding_box_mm": {"size_x": 82.4621125124, "size_y": 35.0, "size_z": 82.4621125124}},
+            "source_changed_from_prior_attempt": true,
+            "objective_topology_progress": false
+          }
+        ],
+        "terminal_reason": "repair_ceiling_exhausted_without_objective_progress",
+        "provider_convergence": "not assigned"
+      },
+      "project-04": {
+        "ownership": "invalid-topology blocker",
+        "failure_class": "invalid_shape",
+        "first_unresolved_boundary": "topology",
+        "worker_boundary_healthy": true,
+        "attempts": [
+          {
+            "ordinal": 1,
+            "source_hash": "1c8c6ec773c45301aa6a4bf07ab6d5814a3f8d68ec792f9f264662520db3ef20",
+            "normalized_failure_in_project_record": null,
+            "topology": {
+              "enclosure_base": {"valid": true, "detected_solid_count": 1, "expected_solid_count": 1, "volume_mm3": 36457.05115136924, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 21.9}},
+              "enclosure_lid": {"valid": false, "status": "invalid_shape", "precise_metrics": null}
+            },
+            "source_changed_from_prior_attempt": true,
+            "objective_topology_progress": false
+          },
+          {
+            "ordinal": 2,
+            "source_hash": "db15bc8a8a3855db842cf0ce25397af1156441f0ab632103c831d5cb62cf1161",
+            "normalized_failure_in_project_record": null,
+            "topology": {
+              "enclosure_base": {"valid": true, "detected_solid_count": 1, "expected_solid_count": 1, "volume_mm3": 30275.32548525156, "bounding_box_mm": {"size_x": 80.0, "size_y": 60.0, "size_z": 20.4}},
+              "enclosure_lid": {"valid": false, "status": "invalid_shape", "precise_metrics": null}
+            },
+            "source_changed_from_prior_attempt": true,
+            "objective_topology_progress": false
+          }
+        ],
+        "terminal_reason": "repair_ceiling_exhausted_without_objective_progress",
+        "provider_convergence": "not assigned"
+      },
+      "project-05": {
+        "ownership": "invalid-topology blocker",
+        "failure_class": "invalid_shape",
+        "first_unresolved_boundary": "topology",
+        "worker_boundary_healthy": false,
+        "attempts": [
+          {
+            "ordinal": 2,
+            "source_hash": "e341db213b7e762c2f6daa947fbddad827ca9d63ce19fbbb3fd37853e9397c56",
+            "normalized_failure_in_project_record": null,
+            "worker_phase": "build_function",
+            "worker_failure": "OCP.OCP.StdFail.StdFail_NotDone: BRep_API: command not done",
+            "topology_metrics": null,
+            "source_changed_from_prior_attempt": true,
+            "objective_topology_progress": false
+          },
+          {
+            "ordinal": 3,
+            "source_hash": "264453b035fa079970bfc99ab554f69e97d10652a014e7cbf3764819d499acea",
+            "normalized_failure_in_project_record": null,
+            "worker_phase": "build_function",
+            "worker_failure": "OCP.OCP.StdFail.StdFail_NotDone: BRep_API: command not done",
+            "topology_metrics": null,
+            "source_changed_from_prior_attempt": true,
+            "objective_topology_progress": false
+          }
+        ],
+        "terminal_reason": "bounded_L2_exhausted_without_topology_evidence; worker_boundary_not_proven_healthy",
+        "provider_convergence": "not assigned"
+      }
+    }
+  },
+  "final_matrix": {
+    "project-01": "independent PASS by deterministic neutral B-Rep; guided adjudication retained as non-blind",
+    "project-02": "blocked: solid-count/topology; L2 2/2, no objective progress; no package review",
+    "project-03": "blocked: no valid existing geometry; historical artifact misclassification fixed; no artifact/package review",
+    "project-04": "blocked: invalid topology; L2 2/2, no objective progress; no package review",
+    "project-05": "blocked: invalid-topology ownership retained; L2 2/2, no objective progress, worker boundary unhealthy; no package review"
+  }
+}

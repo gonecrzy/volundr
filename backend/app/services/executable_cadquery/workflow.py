@@ -638,6 +638,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     if len(topology_by_output) == 1:
                         topology_evidence = next(iter(topology_by_output.values()), topology_result)
                     failure_class = classify_executable_failure("topology", topology_evidence)
+                elif (worker_failure := self._persisted_worker_failure(revision)) is not None:
+                    failure_boundary, failure_class = worker_failure
                 elif output is None or len(stl_paths) != len(revision.outputs):
                     failure_boundary = "artifact"
                     failure_class = classify_executable_failure("artifact", {"stl_failure": True})
@@ -1090,6 +1092,66 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         path = self._resolve_optional(revision.source_path)
         return path.read_text(encoding="utf-8") if path is not None else None
 
+    def _persisted_worker_failure(self, revision: Revision) -> tuple[str, str] | None:
+        """Classify the worker's first failed phase before inferring export loss.
+
+        A failed output with no STL is not by itself an export failure: the CAD
+        worker may have failed while importing or building the source, or while
+        validating topology. The worker's persisted execution manifest is the
+        authoritative boundary evidence when it exists.
+        """
+
+        manifest_path = self._resolve_optional(getattr(revision, "execution_manifest_path", None))
+        if manifest_path is None:
+            return None
+        try:
+            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        diagnostics = payload.get("diagnostics") if isinstance(payload, Mapping) else None
+        if not isinstance(diagnostics, Mapping):
+            return None
+
+        phase = str(diagnostics.get("active_phase") or "").lower()
+        message = str(diagnostics.get("message") or "")
+        if phase in {"build_function", "module_import", "source_execution", "execution"}:
+            exception_match = re.search(
+                r"\b([A-Za-z_][A-Za-z0-9_]*(?:Error|Exception))\b",
+                message,
+            )
+            evidence = {
+                "message": safe_diagnostic(message),
+                "exception_type": exception_match.group(1) if exception_match else None,
+            }
+            return (
+                "execution",
+                classify_executable_failure("execution", evidence),
+            )
+        if phase == "topology_analysis":
+            per_output = diagnostics.get("per_output_results")
+            statuses = (
+                [str(item.get("status") or "").lower() for item in per_output.values()]
+                if isinstance(per_output, Mapping)
+                else []
+            )
+            if any(status in {"invalid_shape", "solid_count_mismatch"} for status in statuses):
+                return (
+                    "topology",
+                    classify_executable_failure(
+                        "topology",
+                        {"invalid": True, "message": safe_diagnostic(message)},
+                    ),
+                )
+        if phase in {"artifact_export", "stl_export", "step_export", "artifact"}:
+            return (
+                "artifact",
+                classify_executable_failure(
+                    "artifact",
+                    {"stl_failure": "stl" in phase, "step_failure": "step" in phase},
+                ),
+            )
+        return None
+
     def _reevaluate_revision_evidence(
         self,
         revision: Revision,
@@ -1144,6 +1206,8 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     topology_evidence = item
                     break
             failure_class = classify_executable_failure("topology", topology_evidence)
+        elif (worker_failure := self._persisted_worker_failure(revision)) is not None:
+            failure_boundary, failure_class = worker_failure
         elif not outputs or len(stl_paths) != len(outputs):
             failure_boundary = "artifact"
             failure_class = classify_executable_failure("artifact", {"stl_failure": True})

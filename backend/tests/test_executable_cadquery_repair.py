@@ -250,6 +250,51 @@ def test_l0_envelope_contains_dialect_skeleton_and_full_contract() -> None:
     assert envelope["prior_provider_response"] == "complete prior response"
 
 
+def test_l2_envelope_preserves_source_contract_output_policy_and_topology_measurements() -> None:
+    contract = {
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "outputs": [
+            {
+                "output_id": "body",
+                "required": True,
+                "output_type": "printable_component",
+                "expected_solid_count": 1,
+                "allow_disconnected_solids": False,
+            }
+        ],
+        "requirements": [{"requirement_id": "body", "expected": {"volume_mm3": 100.0}}],
+        "protected_facts": [{"requirement_id": "body", "authoritative_value": {"volume_mm3": 100.0}}],
+    }
+    topology = {
+        "valid": False,
+        "detected_solid_count": 5,
+        "expected_solid_count": 1,
+        "volume_mm3": 0.0,
+        "shell_count": 5,
+        "bounding_box_mm": {"size_x": 10.0, "size_y": 20.0, "size_z": 30.0},
+    }
+
+    envelope = build_executable_cadquery_repair_envelope(
+        repair_level="L2",
+        generation_session_id="session-1",
+        logical_operation_id="operation-2",
+        parent_operation_id="operation-1",
+        repair_ordinal=1,
+        previous_source="import cadquery as cq\ncomplete source",
+        previous_source_hash="source-hash",
+        previous_result_hash="result-hash",
+        design_contract=contract,
+        worker_result={"phase": "completed", "output_ids": ["body"]},
+        topology_result=topology,
+        protected_facts=contract["protected_facts"],
+    )
+
+    assert envelope["previous_complete_source"] == "import cadquery as cq\ncomplete source"
+    assert envelope["design_contract"] == contract
+    assert envelope["design_contract"]["outputs"] == contract["outputs"]
+    assert envelope["topology_result"] == topology
+
+
 def test_protected_fact_regression_is_immediate_stop() -> None:
     decision = decide_executable_repair(
         repair_level="L3",

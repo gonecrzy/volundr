@@ -154,6 +154,115 @@ def test_recovery_recheck_reuses_persisted_artifacts_without_provider_work() -> 
     assert result["comparison_facts"]["completed_output_ids"] == ["mating_insert"]
 
 
+def test_recovery_recheck_preserves_build_failure_as_execution_boundary(tmp_path: Path) -> None:
+    (tmp_path / "execution-manifest.json").write_text(
+        json.dumps(
+            {
+                "diagnostics": {
+                    "active_phase": "build_function",
+                    "message": "AttributeError: Workplane has no attribute arc",
+                    "per_output_results": {
+                        "curved_cable_guide": {
+                            "status": "not_attempted",
+                        }
+                    },
+                },
+                "failure_class": "execution_failed",
+                "outputs": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    revision = SimpleNamespace(
+        id="build-failure-recheck",
+        status="failed",
+        source_path="source.py",
+        source_hash=None,
+        execution_manifest_path="execution-manifest.json",
+        outputs=[
+            SimpleNamespace(
+                output_id="curved_cable_guide",
+                execution_state="failed",
+                stl_path=None,
+                step_path=None,
+                compile_error="AttributeError: Workplane has no attribute arc",
+                topology_metadata_json=None,
+            )
+        ],
+    )
+
+    class FakeDb:
+        def get(self, _model, revision_id):
+            return revision if revision_id == revision.id else None
+
+    service = ExecutableCadQueryWorkflowService(db=FakeDb(), data_dir=tmp_path)
+    result = service._reevaluate_revision_evidence(
+        revision,
+        {
+            "outputs": [{"output_id": "curved_cable_guide", "expected_solid_count": 1}],
+            "requirements": [],
+        },
+    )
+
+    assert result["failure_boundary"] == "execution"
+    assert result["failure_class"] == "cadquery_api_error"
+
+
+def test_recovery_recheck_preserves_topology_failure_from_worker_phase(tmp_path: Path) -> None:
+    (tmp_path / "execution-manifest.json").write_text(
+        json.dumps(
+            {
+                "diagnostics": {
+                    "active_phase": "topology_analysis",
+                    "message": "output shape is invalid",
+                    "per_output_results": {
+                        "enclosure_lid": {
+                            "status": "invalid_shape",
+                            "compile_error": "output shape is invalid",
+                        }
+                    },
+                },
+                "failure_class": "execution_failed",
+                "outputs": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    revision = SimpleNamespace(
+        id="topology-failure-recheck",
+        status="failed",
+        source_path="source.py",
+        source_hash=None,
+        execution_manifest_path="execution-manifest.json",
+        outputs=[
+            SimpleNamespace(
+                output_id="enclosure_lid",
+                execution_state="failed",
+                stl_path=None,
+                step_path=None,
+                compile_error="output shape is invalid",
+                topology_metadata_json=None,
+            )
+        ],
+    )
+
+    class FakeDb:
+        def get(self, _model, revision_id):
+            return revision if revision_id == revision.id else None
+
+    service = ExecutableCadQueryWorkflowService(db=FakeDb(), data_dir=tmp_path)
+    result = service._reevaluate_revision_evidence(
+        revision,
+        {
+            "outputs": [{"output_id": "enclosure_lid", "expected_solid_count": 1}],
+            "requirements": [],
+        },
+    )
+
+    assert result["failure_boundary"] == "topology"
+    assert result["failure_class"] == "invalid_shape"
+
+
 def test_package_failure_persists_retry_before_existing_package_service() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     workflow = SimpleNamespace(
