@@ -19,7 +19,9 @@
     "credential_work_frozen_at_e4b2b9e",
     "phase_2_not_started",
     "authoritative_playbook_materialized_and_read",
-    "offline_replay_worker_boundary_regression_passed"
+    "offline_replay_worker_boundary_regression_passed",
+    "full_backend_current_1402_passed",
+    "compose_resolved_credentials_and_worker_boundary_verified"
   ],
   "blocked_gates": [
     {
@@ -34,7 +36,7 @@
     "REVIEW_QUEUE": [],
     "TERMINAL_QUEUE": ["project-02", "project-04"]
   },
-  "application_fix_count": 2,
+  "application_fix_count": 3,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 0,
     "new_calls_in_current_checkpoint": 0
@@ -50,7 +52,7 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "55f7837c7bd2a7366ae43d4015e5fda04342ba7d",
+  "latest_substantive_commit": "9c238a27ffe08a38588f3fb94d48de171c7186d5",
   "evidence": {
     "compact_recovery_audit": "docs/executable-cadquery-offline-recovery-audit.json",
     "credential_freeze": "e4b2b9e",
