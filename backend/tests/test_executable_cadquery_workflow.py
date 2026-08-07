@@ -208,6 +208,119 @@ def test_recovery_recheck_preserves_build_failure_as_execution_boundary(tmp_path
     assert result["failure_class"] == "cadquery_api_error"
 
 
+def test_persisted_execution_seed_preserves_source_and_worker_diagnostics(tmp_path: Path) -> None:
+    diagnostics = {
+        "active_phase": "build_function",
+        "failure_operation": "chamfer",
+        "failure_exception_type": "StdFail_NotDone",
+        "failure_message": "BRep_API: command not done",
+    }
+    revision = SimpleNamespace(
+        id="persisted-revision",
+        source_hash="source-hash",
+    )
+
+    seed, comparison_facts = ExecutableCadQueryWorkflowService._build_persisted_execution_seed(
+        revision=revision,
+        failure_boundary="execution",
+        failure_class="cadquery_api_error",
+        diagnostics=diagnostics,
+    )
+
+    assert seed["repair_level"] == "initial"
+    assert seed["source_hash"] == "source-hash"
+    assert seed["worker_result"]["execution_diagnostics"] == diagnostics
+    assert seed["topology_result"] == {}
+    assert comparison_facts["failure_signature"] == "BRep_API: command not done"
+    assert "chamfer" in comparison_facts["diagnostic_signature"]
+
+
+@pytest.mark.asyncio
+async def test_persisted_execution_recovery_commits_router_decision_before_ladder(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    manifest_path = tmp_path / "execution-manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "diagnostics": {
+                    "active_phase": "build_function",
+                    "failure_operation": "chamfer",
+                    "failure_exception_type": "StdFail_NotDone",
+                    "failure_message": "BRep_API: command not done",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    revision = SimpleNamespace(
+        id="persisted-recovery-revision",
+        source_hash="persisted-source-hash",
+        execution_manifest_path="execution-manifest.json",
+    )
+    contract = dict(FROZEN_MOUNTING_BRACKET_CONTRACT)
+    workflow = SimpleNamespace(
+        id="persisted-recovery-workflow",
+        project_id="persisted-recovery-project",
+        revision_id=revision.id,
+        provenance_json=json.dumps({"executable_design_contract": contract}),
+        diagnostics_json="{}",
+        failure_boundary=None,
+        state="failed",
+        state_version=1,
+    )
+
+    class FakeDb:
+        def __init__(self) -> None:
+            self.commit_count = 0
+
+        def get(self, _model, _identifier):
+            return revision
+
+        def commit(self) -> None:
+            self.commit_count += 1
+
+    db = FakeDb()
+    service = ExecutableCadQueryWorkflowService(db=db, data_dir=tmp_path)
+    operation = SimpleNamespace(
+        id="persisted-recovery-operation",
+        status="started",
+        workflow_id=workflow.id,
+    )
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(settings, "executable_cadquery_flow_enabled", True)
+    service._get = lambda _workflow_id: workflow
+    service.read = lambda _workflow_id: workflow
+    service._begin_operation = lambda *args, **kwargs: operation
+
+    async def fake_ladder(workflow_arg, contract_arg, **kwargs):
+        persisted = json.loads(workflow_arg.provenance_json)
+        captured["decision"] = persisted["recovery_decisions"][-1]
+        captured["execution"] = persisted["recovery_executions"][-1]
+        captured["contract"] = contract_arg
+        captured["kwargs"] = kwargs
+        return workflow_arg
+
+    service._generate_with_repair_ladder = fake_ladder
+
+    result = await service.recover_persisted_execution_failure(workflow.id)
+
+    assert result is workflow
+    assert db.commit_count >= 2
+    assert captured["decision"]["recommended_action"] == "gemini_execution_repair"
+    assert captured["decision"]["observation"]["evidence"]["recovery_operation_id"] == operation.id
+    assert captured["execution"]["status"] == "dispatching"
+    assert captured["kwargs"]["parent_revision_id"] == revision.id
+    assert captured["kwargs"]["starting_level"] == "L1"
+    assert captured["kwargs"]["provider_operation_limit"] == 1
+    assert captured["kwargs"]["initial_history"][0]["source_hash"] == revision.source_hash
+    assert captured["kwargs"]["initial_history"][0]["worker_result"]["execution_diagnostics"]["failure_operation"] == "chamfer"
+    assert captured["contract"]["outputs"] == contract["outputs"]
+    assert operation.status == "completed"
+
+
 def test_recovery_recheck_preserves_topology_failure_from_worker_phase(tmp_path: Path) -> None:
     (tmp_path / "execution-manifest.json").write_text(
         json.dumps(

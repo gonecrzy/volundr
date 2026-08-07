@@ -3,8 +3,8 @@
   "current_phase": "phase_0_existing_five_project_recovery",
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "312a8600c2f7a9e9472173a82d1a0540bc2c766f",
-  "origin_experimental_head": "312a8600c2f7a9e9472173a82d1a0540bc2c766f",
+  "experimental_head": "62847eb610e44c3bad015b84ba9c6a4ede9055de",
+  "origin_experimental_head": "62847eb610e44c3bad015b84ba9c6a4ede9055de",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "worktree_status": "clean_at_checkpoint",
@@ -21,7 +21,15 @@
     "authoritative_playbook_materialized_and_read",
     "offline_replay_worker_boundary_regression_passed",
     "full_backend_current_1402_passed",
-    "compose_resolved_credentials_and_worker_boundary_verified"
+    "compose_resolved_credentials_and_worker_boundary_verified",
+    "structured_execution_diagnostics_persisted_on_output_retry",
+    "durable_persisted_execution_recovery_handoff_tested",
+    "full_backend_current_1405_passed",
+    "full_frontend_current_104_passed",
+    "frontend_production_build_current_passed",
+    "offline_browser_suite_current_22_passed_15_skipped",
+    "migration_upgrade_downgrade_upgrade_check_current_passed",
+    "compose_nginx_secret_boundary_current_passed"
   ],
   "blocked_gates": [
     {
@@ -36,7 +44,7 @@
     "REVIEW_QUEUE": [],
     "TERMINAL_QUEUE": ["project-02", "project-04"]
   },
-  "application_fix_count": 3,
+  "application_fix_count": 5,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 0,
     "new_calls_in_current_checkpoint": 0
@@ -52,11 +60,18 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "9c238a27ffe08a38588f3fb94d48de171c7186d5",
+  "latest_substantive_commit": "62847eb610e44c3bad015b84ba9c6a4ede9055de",
   "evidence": {
     "compact_recovery_audit": "docs/executable-cadquery-offline-recovery-audit.json",
     "credential_freeze": "e4b2b9e",
     "backend_baseline": "1401 passed",
-    "frontend_baseline": "104 passed"
+    "frontend_baseline": "104 passed",
+    "backend_current": "1405 passed, 1 warning",
+    "frontend_current": "104 passed; production build passed",
+    "offline_browser_current": "22 passed, 15 skipped",
+    "migrations_current": "0039_align_fresh_database_schema; alembic check clean",
+    "boundary_current": "Compose, nginx, and tracked-source secret scan passed",
+    "execution_diagnostics_regression": "backend/tests/test_executable_cadquery_worker_integration.py::test_output_retry_persists_structured_execution_diagnostics",
+    "durable_recovery_regression": "backend/tests/test_executable_cadquery_workflow.py::test_persisted_execution_recovery_commits_router_decision_before_ladder"
   }
 }

@@ -12653,6 +12653,8 @@ class ProjectService:
                 source_hash=expected_hash,
                 parameter_hash=parameter_hash,
                 parameter_values=parameter_values,
+                execution_diagnostics=getattr(result, "execution_diagnostics", None),
+                execution_timing=getattr(result, "execution_timing", None),
             )
         )
         revision.compile_log_path = self._relative(

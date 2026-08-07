@@ -389,6 +389,199 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             self.db.commit()
             return result
 
+    async def recover_persisted_execution_failure(
+        self,
+        workflow_id: str,
+        *,
+        idempotency_key: str | None = None,
+        provider_operation_limit: int = 1,
+    ):
+        """Resume a durable worker failure through the existing repair ladder.
+
+        The persisted worker manifest is the observation.  This method owns
+        the orchestration boundary: it records the router decision and a
+        dispatch checkpoint before allowing the provider ladder to run.  The
+        router itself remains policy-only, and the parent source/contract are
+        passed unchanged to the existing complete-source repair path.
+        """
+
+        self.require_enabled()
+        if provider_operation_limit < 1:
+            raise ValueError("provider_operation_limit must be positive")
+        workflow = self._get(workflow_id)
+        if workflow is None:
+            raise LookupError("validated workflow not found")
+        if workflow.revision_id is None:
+            raise ValueError("persisted execution recovery requires a revision")
+        revision = self.db.get(Revision, workflow.revision_id)
+        if revision is None:
+            raise ValueError("persisted execution recovery revision not found")
+        provenance = self._json(workflow.provenance_json)
+        contract_payload = provenance.get("executable_design_contract")
+        if not isinstance(contract_payload, Mapping):
+            raise ValueError("persisted execution recovery requires a durable design contract")
+        contract = validate_executable_cadquery_design_contract(deepcopy(dict(contract_payload)))
+        persisted_failure = self._persisted_worker_failure(revision)
+        diagnostics = self._persisted_worker_diagnostics(revision)
+        if persisted_failure is None or not diagnostics:
+            raise ValueError("persisted execution recovery requires structured worker failure evidence")
+        failure_boundary, failure_class = persisted_failure
+        operation_payload = {
+            "workflow_id": workflow.id,
+            "revision_id": revision.id,
+            "source_hash": revision.source_hash,
+            "provider_operation_limit": provider_operation_limit,
+        }
+        operation = self._begin_operation(
+            "recover_persisted_execution_failure",
+            idempotency_key,
+            operation_payload,
+            project_id=workflow.project_id,
+            workflow_id=workflow.id,
+        )
+        if operation.status in {"completed", "failed"}:
+            return self.read(workflow.id)
+
+        operation_id = str(operation.id)
+        existing_execution = next(
+            (
+                item
+                for item in provenance.get("recovery_executions", [])
+                if isinstance(item, Mapping) and item.get("operation_id") == operation_id
+            ),
+            None,
+        )
+        if isinstance(existing_execution, Mapping) and existing_execution.get("status") == "dispatching":
+            # A process may have stopped after the external call was
+            # dispatched but before its result was committed.  Do not issue a
+            # second provider operation on restart; the durable record is the
+            # safe handoff point for later reconciliation.
+            return self.read(workflow.id)
+        reuse_ready_execution = (
+            isinstance(existing_execution, Mapping)
+            and existing_execution.get("status") == "ready_to_dispatch"
+        )
+
+        seed, comparison_facts = self._build_persisted_execution_seed(
+            revision=revision,
+            failure_boundary=failure_boundary,
+            failure_class=failure_class,
+            diagnostics=diagnostics,
+        )
+        prior_attempt_ordinal = max(
+            (
+                int(
+                    item.get("observation", {}).get("attempt_ordinal") or 0
+                )
+                for item in provenance.get("recovery_decisions", [])
+                if isinstance(item, Mapping)
+                and isinstance(item.get("observation"), Mapping)
+                and item["observation"].get("failure_class") == failure_class
+            ),
+            default=0,
+        )
+        existing_decision = next(
+            (
+                item
+                for item in provenance.get("recovery_decisions", [])
+                if isinstance(item, Mapping)
+                and isinstance(item.get("observation"), Mapping)
+                and isinstance(item["observation"].get("evidence"), Mapping)
+                and item["observation"]["evidence"].get("recovery_operation_id")
+                == operation_id
+            ),
+            None,
+        )
+        if reuse_ready_execution and not isinstance(existing_decision, Mapping):
+            raise ValueError("persisted recovery dispatch checkpoint has no router decision")
+        if isinstance(existing_decision, Mapping):
+            prior_attempt_ordinal = int(
+                existing_decision["observation"].get("attempt_ordinal") or prior_attempt_ordinal
+            )
+        observation = FailureObservation(
+            observed_stage=self._recovery_router.earliest_stage(
+                failure_boundary,
+                failure_class,
+            ),
+            failure_class=failure_class,
+            evidence={
+                **comparison_facts,
+                "failure_boundary": failure_boundary,
+                "normalized_error": seed["normalized_error"],
+                "diagnostic": diagnostics,
+                "recovery_operation_id": operation_id,
+            },
+            attempt_ordinal=prior_attempt_ordinal + 1,
+            progress=seed["progress"],
+        )
+        decision = self._recovery_router.route(observation)
+        workflow.failure_boundary = failure_boundary
+        if reuse_ready_execution:
+            execution_record = dict(existing_execution)
+        else:
+            self._persist_recovery_decision(workflow, decision)
+            execution_record = {
+                "operation_id": operation_id,
+                "action": decision.recommended_action,
+                "status": "ready_to_dispatch",
+                "executed": False,
+                "provider_calls": 0,
+                "worker_calls": 0,
+                "diagnostic": seed["diagnostic"],
+                "source_hash": revision.source_hash,
+                "restart_stage": decision.restart_stage,
+                "invalidates": list(decision.invalidates),
+            }
+            self._persist_recovery_execution(workflow, execution_record)
+        operation.status = "running"
+        self.db.commit()
+
+        provider_actions = {
+            "gemini_contract_repair",
+            "gemini_execution_repair",
+            "gemini_topology_repair",
+            "gemini_semantic_repair",
+        }
+        if decision.terminal or decision.recommended_action not in provider_actions:
+            execution_record["status"] = "terminal"
+            execution_record["executed"] = False
+            self._replace_last_recovery_execution(workflow, execution_record)
+            operation.status = "failed"
+            workflow.state = "failed"
+            workflow.state_version += 1
+            self.db.commit()
+            return self.read(workflow.id)
+
+        execution_record["status"] = "dispatching"
+        execution_record["executed"] = True
+        execution_record["provider_calls"] = 1
+        self._replace_last_recovery_execution(workflow, execution_record)
+        self.db.commit()
+        self._active_workflow_id = workflow.id
+        try:
+            result = await self._generate_with_repair_ladder(
+                workflow,
+                contract,
+                requested_delta=None,
+                parent_revision_id=revision.id,
+                starting_level=decision.repair_level or "L1",
+                initial_history=[seed],
+                initial_comparison_facts=comparison_facts,
+                provider_operation_limit=provider_operation_limit,
+            )
+            execution_record["status"] = "completed"
+            self._replace_last_recovery_execution(workflow, execution_record)
+            operation.status = "completed"
+            self.db.commit()
+            return result
+        except Exception as exc:
+            execution_record["status"] = "failed"
+            execution_record["diagnostic"] = safe_diagnostic(str(exc))
+            self._replace_last_recovery_execution(workflow, execution_record)
+            operation.status = "failed"
+            self.db.commit()
+            raise
+
     def record_independent_review(
         self,
         workflow_id: str,
@@ -481,6 +674,9 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         requested_delta: str | None,
         parent_revision_id: str | None,
         starting_level: str,
+        initial_history: list[dict[str, Any]] | None = None,
+        initial_comparison_facts: Mapping[str, Any] | None = None,
+        provider_operation_limit: int | None = None,
     ):
         project = self.db.get(Project, workflow.project_id)
         if project is None:
@@ -497,14 +693,36 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 if source_path is not None:
                     previous_source = source_path.read_text(encoding="utf-8")
                     previous_source_hash = parent_revision.source_hash
-        history: list[dict[str, Any]] = []
+        history: list[dict[str, Any]] = deepcopy(initial_history or [])
         level = starting_level
         repair_ordinals = {"L0": 0, "L1": 0, "L2": 0, "L3": 0, "L4": 1 if starting_level == "L4" else 0}
+        for item in history:
+            repair_level = str(item.get("repair_level") or "")
+            if repair_level in repair_ordinals:
+                repair_ordinals[repair_level] = max(
+                    repair_ordinals[repair_level],
+                    sum(
+                        1
+                        for prior in history
+                        if str(prior.get("repair_level") or "") == repair_level
+                    ),
+                )
+        if starting_level != "initial" and repair_ordinals.get(starting_level, 0) == 0:
+            repair_ordinals[starting_level] = 1
         previous_failure_class: str | None = None
-        previous_comparison_facts: dict[str, Any] = {}
+        previous_comparison_facts: dict[str, Any] = dict(initial_comparison_facts or {})
+        if history:
+            previous_normalized_error = history[-1].get("normalized_error") or previous_normalized_error
+            previous_result_hash = history[-1].get("result_hash") or previous_result_hash
+            previous_failure_class = history[-1].get("failure_class")
         attempt_count = 0
+        provider_budget = AUTOMATIC_PROVIDER_OPERATION_BUDGET
+        if provider_operation_limit is not None:
+            if provider_operation_limit < 1:
+                raise ValueError("provider_operation_limit must be positive")
+            provider_budget = min(provider_budget, provider_operation_limit)
 
-        while attempt_count < AUTOMATIC_PROVIDER_OPERATION_BUDGET:
+        while attempt_count < provider_budget:
             attempt_count += 1
             envelope = None
             if level != "initial":
@@ -691,6 +909,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                             history=history,
                             source_hash=current_source_hash,
                             semantic_result=semantic_result,
+                            provider_budget=provider_budget,
                         )
                         self.db.commit()
                         return self.read(workflow.id)
@@ -845,7 +1064,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 and recovery_decision.repair_level is not None
                 and not recovery_decision.terminal
             )
-            if not can_execute_provider_repair or attempt_count >= AUTOMATIC_PROVIDER_OPERATION_BUDGET:
+            if not can_execute_provider_repair or attempt_count >= provider_budget:
                 recovery_execution = None
                 if not can_execute_provider_repair and not recovery_decision.terminal:
                     revision_for_recovery = self.db.get(Revision, revision_id) if revision_id else None
@@ -884,6 +1103,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                                 history=history,
                                 source_hash=previous_source_hash,
                                 semantic_result=semantic_result,
+                                provider_budget=provider_budget,
                             )
                             self.db.commit()
                             return self.read(workflow.id)
@@ -966,7 +1186,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                         diagnostic = reevaluation["diagnostic"]
                         normalized_error = reevaluation["normalized_error"]
                         comparison_facts = recheck_facts
-                if attempt_count >= AUTOMATIC_PROVIDER_OPERATION_BUDGET:
+                if attempt_count >= provider_budget:
                     terminal_reason = recovery_decision.terminal_reason or "operation_budget_exhausted"
                 elif recovery_decision.recommended_action == "require_review":
                     terminal_reason = recovery_decision.terminal_reason
@@ -981,6 +1201,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     source_hash=previous_source_hash,
                     semantic_result=semantic_result,
                     terminal_reason=terminal_reason,
+                    provider_budget=provider_budget,
                 )
                 if workflow.revision_id is None and revision_id:
                     revision = self.db.get(Revision, revision_id)
@@ -1181,6 +1402,99 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 ),
             )
         return None
+
+    @staticmethod
+    def _build_persisted_execution_seed(
+        *,
+        revision: Revision,
+        failure_boundary: str,
+        failure_class: str,
+        diagnostics: Mapping[str, Any],
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Convert persisted worker evidence into the first repair-ladder observation."""
+
+        diagnostic = dict(diagnostics)
+        normalized_error = safe_diagnostic(
+            str(
+                diagnostic.get("failure_message")
+                or diagnostic.get("message")
+                or ""
+            )
+        ) or None
+        worker_result = {
+            "phase": diagnostic.get("failure_phase") or diagnostic.get("active_phase"),
+            "output_ids": list(diagnostic.get("completed_output_ids") or []),
+            "revision_id": revision.id,
+            "execution_diagnostics": diagnostic,
+        }
+        topology_result: dict[str, Any] = {}
+        semantic_result: dict[str, Any] = {}
+        diagnostic_signature = json.dumps(
+            {
+                key: diagnostic.get(key)
+                for key in (
+                    "active_phase",
+                    "failure_phase",
+                    "failure_operation",
+                    "failure_exception_type",
+                    "failure_message",
+                    "failure_source_function",
+                    "failure_source_line",
+                )
+            },
+            sort_keys=True,
+        )
+        comparison_facts = {
+            "contract_valid": True,
+            "extracted_source_hash": revision.source_hash,
+            "diagnostic_signature": diagnostic_signature,
+            "failure_signature": normalized_error,
+            "violation_count": None,
+            "syntax_valid": True,
+            "phase_index": 0,
+            "completed_output_ids": worker_result["output_ids"],
+            "valid": None,
+            "detected_solid_count": None,
+            "expected_solid_count": None,
+            "failed_requirement_ids": [],
+            "unverifiable_requirement_ids": [],
+            "passed_requirement_ids": [],
+        }
+        seed = {
+            "operation_id": f"{revision.id}:persisted-execution-failure",
+            "attempt_number": 0,
+            "repair_level": "initial",
+            "failure_boundary": failure_boundary,
+            "failure_class": failure_class,
+            "source_hash": revision.source_hash,
+            "extracted_source_hash": revision.source_hash,
+            "raw_response_hash": None,
+            "extraction_succeeded": True,
+            "syntax_valid": True,
+            "source_contract_valid": True,
+            "diagnostic": diagnostic,
+            "result_hash": source_result_hash(
+                {
+                    "worker": worker_result,
+                    "topology": topology_result,
+                    "semantic": semantic_result,
+                }
+            ),
+            "provider_attempt": {
+                "status": "persisted_failure",
+                "diagnostic": diagnostic,
+            },
+            "normalized_error": normalized_error,
+            "worker_result": worker_result,
+            "topology_result": topology_result,
+            "semantic_result": semantic_result,
+            "progress": {
+                "measurable_progress": False,
+                "progress_result": "persisted_failure_observation",
+            },
+            "revision_id": revision.id,
+        }
+        return seed, comparison_facts
 
     def _persisted_worker_diagnostics(self, revision: Revision) -> dict[str, Any]:
         manifest_path = self._resolve_optional(getattr(revision, "execution_manifest_path", None))
@@ -1431,13 +1745,14 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         source_hash: str | None,
         semantic_result: dict[str, Any],
         terminal_reason: str | None = None,
+        provider_budget: int = AUTOMATIC_PROVIDER_OPERATION_BUDGET,
     ) -> None:
         provenance = self._json(workflow.provenance_json)
         provenance.update(
             {
                 "source_hash": source_hash,
                 "automatic_provider_operation_count": attempt_count,
-                "automatic_provider_operation_budget": 9,
+                "automatic_provider_operation_budget": provider_budget,
                 "source_dialect_version": CADQUERY_V1_SOURCE_DIALECT_VERSION,
                 "source_dialect_hash": cadquery_v1_source_dialect_hash(),
                 "source_skeleton_hash": cadquery_v1_source_skeleton_hash(),
