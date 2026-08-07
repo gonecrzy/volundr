@@ -17,7 +17,9 @@
     "frontend_production_build_passed",
     "compose_nginx_secret_boundaries_verified",
     "credential_work_frozen_at_e4b2b9e",
-    "phase_2_not_started"
+    "phase_2_not_started",
+    "authoritative_playbook_materialized_and_read",
+    "offline_replay_worker_boundary_regression_passed"
   ],
   "blocked_gates": [
     {
@@ -48,7 +50,7 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "06c37ad376f60a0a2c8a0fcf109ec5aa6b245bb0",
+  "latest_substantive_commit": "55f7837c7bd2a7366ae43d4015e5fda04342ba7d",
   "evidence": {
     "compact_recovery_audit": "docs/executable-cadquery-offline-recovery-audit.json",
     "credential_freeze": "e4b2b9e",
