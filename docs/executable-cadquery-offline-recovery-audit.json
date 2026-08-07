@@ -25,7 +25,7 @@
     "contract_manifest_injection": "qualification-harness mechanism only; not the intended product contract source"
   },
   "project_03_offline_recovery": {
-    "status": "blocked_at_worker_timeout_boundary_after_bounded_l1",
+    "status": "blocked_at_build_function_api_boundary_after_bounded_l1",
     "historical_application_classification": {
       "failure_class": "stl_export_failure",
       "observed_boundary": "artifact",
@@ -33,10 +33,10 @@
     },
     "latest_worker_evidence": {
       "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
-      "active_phase": "worker_timeout",
-      "failure": "CAD worker did not complete job within 90 seconds",
-      "timeout_seconds": 60,
-      "worker_result_timeout_seconds": 90,
+      "active_phase": "build_function",
+      "failure": "AttributeError: 'Workplane' object has no attribute 'threePointsArc'",
+      "failure_source_function": "_make_model",
+      "failure_source_line": 65,
       "output_status": "not_attempted",
       "artifacts": []
     },
@@ -52,17 +52,20 @@
       {
         "ordinal": 2,
         "source_hash": "5a23ed249e49d0368f382561b05f305be0efa8eba528a6ae4a4677f1e81af20a",
-        "active_phase": "worker_timeout",
-        "failure": "CAD worker did not complete job within 90 seconds",
+        "active_phase": "build_function",
+        "failure": "AttributeError: 'Workplane' object has no attribute 'threePointsArc'",
+        "failure_source_function": "_make_model",
+        "failure_source_line": 65,
         "source_changed": true,
-        "error_changed": false,
-        "objective_progress": false,
+        "error_changed": true,
+        "objective_execution_progress": true,
+        "objective_topology_progress": false,
         "topology_reached": false
       }
     ],
     "provider_operation": "one bounded L1 execution repair; generated source changed arc to threePointsArc",
-    "offline_recheck": "same repaired source retried through the existing worker once; repeated timeout; no provider dispatch",
-    "durable_terminal_decision": "worker_timeout; same_source_hash_repeated after no-progress recheck",
+    "offline_recheck": "an already-submitted persisted worker job was executed offline; the timeout boundary was superseded by a deterministic build_function AttributeError on threePointsArc; no provider dispatch",
+    "durable_terminal_decision": "cadquery_api_error; same_source_hash_repeated after corrected execution recheck",
     "frozen_geometry_evidence": {
       "source_hash": "d66883a331d7f61f1b19e84f41177f4ef829127d08469403f47bb7ba74476e7a",
       "active_phase": "topology_analysis",
@@ -225,7 +228,7 @@
   "final_matrix": {
     "project-01": "independent PASS by deterministic neutral B-Rep; guided adjudication retained as non-blind",
     "project-02": "blocked: solid-count/topology; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
-    "project-03": "blocked: one bounded L1 changed arc to threePointsArc, then existing worker timed out at 90s; no topology/package review; provider convergence not assigned",
+    "project-03": "blocked: one bounded L1 changed arc to threePointsArc, then exact offline execution proved build_function AttributeError on threePointsArc; no topology/package review; provider convergence not assigned",
     "project-04": "blocked: lid invalid topology while base remains valid; L2 2/2, no objective progress, healthy worker boundary; bounded provider convergence",
     "project-05": "blocked: build_function chamfer StdFail_NotDone / BRep_API; one bounded L1 changed source but not error; topology not reached; provider convergence not assigned"
   }
