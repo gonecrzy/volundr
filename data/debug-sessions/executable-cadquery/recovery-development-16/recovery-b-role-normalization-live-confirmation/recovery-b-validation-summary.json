@@ -1,0 +1,146 @@
+{
+  "schema_version": "recovery-b-role-normalization-live-validation-v1",
+  "decision": "RECOVERY_B_LIVE_CONFIRMED",
+  "prompt": "Design a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid. Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high. Choose a reasonable printable wall thickness and lid clearance.",
+  "code_commit": "16785ea5e09281708d3d7b34d7760c6dc2c91f37",
+  "workflow": {
+    "workflow_id": "844728ed-cf67-44ca-bb22-ae3c47a8043c",
+    "revision_id": "9f910a6d-4900-427d-ab5f-3c6b7961312f",
+    "route": "validated_cadquery",
+    "contract_source": "production_requirement_ledger",
+    "contract_materialization_version": "executable-cadquery-product-contract-v3",
+    "state": "candidate_ready",
+    "concept_state": "concept_available",
+    "candidate_state": "candidate_ready_for_review",
+    "revision_capable": true
+  },
+  "requirements": {
+    "extracted_total": 3,
+    "clarification_required": false,
+    "generation_ready": true,
+    "clarification_questions": [],
+    "printability_objective_not_extracted": true,
+    "records": [
+      {
+        "requirement_id": "body",
+        "kind": "dimension",
+        "value": {"width": 80, "depth": 60, "height": 30},
+        "explicit": true,
+        "authority": "required",
+        "protected": true,
+        "classification": "machine_required",
+        "policy": "machine_required",
+        "verification_policy": "final_mesh_bounds",
+        "scope": "box_body"
+      },
+      {
+        "requirement_id": "wall_thickness",
+        "kind": "dimension",
+        "value": 3,
+        "explicit": false,
+        "authority": "flexible",
+        "protected": false,
+        "semantic_role": "delegated_choice",
+        "normalized_semantic_role": "delegated_choice",
+        "provider_classification": "delegated_choice",
+        "classification": "informational",
+        "policy": "informational",
+        "origin": "model_design_choice"
+      },
+      {
+        "requirement_id": "lid_clearance",
+        "kind": "clearance",
+        "value": "0.3 - 0.5 mm",
+        "explicit": false,
+        "authority": "flexible",
+        "protected": false,
+        "semantic_role": "delegated_choice",
+        "normalized_semantic_role": "delegated_choice",
+        "provider_classification": "delegated_choice",
+        "classification": "informational",
+        "policy": "informational",
+        "origin": "model_design_choice"
+      }
+    ]
+  },
+  "outputs": {
+    "required_logical_output_ids": ["box_body", "box_lid"],
+    "generated_logical_output_ids": ["box_body", "box_lid"],
+    "logical_output_count": 2,
+    "solid_counts": {"box_body": 1, "box_lid": 1},
+    "output_identity_preserved": true,
+    "artifacts": {
+      "box_body": {
+        "step_sha256": "fdab3fa410d9e3801db85475f49575b8cf70a2ddb5f1436809776896a589f6bb",
+        "stl_sha256": "81d294fc4106effb9005d65d513f96b2144f082db74c1337929292fc8bfd26bd",
+        "brep_sha256": "c11be1a4fc90745c111253c588bfa63bfa2885acb3faaf2e62ff2aed5b5799a3",
+        "topology": "passed",
+        "artifact_available": true
+      },
+      "box_lid": {
+        "step_sha256": "a0c35a56cdf63c3745e3a718a0e7372ef81a535fb8a059589fe275f23aca5c59",
+        "stl_sha256": "6df9d9aefdac1ed8aeeabed563cfa42cfd0c3fd0293a7bf1c3581cbe72461ec0",
+        "brep_sha256": "eb9b7504b37d984db894ecadbbacb9f7e96f8827d08553d58d701d9da5c60c73",
+        "topology": "passed",
+        "artifact_available": true
+      }
+    }
+  },
+  "semantic_verification": {
+    "status": "passed",
+    "total_authoritative_requirements": 1,
+    "machine_pass": 1,
+    "machine_fail": 0,
+    "unverifiable": 0,
+    "review_required": 0,
+    "informational": 2,
+    "unsupported_verifier": 0,
+    "body_bounds": {
+      "result": "verified",
+      "verification_policy": "final_mesh_bounds",
+      "expected_mm": [80, 60, 30],
+      "measured_mm": [80, 60, 30],
+      "scope": "box_body",
+      "scope_resolution": "explicit_scope_resolved"
+    }
+  },
+  "provider_accounting": {
+    "requirement_extraction_calls": 2,
+    "requirement_schema_retries": 1,
+    "initial_cad_generation_calls": 1,
+    "cad_repair_calls": 0,
+    "fallback_calls": 0,
+    "total_provider_calls": 3,
+    "provider_attempts": [
+      {"stage": "requirements", "attempt": 1, "status": "failed", "failure_class": "design_spec_invalid"},
+      {"stage": "requirements", "attempt": 2, "status": "succeeded", "failure_class": "none"},
+      {"stage": "cad_generation", "attempt": 1, "status": "succeeded", "failure_class": "none"}
+    ],
+    "repair_history": []
+  },
+  "worker_accounting": {
+    "worker_executions": 2,
+    "worker_execution_ids": "not exposed by the safe evidence projection",
+    "output_worker_statuses": {"box_body": "completed", "box_lid": "completed"}
+  },
+  "design_freedom_audit": {
+    "wall_thickness": "model_design_choice, flexible, unprotected",
+    "lid_clearance": "model_design_choice, flexible, unprotected",
+    "body_envelope": "user-explicit, required, protected",
+    "new_clarification_for_unspecified_details": false,
+    "hard_floor_weakened": false,
+    "printability_policy": "not evaluated because no distinct printability objective was extracted"
+  },
+  "reference_isolation": {
+    "corpus_manifest": "unset",
+    "reference_geometry_supplied": false,
+    "provider_request_reference_data": false,
+    "development_validation_holdout_data": false
+  },
+  "observations": [
+    "The live extractor emitted delegated choices as product-default assumptions with nested semantic_role=delegated_choice; application normalization preserved flexible authority and informational policy.",
+    "No distinct qualitative printability objective was emitted; it was not fabricated during validation.",
+    "Semantic policy remained unchanged and reported informational delegated records separately from the machine-required verified envelope.",
+    "Candidate remained candidate_ready_for_review with independent_final_review obligation and was not marked fully verified."
+  ]
+}

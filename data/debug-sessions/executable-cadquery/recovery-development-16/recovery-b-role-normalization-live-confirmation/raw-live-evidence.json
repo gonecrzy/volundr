@@ -1,0 +1,974 @@
+{
+  "schema_version": "recovery-c-live-two-output-confirmation-raw-v1",
+  "started_at": "2026-08-08T19:42:45.332Z",
+  "finished_at": "2026-08-08T19:43:03.209Z",
+  "prompt_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683",
+  "idempotency_key": "recovery-c-two-output-synthetic-rerun",
+  "http_status": 201,
+  "initial_response": {
+    "id": "844728ed-cf67-44ca-bb22-ae3c47a8043c",
+    "state": "candidate_ready",
+    "project_id": "36502e57-dc22-4e48-b097-763b51cc9f78"
+  },
+  "workflow": {
+    "id": "844728ed-cf67-44ca-bb22-ae3c47a8043c",
+    "project_id": "36502e57-dc22-4e48-b097-763b51cc9f78",
+    "revision_id": "9f910a6d-4900-427d-ab5f-3c6b7961312f",
+    "state": "candidate_ready",
+    "route": "validated_cadquery",
+    "user_instruction_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683",
+    "requirements": {
+      "assumptions": [
+        {
+          "description": "Using product default general functional wall thickness of 3.0 mm for the box body and lid as requested by the user's open-ended choice.",
+          "id": "assumption_wall_thickness",
+          "requires_approval": false,
+          "source": "product_default",
+          "value": 3
+        },
+        {
+          "description": "Using product default general removable fit clearance range (0.3 to 0.5 mm) represented as a string for the lid-to-body interface.",
+          "id": "assumption_lid_clearance",
+          "requires_approval": false,
+          "source": "product_default",
+          "value": "0.3 - 0.5 mm"
+        }
+      ],
+      "clarification_questions": [],
+      "clarification_required": false,
+      "conflicts": [],
+      "critical_dimensions": [
+        {
+          "id": "body",
+          "importance": "important",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "box body",
+          "operator": "approximately",
+          "protected": true,
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_fact_evidence": "Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high.",
+            "source_fact_id": "fact_body_envelope",
+            "source_fact_type": "overall_envelope",
+            "source_requirement_ids": [
+              "body_depth",
+              "body_height",
+              "body_width"
+            ],
+            "source_statement_identity": "group:fact_body_envelope"
+          },
+          "raw_evidence": "Keep the body approximately 80 mm wide",
+          "requirement_id": "body",
+          "semantic_parts": [],
+          "source": "user",
+          "source_fact_evidence": "Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high.",
+          "source_fact_id": "fact_body_envelope",
+          "source_fact_type": "overall_envelope",
+          "subject": "body",
+          "target": null,
+          "tolerance": null,
+          "unit": "mm",
+          "value": {
+            "depth": 60,
+            "height": 30,
+            "width": 80
+          }
+        },
+        {
+          "id": "wall_thickness",
+          "importance": "optional",
+          "kind": "dimension",
+          "label": "Wall Thickness",
+          "object_type": "printable_component",
+          "operator": "approximately",
+          "protected": false,
+          "raw_evidence": "Choose a reasonable printable wall thickness",
+          "semantic_parts": [
+            {
+              "authority": "flexible",
+              "classification": null,
+              "delegated": true,
+              "description": "Choose a reasonable printable wall thickness",
+              "explicit": false,
+              "id": "part_wall_thickness",
+              "independent": true,
+              "kind": "dimension",
+              "object_type": "printable_component",
+              "operator": "approximately",
+              "output_id": null,
+              "protected": false,
+              "provenance": {},
+              "raw_evidence": "Choose a reasonable printable wall thickness",
+              "scope": null,
+              "semantic_role": "delegated_choice",
+              "source": "user",
+              "subject": "wall thickness",
+              "target": null,
+              "type": "dimension",
+              "unit": "mm",
+              "value": 3,
+              "verification_policy": null
+            }
+          ],
+          "source": "product_default",
+          "source_fact_evidence": "Choose a reasonable printable wall thickness and lid clearance.",
+          "source_fact_id": "fact_delegated_choices",
+          "source_fact_type": "other",
+          "subject": "wall thickness",
+          "target": null,
+          "tolerance": null,
+          "unit": "mm",
+          "value": 3
+        },
+        {
+          "id": "lid_clearance",
+          "importance": "optional",
+          "kind": "clearance",
+          "label": "Lid Clearance",
+          "object_type": "printable_component",
+          "operator": "approximately",
+          "protected": false,
+          "raw_evidence": "lid clearance",
+          "semantic_parts": [
+            {
+              "authority": "flexible",
+              "classification": null,
+              "delegated": true,
+              "description": "Choose a reasonable lid clearance",
+              "explicit": false,
+              "id": "part_lid_clearance",
+              "independent": true,
+              "kind": "clearance",
+              "object_type": "printable_component",
+              "operator": "approximately",
+              "output_id": null,
+              "protected": false,
+              "provenance": {},
+              "raw_evidence": "lid clearance",
+              "scope": null,
+              "semantic_role": "delegated_choice",
+              "source": "user",
+              "subject": "lid clearance",
+              "target": null,
+              "type": "clearance",
+              "unit": "mm",
+              "value": "0.3 - 0.5 mm",
+              "verification_policy": null
+            }
+          ],
+          "source": "product_default",
+          "source_fact_evidence": "Choose a reasonable printable wall thickness and lid clearance.",
+          "source_fact_id": "fact_delegated_choices",
+          "source_fact_type": "other",
+          "subject": "lid clearance",
+          "target": null,
+          "tolerance": null,
+          "unit": "mm",
+          "value": "0.3 - 0.5 mm"
+        }
+      ],
+      "functional_requirements": [],
+      "generation_attempt_id": "2c8b68a6-2370-44b2-b393-59ad798b09b2",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "object_type": "storage box",
+      "outcome": "generation_ready",
+      "outputs": [
+        {
+          "aliases": [
+            "box body",
+            "body"
+          ],
+          "authority": "explicit",
+          "component_id": "box_body",
+          "component_ids": [
+            "box_body"
+          ],
+          "expected_solid_count": 1,
+          "id": "box_body",
+          "label": "Box Body",
+          "output_type": "printable_component",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "separately printable box body",
+          "required": true,
+          "source": "user"
+        },
+        {
+          "aliases": [
+            "lid",
+            "box lid"
+          ],
+          "authority": "explicit",
+          "component_id": "box_lid",
+          "component_ids": [
+            "box_lid"
+          ],
+          "expected_solid_count": 1,
+          "id": "box_lid",
+          "label": "Box Lid",
+          "output_type": "printable_component",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "separately printable lid",
+          "required": true,
+          "source": "user"
+        }
+      ],
+      "parameters": [],
+      "print_requirements": {},
+      "project_id": "36502e57-dc22-4e48-b097-763b51cc9f78",
+      "purpose": "A two-piece desktop storage box for organizing items.",
+      "relationships": [
+        {
+          "authority": "explicit",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "two-piece desktop storage box consisting of a separately printable box body and a separately printable lid",
+          "relationship": "mates_with",
+          "source": "user",
+          "source_output_id": "box_lid",
+          "target_output_id": "box_body"
+        }
+      ],
+      "schema_version": "1.0",
+      "supported_scope": true,
+      "units": "mm"
+    },
+    "plan": {
+      "printable_outputs": [
+        {
+          "allow_disconnected_solids": false,
+          "component_id": "box_body",
+          "component_ids": [
+            "box_body"
+          ],
+          "entrypoint": "box_body",
+          "expected_solid_count": 1,
+          "filename": "box_body.stl",
+          "id": "box_body",
+          "label": "Box Body",
+          "output_type": "printable_component",
+          "required": true
+        },
+        {
+          "allow_disconnected_solids": false,
+          "component_id": "box_lid",
+          "component_ids": [
+            "box_lid"
+          ],
+          "entrypoint": "box_lid",
+          "expected_solid_count": 1,
+          "filename": "box_lid.stl",
+          "id": "box_lid",
+          "label": "Box Lid",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "schema_version": "executable-cadquery-execution-plan-v1",
+      "semantic_contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v3",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "aliases": [
+              "box body",
+              "body"
+            ],
+            "authority": "explicit",
+            "component_id": "box_body",
+            "component_ids": [
+              "box_body"
+            ],
+            "expected_solid_count": 1,
+            "label": "Box Body",
+            "output_id": "box_body",
+            "output_type": "printable_component",
+            "protected": true,
+            "provenance": {},
+            "raw_evidence": "separately printable box body",
+            "required": true,
+            "source": "user"
+          },
+          {
+            "aliases": [
+              "lid",
+              "box lid"
+            ],
+            "authority": "explicit",
+            "component_id": "box_lid",
+            "component_ids": [
+              "box_lid"
+            ],
+            "expected_solid_count": 1,
+            "label": "Box Lid",
+            "output_id": "box_lid",
+            "output_type": "printable_component",
+            "protected": true,
+            "provenance": {},
+            "raw_evidence": "separately printable lid",
+            "required": true,
+            "source": "user"
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "storage box",
+          "purpose": "A two-piece desktop storage box for organizing items.",
+          "requirement_policy_version": "product-requirement-policy-v1"
+        },
+        "project_id": "36502e57-dc22-4e48-b097-763b51cc9f78",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "depth": 60,
+              "height": 30,
+              "width": 80
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "body"
+          }
+        ],
+        "relationships": [
+          {
+            "authority": "explicit",
+            "protected": true,
+            "provenance": {},
+            "raw_evidence": "two-piece desktop storage box consisting of a separately printable box body and a separately printable lid",
+            "relationship": "mates_with",
+            "source": "user",
+            "source_output_id": "box_lid",
+            "target_output_id": "box_body"
+          }
+        ],
+        "requirements": [
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "depth": 60,
+              "height": 30,
+              "width": 80
+            },
+            "kind": "dimension",
+            "object_type": "box body",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "policy_reason": "explicit_or_structural_hard_floor",
+            "policy_source": "application",
+            "policy_version": "product-requirement-policy-v1",
+            "protected": true,
+            "provenance": {
+              "canonicalization": "overall_envelope_tuple_v1",
+              "source_fact_evidence": "Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high.",
+              "source_fact_id": "fact_body_envelope",
+              "source_fact_type": "overall_envelope",
+              "source_requirement_ids": [
+                "body_depth",
+                "body_height",
+                "body_width"
+              ],
+              "source_statement_identity": "group:fact_body_envelope"
+            },
+            "provider_classification": "machine_required",
+            "raw_evidence": "Keep the body approximately 80 mm wide",
+            "requirement_id": "body",
+            "scope": "box_body",
+            "scope_kind": "output_local",
+            "source": "initial_user",
+            "subject": "body",
+            "verification_policy": "final_mesh_bounds"
+          },
+          {
+            "authority": "flexible",
+            "classification": "informational",
+            "expected": {
+              "value": "0.3 - 0.5 mm"
+            },
+            "kind": "clearance",
+            "normalized_semantic_role": "delegated_choice",
+            "object_type": "printable_component",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "policy_reason": "normalized_flexible_or_delegated_choice",
+            "policy_source": "application",
+            "policy_version": "product-requirement-policy-v1",
+            "protected": false,
+            "provider_classification": "delegated_choice",
+            "raw_evidence": "lid clearance",
+            "requirement_id": "lid_clearance",
+            "semantic_role": "delegated_choice",
+            "source": "volundr_proposal",
+            "subject": "lid clearance"
+          },
+          {
+            "authority": "flexible",
+            "classification": "informational",
+            "expected": {
+              "value": 3
+            },
+            "kind": "dimension",
+            "normalized_semantic_role": "delegated_choice",
+            "object_type": "printable_component",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "policy_reason": "normalized_flexible_or_delegated_choice",
+            "policy_source": "application",
+            "policy_version": "product-requirement-policy-v1",
+            "protected": false,
+            "provider_classification": "delegated_choice",
+            "raw_evidence": "Choose a reasonable printable wall thickness",
+            "requirement_id": "wall_thickness",
+            "semantic_role": "delegated_choice",
+            "source": "volundr_proposal",
+            "subject": "wall thickness"
+          }
+        ],
+        "revision_id": "844728ed-cf67-44ca-bb22-ae3c47a8043c:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "844728ed-cf67-44ca-bb22-ae3c47a8043c"
+      }
+    },
+    "design_contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v3",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "aliases": [
+            "box body",
+            "body"
+          ],
+          "authority": "explicit",
+          "component_id": "box_body",
+          "component_ids": [
+            "box_body"
+          ],
+          "expected_solid_count": 1,
+          "label": "Box Body",
+          "output_id": "box_body",
+          "output_type": "printable_component",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "separately printable box body",
+          "required": true,
+          "source": "user"
+        },
+        {
+          "aliases": [
+            "lid",
+            "box lid"
+          ],
+          "authority": "explicit",
+          "component_id": "box_lid",
+          "component_ids": [
+            "box_lid"
+          ],
+          "expected_solid_count": 1,
+          "label": "Box Lid",
+          "output_id": "box_lid",
+          "output_type": "printable_component",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "separately printable lid",
+          "required": true,
+          "source": "user"
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "storage box",
+        "purpose": "A two-piece desktop storage box for organizing items.",
+        "requirement_policy_version": "product-requirement-policy-v1"
+      },
+      "project_id": "36502e57-dc22-4e48-b097-763b51cc9f78",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "depth": 60,
+            "height": 30,
+            "width": 80
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "body"
+        }
+      ],
+      "relationships": [
+        {
+          "authority": "explicit",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "two-piece desktop storage box consisting of a separately printable box body and a separately printable lid",
+          "relationship": "mates_with",
+          "source": "user",
+          "source_output_id": "box_lid",
+          "target_output_id": "box_body"
+        }
+      ],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "depth": 60,
+            "height": 30,
+            "width": 80
+          },
+          "kind": "dimension",
+          "object_type": "box body",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "policy_reason": "explicit_or_structural_hard_floor",
+          "policy_source": "application",
+          "policy_version": "product-requirement-policy-v1",
+          "protected": true,
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_fact_evidence": "Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high.",
+            "source_fact_id": "fact_body_envelope",
+            "source_fact_type": "overall_envelope",
+            "source_requirement_ids": [
+              "body_depth",
+              "body_height",
+              "body_width"
+            ],
+            "source_statement_identity": "group:fact_body_envelope"
+          },
+          "provider_classification": "machine_required",
+          "raw_evidence": "Keep the body approximately 80 mm wide",
+          "requirement_id": "body",
+          "scope": "box_body",
+          "scope_kind": "output_local",
+          "source": "initial_user",
+          "subject": "body",
+          "verification_policy": "final_mesh_bounds"
+        },
+        {
+          "authority": "flexible",
+          "classification": "informational",
+          "expected": {
+            "value": "0.3 - 0.5 mm"
+          },
+          "kind": "clearance",
+          "normalized_semantic_role": "delegated_choice",
+          "object_type": "printable_component",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "policy_reason": "normalized_flexible_or_delegated_choice",
+          "policy_source": "application",
+          "policy_version": "product-requirement-policy-v1",
+          "protected": false,
+          "provider_classification": "delegated_choice",
+          "raw_evidence": "lid clearance",
+          "requirement_id": "lid_clearance",
+          "semantic_role": "delegated_choice",
+          "source": "volundr_proposal",
+          "subject": "lid clearance"
+        },
+        {
+          "authority": "flexible",
+          "classification": "informational",
+          "expected": {
+            "value": 3
+          },
+          "kind": "dimension",
+          "normalized_semantic_role": "delegated_choice",
+          "object_type": "printable_component",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "policy_reason": "normalized_flexible_or_delegated_choice",
+          "policy_source": "application",
+          "policy_version": "product-requirement-policy-v1",
+          "protected": false,
+          "provider_classification": "delegated_choice",
+          "raw_evidence": "Choose a reasonable printable wall thickness",
+          "requirement_id": "wall_thickness",
+          "semantic_role": "delegated_choice",
+          "source": "volundr_proposal",
+          "subject": "wall thickness"
+        }
+      ],
+      "revision_id": "844728ed-cf67-44ca-bb22-ae3c47a8043c:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "844728ed-cf67-44ca-bb22-ae3c47a8043c"
+    },
+    "verification": {
+      "candidate_policy": {
+        "blockers": [],
+        "candidate_policy_version": "executable-cadquery-candidate-policy-v1",
+        "candidate_state": "candidate_ready_for_review",
+        "eligible_for_review": true,
+        "fully_verified": false,
+        "independent_review_verdict": null,
+        "review_obligations": [
+          "independent_final_review"
+        ],
+        "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+        "state": "candidate_ready_for_review"
+      },
+      "concept_state": {
+        "artifact_output_ids": [
+          "box_body",
+          "box_lid"
+        ],
+        "blockers": [],
+        "concept_policy_version": "executable-cadquery-concept-policy-v1",
+        "concept_state": "concept_available",
+        "revision_capable": true,
+        "state": "concept_available"
+      },
+      "output_states": {
+        "box_body": "completed",
+        "box_lid": "completed"
+      },
+      "revision_id": "9f910a6d-4900-427d-ab5f-3c6b7961312f",
+      "semantic_verification": {
+        "failed": [],
+        "findings": [
+          {
+            "evidence_source": "final_mesh",
+            "expected_value": {
+              "depth": 60,
+              "height": 30,
+              "width": 80
+            },
+            "measured_value": {
+              "detected_mm": [
+                80,
+                60,
+                30
+              ],
+              "expected_mm": [
+                80,
+                60,
+                30
+              ],
+              "scope_resolution": {
+                "available_output_ids": [
+                  "box_body",
+                  "box_lid"
+                ],
+                "output_ids": [
+                  "box_body"
+                ],
+                "reason": "explicit_scope_resolved",
+                "requested_identities": [
+                  {
+                    "field": "scope",
+                    "values": [
+                      "box_body"
+                    ]
+                  }
+                ],
+                "scope_kind": "output_local",
+                "status": "resolved"
+              }
+            },
+            "measurement_available": true,
+            "observed_status": "passed",
+            "policy": "machine_required",
+            "requirement_id": "body",
+            "result": "verified",
+            "semantic_contract": {
+              "canonical_fields": [],
+              "shadowed_legacy_fields": [],
+              "status": "normalized",
+              "version": "executable-cadquery-semantic-contract-v1"
+            },
+            "tolerance": null,
+            "verification_policy": "final_mesh_bounds"
+          },
+          {
+            "evidence_source": "none",
+            "expected_value": {
+              "value": "0.3 - 0.5 mm"
+            },
+            "measured_value": {
+              "reason": "output_scope_ambiguous",
+              "scope_resolution": {
+                "available_output_ids": [
+                  "box_body",
+                  "box_lid"
+                ],
+                "output_ids": [],
+                "reason": "unscoped_multiple_outputs",
+                "requested_identities": [],
+                "scope_kind": "unresolved",
+                "status": "ambiguous"
+              }
+            },
+            "measurement_available": false,
+            "observed_status": "unverifiable",
+            "policy": "informational",
+            "requirement_id": "lid_clearance",
+            "result": "informational",
+            "tolerance": null,
+            "verification_policy": null
+          },
+          {
+            "evidence_source": "none",
+            "expected_value": {
+              "value": 3
+            },
+            "measured_value": {
+              "reason": "output_scope_ambiguous",
+              "scope_resolution": {
+                "available_output_ids": [
+                  "box_body",
+                  "box_lid"
+                ],
+                "output_ids": [],
+                "reason": "unscoped_multiple_outputs",
+                "requested_identities": [],
+                "scope_kind": "unresolved",
+                "status": "ambiguous"
+              }
+            },
+            "measurement_available": false,
+            "observed_status": "unverifiable",
+            "policy": "informational",
+            "requirement_id": "wall_thickness",
+            "result": "informational",
+            "tolerance": null,
+            "verification_policy": null
+          }
+        ],
+        "load_errors": {},
+        "output_ids": [
+          "box_body",
+          "box_lid"
+        ],
+        "passed": [
+          "body"
+        ],
+        "policy_summary": {
+          "failed": 0,
+          "informational": 2,
+          "machine_required": 1,
+          "review_required": 0,
+          "unsupported_verifier": 0,
+          "verified": 1,
+          "version": "executable-cadquery-semantic-policy-v1"
+        },
+        "review_required": [],
+        "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+        "status": "passed",
+        "unsupported_verifier": [],
+        "unverifiable": []
+      },
+      "status": "passed"
+    },
+    "candidate_policy": {
+      "blockers": [],
+      "candidate_policy_version": "executable-cadquery-candidate-policy-v1",
+      "candidate_state": "candidate_ready_for_review",
+      "eligible_for_review": true,
+      "fully_verified": false,
+      "independent_review_verdict": null,
+      "review_obligations": [
+        "independent_final_review"
+      ],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "state": "candidate_ready_for_review"
+    },
+    "diagnostics": {},
+    "package_manifest": {},
+    "package_available": false,
+    "outputs": [
+      {
+        "output_id": "box_body",
+        "required": true,
+        "generation_status": "completed",
+        "worker_status": "completed",
+        "state": "completed",
+        "solid_count": 1,
+        "topology_status": "passed",
+        "semantic_verification": "passed",
+        "artifact_available": true,
+        "failure_owner": null,
+        "safe_diagnostic": null,
+        "artifact_metadata": {
+          "stl_hash": "81d294fc4106effb9005d65d513f96b2144f082db74c1337929292fc8bfd26bd",
+          "step_hash": "fdab3fa410d9e3801db85475f49575b8cf70a2ddb5f1436809776896a589f6bb",
+          "brep_hash": "c11be1a4fc90745c111253c588bfa63bfa2885acb3faaf2e62ff2aed5b5799a3"
+        }
+      },
+      {
+        "output_id": "box_lid",
+        "required": true,
+        "generation_status": "completed",
+        "worker_status": "completed",
+        "state": "completed",
+        "solid_count": 1,
+        "topology_status": "passed",
+        "semantic_verification": "passed",
+        "artifact_available": true,
+        "failure_owner": null,
+        "safe_diagnostic": null,
+        "artifact_metadata": {
+          "stl_hash": "6df9d9aefdac1ed8aeeabed563cfa42cfd0c3fd0293a7bf1c3581cbe72461ec0",
+          "step_hash": "a0c35a56cdf63c3745e3a718a0e7372ef81a535fb8a059589fe275f23aca5c59",
+          "brep_hash": "eb9b7504b37d984db894ecadbbacb9f7e96f8827d08553d58d701d9da5c60c73"
+        }
+      }
+    ],
+    "provenance": {
+      "contract_source": "production_requirement_ledger",
+      "provider_id": "gemini_api",
+      "provider_transport": "gemini_api",
+      "source_generation_mode": "complete_source",
+      "source_hash": "a91a55bec11c0ed083cc90e221f32d1819715dda434c5f7238037cbb16972268",
+      "output_ids": [
+        "box_body",
+        "box_lid"
+      ],
+      "automatic_provider_operation_count": 1,
+      "automatic_provider_operation_budget": 9,
+      "repair_history": []
+    }
+  },
+  "generation_attempts": [
+    {
+      "id": null,
+      "attempt_number": 1,
+      "status": "failed",
+      "provider": "gemini_api",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_version": "requirements-v5",
+      "failure_class": "design_spec_invalid"
+    },
+    {
+      "id": null,
+      "attempt_number": 2,
+      "status": "succeeded",
+      "provider": "gemini_api",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_version": "requirements-v5",
+      "failure_class": "none"
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "box_body:step",
+      "kind": "step",
+      "output_id": "box_body",
+      "filename": "box_body.step",
+      "media_type": "model/step",
+      "size_bytes": 29181,
+      "sha256": "fdab3fa410d9e3801db85475f49575b8cf70a2ddb5f1436809776896a589f6bb",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/844728ed-cf67-44ca-bb22-ae3c47a8043c/artifacts/box_body:step/download"
+    },
+    {
+      "artifact_id": "box_body:stl",
+      "kind": "stl",
+      "output_id": "box_body",
+      "filename": "box_body.stl",
+      "media_type": "model/stl",
+      "size_bytes": 1484,
+      "sha256": "81d294fc4106effb9005d65d513f96b2144f082db74c1337929292fc8bfd26bd",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/844728ed-cf67-44ca-bb22-ae3c47a8043c/artifacts/box_body:stl/download"
+    },
+    {
+      "artifact_id": "box_body:brep",
+      "kind": "brep",
+      "output_id": "box_body",
+      "filename": "box_body.brep",
+      "media_type": "model/brep",
+      "size_bytes": 7274,
+      "sha256": "c11be1a4fc90745c111253c588bfa63bfa2885acb3faaf2e62ff2aed5b5799a3",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/844728ed-cf67-44ca-bb22-ae3c47a8043c/artifacts/box_body:brep/download"
+    },
+    {
+      "artifact_id": "box_lid:step",
+      "kind": "step",
+      "output_id": "box_lid",
+      "filename": "box_lid.step",
+      "media_type": "model/step",
+      "size_bytes": 29234,
+      "sha256": "a0c35a56cdf63c3745e3a718a0e7372ef81a535fb8a059589fe275f23aca5c59",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/844728ed-cf67-44ca-bb22-ae3c47a8043c/artifacts/box_lid:step/download"
+    },
+    {
+      "artifact_id": "box_lid:stl",
+      "kind": "stl",
+      "output_id": "box_lid",
+      "filename": "box_lid.stl",
+      "media_type": "model/stl",
+      "size_bytes": 1484,
+      "sha256": "6df9d9aefdac1ed8aeeabed563cfa42cfd0c3fd0293a7bf1c3581cbe72461ec0",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/844728ed-cf67-44ca-bb22-ae3c47a8043c/artifacts/box_lid:stl/download"
+    },
+    {
+      "artifact_id": "box_lid:brep",
+      "kind": "brep",
+      "output_id": "box_lid",
+      "filename": "box_lid.brep",
+      "media_type": "model/brep",
+      "size_bytes": 7999,
+      "sha256": "eb9b7504b37d984db894ecadbbacb9f7e96f8827d08553d58d701d9da5c60c73",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/844728ed-cf67-44ca-bb22-ae3c47a8043c/artifacts/box_lid:brep/download"
+    }
+  ],
+  "downloaded_artifacts": [
+    {
+      "artifact_id": "box_body:step",
+      "output_id": "box_body",
+      "kind": "step",
+      "sha256": "fdab3fa410d9e3801db85475f49575b8cf70a2ddb5f1436809776896a589f6bb",
+      "size_bytes": 29181
+    },
+    {
+      "artifact_id": "box_body:stl",
+      "output_id": "box_body",
+      "kind": "stl",
+      "sha256": "81d294fc4106effb9005d65d513f96b2144f082db74c1337929292fc8bfd26bd",
+      "size_bytes": 1484
+    },
+    {
+      "artifact_id": "box_body:brep",
+      "output_id": "box_body",
+      "kind": "brep",
+      "sha256": "c11be1a4fc90745c111253c588bfa63bfa2885acb3faaf2e62ff2aed5b5799a3",
+      "size_bytes": 7274
+    },
+    {
+      "artifact_id": "box_lid:step",
+      "output_id": "box_lid",
+      "kind": "step",
+      "sha256": "a0c35a56cdf63c3745e3a718a0e7372ef81a535fb8a059589fe275f23aca5c59",
+      "size_bytes": 29234
+    },
+    {
+      "artifact_id": "box_lid:stl",
+      "output_id": "box_lid",
+      "kind": "stl",
+      "sha256": "6df9d9aefdac1ed8aeeabed563cfa42cfd0c3fd0293a7bf1c3581cbe72461ec0",
+      "size_bytes": 1484
+    },
+    {
+      "artifact_id": "box_lid:brep",
+      "output_id": "box_lid",
+      "kind": "brep",
+      "sha256": "eb9b7504b37d984db894ecadbbacb9f7e96f8827d08553d58d701d9da5c60c73",
+      "size_bytes": 7999
+    }
+  ],
+  "reference_isolation": {
+    "reference_geometry_supplied": false,
+    "request_body": {
+      "name": "synthetic-two-piece-storage-box",
+      "intent_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683"
+    }
+  }
+}

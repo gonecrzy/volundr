@@ -1,0 +1,39 @@
+{
+  "schema_version": "recovery-b-role-normalization-live-preflight-v1",
+  "code_commit": "16785ea5e09281708d3d7b34d7760c6dc2c91f37",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "origin_branch_head": "16785ea5e09281708d3d7b34d7760c6dc2c91f37",
+  "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "worktree_before_live": "clean",
+  "corpus_manifest_environment": "unset",
+  "provider": "gemini_api",
+  "model_profile": {
+    "general": "gemini-3.5-flash-lite",
+    "requirements": "configured stage policy/default",
+    "geometry": "configured stage policy/default",
+    "geometry_repair": "configured stage policy/default"
+  },
+  "normal_repair_policy": {
+    "automatic_provider_operation_budget": 9,
+    "repair_level_budgets": {"L0": 3, "L1": 3, "L2": 2, "L3": 4},
+    "provider_retry_policy": "existing HTTP-429 fallback only"
+  },
+  "credential_slots": {
+    "primary": "GEMINI_API_KEY / VOLUNDR_GEMINI_PRIMARY_API_KEY; availability only",
+    "fallback": "GEMINI_API_KEY_2 / VOLUNDR_GEMINI_FALLBACK_API_KEY; availability only",
+    "values_recorded": false
+  },
+  "prompt_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683",
+  "reference_isolation": {
+    "benchmark_manifest": "not used",
+    "reference_geometry": "not supplied",
+    "development_validation_holdout_data": "not used",
+    "corpus_contract_injection": "absent"
+  },
+  "expected_provider_calls": {
+    "requirement_extraction": "one normal call, with existing schema retry policy",
+    "cad_generation": "only if generation-ready",
+    "repairs": "existing bounded normal recovery only",
+    "worker": "only if CAD reaches execution"
+  }
+}

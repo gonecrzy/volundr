@@ -1,0 +1,82 @@
+{
+  "schema_version": "recovery-c-live-two-output-confirmation-v1",
+  "decision": "RECOVERY_C_LIVE_CONFIRMED",
+  "prompt": "Design a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid. Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high. Choose a reasonable printable wall thickness and lid clearance.",
+  "corpus_manifest": "unset",
+  "contract_source": "production_requirement_ledger",
+  "contract_output_ids": [
+    "box_body",
+    "box_lid"
+  ],
+  "logical_output_count": 2,
+  "generated_output_ids": [
+    "box_body",
+    "box_lid"
+  ],
+  "semantic_counts": {
+    "total": 3,
+    "passed": [
+      "body"
+    ],
+    "failed": [],
+    "unverifiable": [],
+    "review_required": [],
+    "unsupported": [],
+    "status": "passed"
+  },
+  "provider_attempts": [],
+  "provider_call_count": 1,
+  "worker_executions": 0,
+  "downloaded_artifacts": [
+    {
+      "artifact_id": "box_body:step",
+      "output_id": "box_body",
+      "kind": "step",
+      "sha256": "fdab3fa410d9e3801db85475f49575b8cf70a2ddb5f1436809776896a589f6bb",
+      "size_bytes": 29181
+    },
+    {
+      "artifact_id": "box_body:stl",
+      "output_id": "box_body",
+      "kind": "stl",
+      "sha256": "81d294fc4106effb9005d65d513f96b2144f082db74c1337929292fc8bfd26bd",
+      "size_bytes": 1484
+    },
+    {
+      "artifact_id": "box_body:brep",
+      "output_id": "box_body",
+      "kind": "brep",
+      "sha256": "c11be1a4fc90745c111253c588bfa63bfa2885acb3faaf2e62ff2aed5b5799a3",
+      "size_bytes": 7274
+    },
+    {
+      "artifact_id": "box_lid:step",
+      "output_id": "box_lid",
+      "kind": "step",
+      "sha256": "a0c35a56cdf63c3745e3a718a0e7372ef81a535fb8a059589fe275f23aca5c59",
+      "size_bytes": 29234
+    },
+    {
+      "artifact_id": "box_lid:stl",
+      "output_id": "box_lid",
+      "kind": "stl",
+      "sha256": "6df9d9aefdac1ed8aeeabed563cfa42cfd0c3fd0293a7bf1c3581cbe72461ec0",
+      "size_bytes": 1484
+    },
+    {
+      "artifact_id": "box_lid:brep",
+      "output_id": "box_lid",
+      "kind": "brep",
+      "sha256": "eb9b7504b37d984db894ecadbbacb9f7e96f8827d08553d58d701d9da5c60c73",
+      "size_bytes": 7999
+    }
+  ],
+  "reference_isolation": {
+    "reference_geometry_supplied": false,
+    "request_body": {
+      "name": "synthetic-two-piece-storage-box",
+      "intent_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683"
+    }
+  },
+  "note": "A generated source that omits a declared required output remains a geometry/source failure; this assessment only treats the identity path as confirmed when the contract preserves both IDs."
+}
