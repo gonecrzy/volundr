@@ -1,0 +1,104 @@
+{
+  "schema_version": "phase-1b-recovery-a-live-source-identity-confirmation-v1",
+  "decision": "RECOVERY_A_LIVE_CONFIRMED",
+  "code_commit": "cba1c0f",
+  "prompt": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+  "prompt_sha256": "3c5417fd111b146940eb04417a7008d45ccbbeb3b8a8ef956b5a284f12861414",
+  "corpus_manifest_injection": false,
+  "requirement_path": {
+    "clarification_required": false,
+    "generation_ready": true,
+    "design_specification_id": "1039985d-8292-4c8f-b341-ce3cee83b862",
+    "project_id": "d2f7c263-5eb8-44c1-922b-bca516c3c54e",
+    "workflow_id": "38e0650f-96b6-490e-8b99-e548f3034e21",
+    "revision_id": "37d053a9-8751-4bd0-b26f-eb099651c900",
+    "canonical_envelope": {
+      "requirement_id": "overall_envelope",
+      "value": {"width": 80, "depth": 60, "height": 25},
+      "operator": "approximately",
+      "source": "user",
+      "authority": "explicit",
+      "protected": true,
+      "source_fact_id": "fact_overall_envelope_1",
+      "source_fact_type": "overall_envelope",
+      "source_fact_evidence": "Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high."
+    },
+    "ledger": {
+      "active_envelope_count": 1,
+      "envelope_value": {"width": 80, "depth": 60, "height": 25},
+      "source_fact_identity_preserved": true,
+      "protected_envelope_count": 1
+    },
+    "contract": {
+      "contract_source": "production_requirement_ledger",
+      "output_ids": ["desktop_parts_tray"],
+      "requirement_count": 3,
+      "protected_fact_count": 3,
+      "envelope_verification_policy": "final_mesh_bounds",
+      "envelope_expected": {"width": 80, "depth": 60, "height": 25}
+    }
+  },
+  "provider_and_worker": {
+    "requirement_extraction_calls": 2,
+    "requirement_schema_retries": 1,
+    "cad_generation_calls": 2,
+    "cad_initial_calls": 1,
+    "cad_repair_calls": 1,
+    "cad_repair_level": "L0",
+    "fallback_calls": 0,
+    "all_provider_credential_slots": ["primary"],
+    "all_transport_statuses": [200],
+    "rate_limit_429": false,
+    "worker_executions": 1,
+    "worker_execution_id": "37d053a9-8751-4bd0-b26f-eb099651c900"
+  },
+  "geometry": {
+    "terminal_workflow_state": "verification_failed",
+    "topology": "valid",
+    "solid_count": 1,
+    "bounds_mm": {"x": 80.0, "y": 60.0, "z": 25.0},
+    "brep_volume_mm3": 26887.593933347962,
+    "stl_volume_mm3": 26887.153251424796,
+    "surface_area_mm2": null,
+    "source_hash": "e49c981a2207087c62536a187f2181a1623e0cf857e04af0c4f79354bc5707c7",
+    "step_sha256": "3cecd2c7f86254ef17c869bc4971ea8091e32102226bfcaf3edeac6a4adffdeb",
+    "stl_sha256": "530095eb7da479facd3692b0af6cfd78af5f27d2a53d5a5b91a310312ed53086",
+    "brep_sha256": "5534f8083069a67545e84134c30d09d89307b2e2af8a84e16df82600d95c9258"
+  },
+  "semantic_result": {
+    "status": "unsupported_verifier",
+    "authoritative_requirement_count": 3,
+    "machine_pass": ["overall_envelope"],
+    "machine_fail": [],
+    "unverifiable": ["req_compact", "req_open_top"],
+    "review_required": [],
+    "envelope_result": "verified",
+    "envelope_observed_status": "passed",
+    "envelope_measured_mm": [80, 60, 25],
+    "b_observations_unchanged": true,
+    "candidate_state": "candidate_blocked"
+  },
+  "concept_freedom_audit": {
+    "wall_thickness_user_required": false,
+    "floor_thickness_user_required": false,
+    "corner_radius_user_required": false,
+    "model_choices_became_protected_user_facts": false,
+    "new_clarification_from_unspecified_details": false,
+    "concept_generation_remained_allowed": true,
+    "final_verification_remained_fail_closed": true,
+    "candidate_policy_conflation_observed": true,
+    "candidate_policy_follow_up": "record_only; Recovery B/C not started"
+  },
+  "reference_isolation": {
+    "reference_geometry_used": false,
+    "reference_facts_used": false,
+    "benchmark_manifest_used": false,
+    "development_validation_holdout_data_used": false
+  },
+  "evidence": {
+    "raw_live_evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-a-live-synthetic-confirmation-source-identity/raw-live-evidence.json",
+    "generated_artifacts_retained_locally_only": true
+  },
+  "provider_calls": 4,
+  "worker_executions": 1
+}

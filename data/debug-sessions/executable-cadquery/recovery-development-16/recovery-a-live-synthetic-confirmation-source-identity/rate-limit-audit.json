@@ -1,0 +1,9 @@
+{
+  "schema_version": "phase-1b-recovery-a-live-rate-limit-audit-v1",
+  "provider": "gemini_api",
+  "credential_slots_observed": ["primary"],
+  "fallback_used": false,
+  "transport_status_codes": [200, 200, 200, 200],
+  "rate_limit_429_observed": false,
+  "credential_values_persisted": false
+}

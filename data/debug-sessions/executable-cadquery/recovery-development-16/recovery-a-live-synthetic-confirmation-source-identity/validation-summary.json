@@ -1,0 +1,47 @@
+{
+  "schema_version": "phase-1b-recovery-a-live-validation-summary-v1",
+  "decision": "RECOVERY_A_LIVE_CONFIRMED",
+  "code_commit": "cba1c0f",
+  "corpus_manifest_unset": true,
+  "requirement_extraction_ran": true,
+  "design_specification_persisted": true,
+  "ledger_materialized": true,
+  "authoritative_requirements_nonempty": true,
+  "qualitative_requirements_preserved": true,
+  "contract_source": "production_requirement_ledger",
+  "canonical_envelope": {
+    "value": {"width": 80, "depth": 60, "height": 25},
+    "operator": "approximately",
+    "verification_policy": "final_mesh_bounds",
+    "result": "verified",
+    "measured_bounds": {"width": 80, "depth": 60, "height": 25}
+  },
+  "model_choice_audit": {
+    "wall_thickness": "model_choice",
+    "floor_thickness": "model_choice",
+    "corner_radius": "model_choice",
+    "protected_user_fact_synthesized": false
+  },
+  "clarification_required": false,
+  "provider_calls": {
+    "requirement_extraction": 2,
+    "requirement_schema_retry": 1,
+    "cad_generation": 2,
+    "cad_repair": 1,
+    "fallback": 0,
+    "total": 4
+  },
+  "worker_executions": 1,
+  "topology_valid": true,
+  "semantic_counts": {
+    "authoritative": 3,
+    "machine_pass": 1,
+    "machine_fail": 0,
+    "unverifiable": 2,
+    "review_required": 0
+  },
+  "remaining_blocker": "Recovery-B qualitative obligations req_compact and req_open_top remain unsupported; no Recovery B change made.",
+  "reference_isolation": true,
+  "historical_evidence_overwritten": false,
+  "holdout_or_validation_access": false
+}
