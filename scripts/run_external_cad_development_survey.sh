@@ -37,6 +37,7 @@ read_gemini_credentials() {
 gemini_credentials_file="$(mktemp)"
 backend_env_file="$(mktemp)"
 live_data_dir="$(mktemp -d /tmp/volundr-external-cad-survey.XXXXXX)"
+mkdir -p "$live_data_dir/data/jobs"
 chmod 600 "$gemini_credentials_file" "$backend_env_file"
 cleanup() {
   local status=$?
