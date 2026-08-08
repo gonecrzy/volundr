@@ -1,0 +1,130 @@
+{
+  "schema_version": "recovery-b-live-confirmation-v1",
+  "decision": "RECOVERY_B_POLICY_DEFECT",
+  "code_commit": "985af3581a82eed349f8981a8b6fc37c792c85a7",
+  "prompt_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683",
+  "prompt_unchanged": true,
+  "corpus_manifest_injection": "absent",
+  "reference_geometry_supplied": false,
+  "workflow": {
+    "workflow_id": "51c06bac-a244-4ba3-9cc4-ff0080bc3b91",
+    "project_id": "471994cb-f723-4b6d-b096-bb384d4c2a50",
+    "revision_id": "e33acb7a-7c18-4faf-af50-ac1a81fc6bde",
+    "route": "validated_cadquery",
+    "terminal_state": "verification_failed",
+    "contract_source": "production_requirement_ledger",
+    "contract_materialization_version": "executable-cadquery-product-contract-v3"
+  },
+  "requirement_extraction": {
+    "provider_calls": 1,
+    "schema_retries": 0,
+    "generation_ready": true,
+    "clarification_required": false,
+    "design_specification_outputs": ["box_body", "box_lid"],
+    "delegated_semantics_preserved_in_extraction": {
+      "wall_thickness": {
+        "requirement_id": "wall_thickness_delegated",
+        "classification_field": "delegated_choice",
+        "semantic_parts_count": 1,
+        "explicit": false,
+        "protected": false,
+        "source": "user",
+        "selected_value": 3
+      },
+      "lid_clearance": {
+        "requirement_id": "lid_clearance_delegated",
+        "classification_field": "delegated_choice",
+        "semantic_parts_count": 1,
+        "explicit": false,
+        "protected": false,
+        "source": "user",
+        "selected_value": 0.4
+      }
+    },
+    "hard_body_bounds": {
+      "requirement_id": "body_depth_envelope",
+      "value": {"width": 80, "depth": 60, "height": 30},
+      "operator": "approximately",
+      "source_fact_id": "fact_body_envelope"
+    }
+  },
+  "ledger_and_contract": {
+    "ledger_outputs": ["box_body", "box_lid"],
+    "contract_outputs": ["box_body", "box_lid"],
+    "output_identity_preserved": true,
+    "body_scope": "box_body",
+    "delegated_wall_contract_policy": "machine_required",
+    "delegated_clearance_contract_policy": "machine_required",
+    "delegated_wall_contract_authority": "required",
+    "delegated_clearance_contract_authority": "required",
+    "delegated_protected_facts": [],
+    "application_policy_mismatch": {
+      "expected": "informational/flexible/unprotected",
+      "observed": "machine_required/required/unprotected",
+      "earliest_incorrect_owner": "application policy resolver",
+      "failure_class": "policy_routing_authority_shape_not_recognized"
+    }
+  },
+  "cad_generation": {
+    "initial_generation_provider_calls": 1,
+    "repair_provider_calls": 1,
+    "fallback_provider_calls": 0,
+    "total_cad_provider_calls": 2,
+    "provider_attempts": [
+      {"stage": "initial_generation", "credential_slot": "primary", "status_code": 200, "rate_limit": "not_429"},
+      {"stage": "semantic_repair", "repair_level": "L1", "credential_slot": "primary", "status_code": 200, "rate_limit": "not_429"}
+    ],
+    "source_contract": "valid after normal repair",
+    "source_hash": "28c10b4584a9f37fe6cdb28e2f89e8882a2aef3d2c99424207b8a4dd5475344fe",
+    "worker_stages_observed": 2,
+    "worker_execution_ids": "not exposed by the existing safe live-evidence projection"
+  },
+  "artifacts": {
+    "concept_state": "concept_available",
+    "logical_outputs": ["box_body", "box_lid"],
+    "per_output_artifacts": {
+      "box_body": {
+        "step_sha256": "081465fc068aea5ae402e2eeae7e6a297852dc5c7536d8386bfcdaf9a21e038e",
+        "stl_sha256": "8353be938aab4b2f8408c0dfd9ba696ccdcfd3b037e33624e296d69fb36849fc",
+        "brep_sha256": "f06cc8797b07eea6ad54e13603e672a362d01546b256bc6bcae5466631e84f10"
+      },
+      "box_lid": {
+        "step_sha256": "52ae09fe1bd3dd7f6131ff37133d60b6092dba0ef41408d7d9e7161deeebf3f0",
+        "stl_sha256": "a6a760554a345f34a660399055d78b92edcc66b1a1017e4251eb712ba690d4e8",
+        "brep_sha256": "f8fa9525cf26beadb190c520200cdc029ef563424c47751249b3c2c369ab7bb6"
+      }
+    },
+    "topology": "valid for both generated logical outputs"
+  },
+  "semantic": {
+    "hard_body_bounds": "PASS",
+    "body_bounds_scope_resolution": "unique explicit box_body match",
+    "output_identity": "two logical outputs preserved",
+    "machine_required_count": 3,
+    "machine_pass": 1,
+    "machine_fail": 0,
+    "unsupported_verifier": ["lid_clearance_delegated", "wall_thickness_delegated"],
+    "review_required": [],
+    "informational": 0,
+    "status": "unsupported_verifier",
+    "candidate_state": "candidate_blocked",
+    "concept_state": "concept_available"
+  },
+  "first_blocker": {
+    "observed_stage": "semantic_measurement",
+    "failure_class": "semantic_requirement_unverifiable",
+    "first_incorrect_owner": "application",
+    "normal_recovery_resolved_initial_geometry_error": true,
+    "root_cause": "The live extractor represented each delegated scalar with classification=delegated_choice and a one-item semantic_parts array, but the application resolver only recognized semantic_role/authority/explicit provenance and defaulted the top-level records to machine_required."
+  },
+  "guardrails": {
+    "hard_bounds_not_downgraded": true,
+    "output_identity_not_downgraded": true,
+    "reference_geometry_isolated": true,
+    "concept_state_orthogonal": true,
+    "final_verification_fail_closed": true,
+    "no_second_live_run": true,
+    "no_recovery_e_started": true
+  },
+  "next_action": "Review the generic application-policy handling of structured delegated_choice role signals, add offline regression coverage, then run a newly authorized single live confirmation only in a subsequent checkpoint."
+}

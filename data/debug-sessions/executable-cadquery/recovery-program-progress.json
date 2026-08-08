@@ -5,11 +5,11 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "99f959d Implement Recovery B5 composite normalization",
-  "origin_experimental_head": "99f959d Implement Recovery B5 composite normalization",
+  "experimental_head": "985af35 Implement application-owned requirement policy routing",
+  "origin_experimental_head": "985af35 Implement application-owned requirement policy routing",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete; the 30-project development first-pass survey is complete on frozen code checkpoint 8dd0d8d with 60 preserved cells, 54 live workflows, and 6 replacement exclusions; Recovery C subject-only scope live confirmation completed with two required named outputs and a passed body-bounds finding; Recovery B5 composite normalization is implemented and offline-verified with authority/protection preservation while B1/B2/B3/B4 routing remains unopened; no validation or holdout work has started",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete; the 30-project development first-pass survey is complete on frozen code checkpoint 8dd0d8d with 60 preserved cells, 54 live workflows, and 6 replacement exclusions; Recovery C subject-only scope live confirmation completed with two required named outputs and a passed body-bounds finding; Recovery B5 composite normalization is implemented and offline-verified; Recovery B1/B2/B3/B4 application policy routing is implemented and offline-verified but its single live confirmation exposed a generic delegated-choice field-shape policy defect; no validation or holdout work has started",
   "current_recovery_checkpoint": {
     "name": "recovery_b5_composite_requirement_normalization",
     "status": "implemented_offline_verified",
@@ -49,6 +49,31 @@
     "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b5-composite-normalization.json",
     "tests": "11 focused; 63 adjacent; 1638 backend passed, 1 skipped",
     "next_action": "Stop for review; implement B1/B2/B3/B4 policy routing separately; do not begin Recovery E"
+  },
+  "external_cad_recovery_b1_b4_policy_routing_status": {
+    "status": "implemented_offline_live_policy_defect",
+    "scope": "application-owned routing for review_required, informational, and machine_required",
+    "decision": "RECOVERY_B_POLICY_DEFECT",
+    "policy_version": "product-requirement-policy-v1",
+    "contract_materialization_version": "executable-cadquery-product-contract-v3",
+    "offline_normalized_record_count": 45,
+    "offline_policy_counts": {"review_required": 9, "informational": 34, "machine_required": 2},
+    "live_provider_calls": 3,
+    "live_requirement_extraction_calls": 1,
+    "live_cad_generation_calls": 1,
+    "live_cad_repair_calls": 1,
+    "live_fallback_calls": 0,
+    "live_worker_stages_observed": 2,
+    "live_contract_source": "production_requirement_ledger",
+    "live_hard_bounds": "passed",
+    "live_output_identity": "two named outputs preserved",
+    "live_concept_state": "concept_available",
+    "live_candidate_state": "candidate_blocked",
+    "first_blocker": "delegated_choice classification field was not recognized by the application policy resolver; wall thickness and lid clearance defaulted fail-closed to machine_required",
+    "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-b-live-confirmation/validation-summary.json",
+    "validation_access": false,
+    "holdout_access": false,
+    "next_action": "Stop; review the generic delegated-choice field-shape boundary before authorizing any new live confirmation. Do not begin Recovery E."
   },
   "completed_gates": [
     "branch_and_main_divergence_verified",
@@ -169,6 +194,7 @@
     ,"phase_1b_recovery_c_subject_only_scope_live_confirmation_passed"
     ,"phase_1b_recovery_b_policy_boundary_reconstructed_without_implementation"
     ,"phase_1b_recovery_b5_composite_normalization_offline_verified"
+    ,"phase_1b_recovery_b1_b4_policy_routing_offline_implementation_verified"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -917,6 +943,8 @@
     ,"phase_1b_recovery_c_live_confirmations": 2
     ,"phase_1b_recovery_b_policy_provider_calls": 0
     ,"phase_1b_recovery_b_policy_worker_executions": 0
+    ,"phase_1b_recovery_b_policy_live_provider_calls": 3
+    ,"phase_1b_recovery_b_policy_live_worker_stages": 2
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -927,9 +955,11 @@
     "execution_repair_prompt": "cadquery-execution-repair-v2",
     "neutral_measurement": "executable-cadquery-neutral-measurement-v1",
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
-    "blind_review_record": "executable-cadquery-blind-review-record-v1"
+    "blind_review_record": "executable-cadquery-blind-review-record-v1",
+    "requirement_policy": "product-requirement-policy-v1",
+    "product_contract_materialization": "executable-cadquery-product-contract-v3"
   },
-  "latest_substantive_commit": "7bb5a6f Implement first-class logical output identity",
+  "latest_substantive_commit": "985af35 Implement application-owned requirement policy routing",
   "evidence": {
     "methodology_playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
     "methodology_update": "seed stabilization → frozen diverse development corpus → first-blocker survey → generic clustering → breadth-first recovery → policy freeze → unseen holdout",
@@ -1022,5 +1052,6 @@
     ,"phase_1b_recovery_c_live_confirmation": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-c-live-two-output-confirmation/; one synthetic two-output normal-product-path run; both named outputs and per-output STEP/STL/BREP artifacts persisted; no corpus/reference data; post-live subject-only scope correction was offline-tested without a second live call"
     ,"phase_1b_recovery_c_subject_only_scope_live_confirmation": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-c-live-two-output-confirmation-rerun/post-run-validation.json; one new synthetic normal-product-path run after offline scope correction; subject=box body uniquely resolved to box_body; body bounds 80x60x30 passed final_mesh_bounds; two required logical outputs completed with independent STEP/STL/BREP artifacts; provider_calls=2 (requirements=1, CAD=1); worker_executions=1; candidate remains blocked only by the existing qualitative wall/clearance verifier gap and final review"
     ,"phase_1b_recovery_b_policy_boundary": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b-policy-boundary-reconstruction.json; historical B inventory=41 and remains 41 after A/C; combined audit=42 including Recovery-C synthetic composite; B1=7, B2=1, B3=31, B4=1, B5=2 combined, B6=0; multiple-boundary decision; provider_calls=0; worker_executions=0; no production changes"
+    ,"phase_1b_recovery_b1_b4_policy_routing": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b1-b4-policy-routing.json; application resolver implemented; offline replay=45 records, review=9, informational=34, machine=2; focused=69 passed; full backend=1651 passed, 1 skipped; one live synthetic exposed delegated-choice field-shape policy defect; live evidence under recovery-b-live-confirmation; no validation/holdout"
   }
 }
