@@ -5,7 +5,7 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "e3e42f7 Build external real-world CAD benchmark pilot infrastructure",
+  "experimental_head": "5132d2d Import and lock mounting-bracket pilot references",
   "origin_experimental_head": "e3e42f7 Build external real-world CAD benchmark pilot infrastructure",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
@@ -581,6 +581,6 @@
     "phase_1b_brep_physical_hole_evidence_contract_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-brep-physical-hole-evidence-contract-reconstruction.json; 16 synthetic B-Rep cases; 23 characterization tests passed; split decision; no production extractor; provider_calls=0; frozen_worker_executions=0",
     "external_real_world_benchmark_pilot_infrastructure": "docs/EXTERNAL_REAL_WORLD_CAD_BENCHMARK_PILOT.md; benchmarks/external/mounting-brackets-v1/manifest.json; backend/app/services/external_benchmarks; scripts/import_external_benchmark_reference.py; multi-file importer and explicit mapping tests; provider_calls=0; benchmark_runs=0",
     "external_real_world_benchmark_pilot_lock": "outer ZIP SHA-256 6b9274c333f6212b4a5b44b398b632b1af326a5625885f76d734a795223ebe86; five projects imported; canonical parts=7; provenance files=16; canonical reference bytes remain under ignored data/",
-    "verification_current_checkpoint": "focused external benchmark suite 20 passed; provider_calls=0; benchmark_runs=0; frozen_worker_executions=0; no production CAD generation changes"
+    "verification_current_checkpoint": "focused external benchmark suite 20 passed; full backend 1556 passed, 1 skipped, 1 warning; provider_calls=0; benchmark_runs=0; frozen_worker_executions=0; no production CAD generation changes"
   }
 }
