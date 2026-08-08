@@ -58,6 +58,23 @@
     "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-e-verifier-gap-reconstruction.json",
     "next_action": "Stop for review; implement no Recovery-E verifier until the multiple boundaries are reviewed"
   },
+  "external_cad_recovery_e2_connection_diameter_characterization_status": {
+    "status": "characterized_offline",
+    "scope": "test-only analytic B-Rep cylindrical connection-diameter evidence; no production routing",
+    "decision": "RECOVERY_E2_SPECIFICATION_GAP",
+    "current_requirement": "hose_connection_diameter",
+    "measurement_contract": "requires interface identity, diameter role, opening semantics, expected value, operator, and separate acceptance tolerance",
+    "synthetic_tests": 14,
+    "false_positive_gate": "passed synthetic blind/boss/internal/duplicate/stepped/chamfered controls",
+    "historical_adapter_artifact": "artifact_unavailable; persisted BREP/STEP/STL hashes searched under data/ with no local matches",
+    "provider_calls": 0,
+    "production_worker_executions": 0,
+    "validation_access": false,
+    "holdout_access": false,
+    "production_files_changed": [],
+    "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-e2-connection-diameter-characterization.json",
+    "next_action": "Stop for review; do not route hose_connection_diameter or begin E3/E4/E6"
+  },
   "external_cad_recovery_b5_composite_normalization_status": {
     "status": "implemented_offline_verified",
     "benchmark_id": "external-cad-50-v1.1",

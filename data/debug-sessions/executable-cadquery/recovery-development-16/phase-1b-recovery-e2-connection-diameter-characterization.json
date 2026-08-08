@@ -1,0 +1,310 @@
+{
+  "schema_version": "external-cad-recovery-e2-connection-diameter-characterization-v1",
+  "checkpoint": "recovery_e2_characterize_narrow_analytic_brep_connection_diameter",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "code_head_at_characterization": "4b6471a",
+  "decision": "RECOVERY_E2_SPECIFICATION_GAP",
+  "provider_calls": 0,
+  "production_worker_executions": 0,
+  "validation_access": false,
+  "holdout_access": false,
+  "production_routing_changed": false,
+  "candidate_policy_changed": false,
+  "requirement_policy_changed": false,
+  "production_files_changed": [],
+  "characterization_files": [
+    "backend/tests/brep_connection_diameter_characterization.py",
+    "backend/tests/test_brep_connection_diameter_characterization.py"
+  ],
+  "prior_parked_capability": {
+    "found": true,
+    "location": "backend/tests/test_brep_physical_hole_characterization.py",
+    "introduced_by": "88f7b55",
+    "scope": "test-only OpenCascade observations; no production physical-hole recognition",
+    "what_it_inspects": [
+      "analytic CYLINDER faces",
+      "cylinder radius and axis",
+      "face bounding boxes and orientation",
+      "CIRCLE edge radius and centers",
+      "face-edge adjacency reconstructed with TopoDS IsSame",
+      "simple planar through/blind adjacency controls"
+    ],
+    "why_it_was_parked": [
+      "cylindrical faces also occur on bosses, pins, fillets, recesses, and transitions",
+      "face orientation alone does not identify inner versus outer geometry",
+      "circular-edge count is not physical-hole identity",
+      "worker topology-v2 did not persist analytic face/edge evidence",
+      "universal through/blind classification was not established beyond simple planar hosts",
+      "stepped/counterbored and countersunk features require separate topology-aware grouping"
+    ],
+    "relevant_former_false_positive_controls": [
+      "exterior cylindrical boss",
+      "solid cylindrical pin",
+      "filleted host with a hole",
+      "cylindrical recess",
+      "coaxial but physically separate cylindrical features",
+      "counterbored and countersunk openings"
+    ],
+    "promotion_status": "not promoted; reused only as characterization evidence"
+  },
+  "measurement_contract": {
+    "status": "required_for_safe_production_integration",
+    "required_fields": {
+      "measurement": "cylindrical_diameter",
+      "logical_output_scope": "vacuum_adapter",
+      "interface_identity": "authoritative geometric target descriptor or persisted feature identity",
+      "diameter_role": ["inner", "outer", "opening"],
+      "expected": "numeric value",
+      "operator": ["exact", "approximately", "minimum", "maximum", "range"],
+      "acceptance_tolerance": "explicit or approved policy default"
+    },
+    "target_identity_requirements": [
+      "target selection must occur independently of expected diameter",
+      "axis/orientation may be arbitrary; no global XYZ assumption",
+      "interface locality must be established from the descriptor and B-Rep topology",
+      "role and opening/blind semantics must be known or the result is UNVERIFIABLE",
+      "a whole-model nearest-diameter search is prohibited"
+    ],
+    "outcome_contract": {
+      "PASS": "one target is uniquely identified, role/opening semantics are established, analytic measurement exists, and operator/tolerance comparison passes",
+      "FAIL": "one target is uniquely identified, role/opening semantics are established, analytic measurement exists, and comparison demonstrably fails",
+      "UNVERIFIABLE": "target identity, role, opening state, topology, BREP, or analytic measurement is missing or ambiguous"
+    }
+  },
+  "current_hose_requirement_audit": {
+    "requirement_id": "hose_connection_diameter",
+    "output_scope": "vacuum_adapter",
+    "expected": {"value": 35.0},
+    "operator": "exact",
+    "authority": "user_explicit/required",
+    "present": ["numeric value", "output scope", "operator"],
+    "missing": [
+      "inner versus outer versus opening diameter role",
+      "specific interface identity/location",
+      "opening versus blind/recess semantics",
+      "acceptance tolerance in the persisted requirement contract"
+    ],
+    "sufficiency": "E2_GEOMETRY_CAPABLE_SPECIFICATION_UNDERSPECIFIED",
+    "conclusion": "The requirement is not safe to route to a cylindrical verifier. The application must not select whichever 35 mm cylinder happens to exist."
+  },
+  "analytic_extractor": {
+    "authority": "CadQuery/OpenCascade B-Rep only",
+    "enumerates": [
+      "stable evaluator-local candidate ID",
+      "radius and diameter",
+      "axis origin and direction",
+      "axial extent projected onto the analytic axis",
+      "surface area",
+      "owning face identity",
+      "adjacent edge and face identities",
+      "circular boundary edge centers/radii",
+      "boundary loop edge membership",
+      "conservative surface role",
+      "conservative opening state",
+      "output ID",
+      "source BREP hash"
+    ],
+    "candidate_id": "face-<shape-local-face-index>",
+    "role_method": "local material-side probing with Shape.isInside; returns unknown when not decisive",
+    "opening_method": "conservative circular-edge adjacency to planar multi-wire boundaries versus one-wire caps; returns unknown outside the simple characterized topology",
+    "expected_value_selection": "never used; selection runs first against axis/interface target, then diameter comparison runs afterward",
+    "face_segment_handling": "cylinder faces remain separate; no aggressive merge is attempted",
+    "geometry_tolerances_characterization_only": {
+      "axis_line_mm": 1e-5,
+      "interface_point_mm": 1e-4,
+      "role_probe_offset_mm": "0.01 to 0.2 adaptive local probe",
+      "acceptance_tolerance": "separate caller input; not part of analytic extraction"
+    },
+    "known_limits": [
+      "some OCCT CYLINDER observations can expose a trimmed-surface adaptor without Axis(); these are not silently promoted to analytic candidates",
+      "surface role remains unknown in clean through-hole and hollow-spigot controls",
+      "planar wire-count opening evidence is not a universal curved-host or threaded-interface proof",
+      "stepped and conical transition surfaces are not merged into one connection feature"
+    ]
+  },
+  "synthetic_matrix": [
+    {
+      "case": "positive_outer_cylindrical_spigot",
+      "fixture": "hollow spigot with OD 35 mm and inner cylinder 25 mm",
+      "analytic_candidates": 2,
+      "candidate_diameters_mm": [35.0, 25.0],
+      "role_evidence": "unknown for both",
+      "certification_result_without_outer_role_or_interface_target": "UNVERIFIABLE/ambiguous",
+      "meaning": "35 mm is measurable, but OD cannot be safely selected from expected value or axis alone"
+    },
+    {
+      "case": "positive_inner_cylindrical_socket",
+      "fixture": "clean 35 mm analytic through-bore used as inner-interface control",
+      "analytic_candidates": 1,
+      "candidate_diameters_mm": [35.0],
+      "role_evidence": "unknown",
+      "targeted_measurement_result": "PASS when a unique geometric target is supplied and role is not requested by the evaluator target",
+      "production_interpretation": "role-specific certification remains UNVERIFIABLE until inner/opening semantics are contractually established"
+    },
+    {
+      "case": "negative_wrong_diameter",
+      "fixture": "clean analytic through-bore with diameter 32 mm",
+      "analytic_candidates": 1,
+      "result": "FAIL",
+      "measured_diameter_mm": 32.0,
+      "expected_diameter_mm": 35.0,
+      "meaning": "wrong diameter fails only after the target was independently selected"
+    },
+    {
+      "case": "negative_blind_cylindrical_recess",
+      "fixture": "35 mm blind recess",
+      "analytic_candidates": 1,
+      "opening_state": "blind_recess",
+      "result": "UNVERIFIABLE",
+      "meaning": "matching diameter does not certify an open connection"
+    },
+    {
+      "case": "negative_decorative_external_boss",
+      "fixture": "35 mm solid external boss",
+      "analytic_candidates": 1,
+      "opening_state": "blind_recess/conservative non-opening",
+      "result": "UNVERIFIABLE",
+      "meaning": "an external cylinder without an identified opening does not pass"
+    },
+    {
+      "case": "negative_internal_cavity_cylinder",
+      "fixture": "35 mm cavity fully internal to a solid",
+      "analytic_candidates": 1,
+      "opening_state": "blind_recess/conservative non-external",
+      "result": "UNVERIFIABLE",
+      "meaning": "internal cavity evidence is not an external connection"
+    },
+    {
+      "case": "ambiguous_two_equal_interfaces",
+      "fixture": "two coaxial 35 mm cylindrical interfaces at disjoint axial intervals",
+      "analytic_candidates": 2,
+      "candidate_diameters_mm": [35.0, 35.0],
+      "result": "UNVERIFIABLE/ambiguous",
+      "meaning": "duplicate equal diameters never resolve by expected value"
+    },
+    {
+      "case": "ambiguous_parallel_equal_interfaces",
+      "fixture": "two separate 35 mm cylindrical interfaces",
+      "analytic_candidates": 2,
+      "candidate_diameters_mm": [35.0, 35.0],
+      "result": "UNVERIFIABLE/ambiguous",
+      "meaning": "same diameter in multiple locations requires interface identity"
+    },
+    {
+      "case": "ambiguous_stepped_connector",
+      "fixture": "same-axis stepped connector with 25 mm and 35 mm bands",
+      "analytic_candidates": 2,
+      "candidate_diameters_mm": [35.0, 25.0],
+      "result": "UNVERIFIABLE/ambiguous",
+      "meaning": "coaxiality alone does not identify the intended band"
+    },
+    {
+      "case": "ambiguous_chamfered_mouth",
+      "fixture": "35/25 mm cylindrical/conical mouth transition",
+      "analytic_candidates": 2,
+      "candidate_diameters_mm": [25.0, 25.0],
+      "result": "UNVERIFIABLE/ambiguous",
+      "meaning": "cylinder radius alone does not establish the functional mouth diameter"
+    },
+    {
+      "case": "rotated_connector",
+      "fixture": "35 mm through-bore rotated 31 degrees around a non-principal axis",
+      "analytic_candidates": 1,
+      "axis_direction": [-0.364186915, 0.364186915, -0.857167301],
+      "result": "PASS for geometry-targeted characterization",
+      "meaning": "analytic axis measurement works without XYZ orientation assumptions; role semantics remain separate"
+    }
+  ],
+  "inner_outer_classification": {
+    "tested_method": "local Shape.isInside probes toward and away from the cylinder axis",
+    "result": "not sufficiently reliable for generic certification",
+    "observed": "clean inner through-bore and hollow-spigot bands remained unknown; prior fillet controls show orientation is not a safe fallback",
+    "safe_policy": "require diameter role and interface identity from the contract, or return UNVERIFIABLE; never infer ID/OD from face orientation or expected diameter"
+  },
+  "opening_blind_classification": {
+    "simple_planar_controls": "blind recesses were rejected and clean through/open controls were measurable",
+    "generic_quality": "not proven for arbitrary curved, threaded, filleted, or non-planar hosts",
+    "safe_policy": "opening/blind state must be explicit evidence or remain UNVERIFIABLE"
+  },
+  "face_segment_handling": {
+    "clean_cylinders": "one face per characterized cylindrical band",
+    "stepped": "separate equal-axis faces remain separate and ambiguous without axial/interface targeting",
+    "countersunk": "conical transition is not represented by cylinder-only evidence",
+    "merge_decision": "do not merge in this checkpoint; future merging would require coaxiality, equal-radius/defined transition rules, axial continuity, and topological continuity"
+  },
+  "historical_adapter_artifact": {
+    "project": "adapter-coupler-002",
+    "output_id": "vacuum_adapter",
+    "expected_hashes": {
+      "brep": "7778a0730c5ec0623410cc6e92150fa25e8c30cdd171607035097c4edc7aa120",
+      "step": "04f179beab97617e6ed16f99d599bbf6952e9488fef3974e3bff4cedb346f498",
+      "stl": "f60bbf82f401d83893c6e363823163dfcb11393174f8ea1fc06a46affdfe6feb"
+    },
+    "searched_root": "/root/volundr/data",
+    "hash_matches": [],
+    "status": "artifact_unavailable",
+    "analytic_cylinder_count": null,
+    "plausible_external_connection_count": null,
+    "candidate_diameters_mm": [],
+    "unique_target_without_expected_value": "not assessable",
+    "historical_semantic_outcome_changed": false,
+    "note": "No historical geometry was regenerated or reconstructed from the expected 35 mm value. Persisted run evidence still records valid topology and artifact hashes, but the bytes are not locally available for evaluator loading."
+  },
+  "false_positive_audit": {
+    "blind_recess_passed": false,
+    "unrelated_boss_passed": false,
+    "internal_cavity_passed": false,
+    "duplicate_equal_interface_passed": false,
+    "stepped_connector_arbitrarily_selected": false,
+    "expected_value_used_for_selection": false,
+    "orientation_assumption_used": false,
+    "label_only_targeting_used": false,
+    "false_positive_gate": "synthetic false-positive controls passed",
+    "remaining_risk": "role and external-interface identity are not generically proven for production certification"
+  },
+  "false_negative_limitations": [
+    "a valid connection may remain UNVERIFIABLE when role or opening topology is not represented",
+    "hollow spigot OD/ID distinction remains unresolved without stronger contract targeting",
+    "non-planar and threaded interfaces are outside the characterized opening rule",
+    "split/merged OCCT cylindrical faces and transition features need additional characterization",
+    "historical adapter geometry could not be inspected because artifact bytes were unavailable"
+  ],
+  "production_integration_requirements": [
+    "extend normalized requirement/contract semantics with diameter_role and interface identity before routing",
+    "persist analytic candidate evidence keyed by output ID and BREP hash if promoted",
+    "define a production-quality interface target selector independent of expected diameter",
+    "prove inner/outer/opening semantics or fail closed",
+    "separate geometry extraction tolerance from requirement acceptance tolerance",
+    "retain PASS/FAIL/UNVERIFIABLE evidence and never use STL heuristics when BREP exists",
+    "add production regression cases before assigning a verification_policy",
+    "keep stepped/countersunk/general feature recognition out of the first integration"
+  ],
+  "tests": {
+    "focused_command": "docker run --rm -v /root/volundr:/workspace -w /workspace/backend volundr-volundr-cad-worker:latest sh -c 'python -m pip install -q pytest && PYTHONPATH=/workspace/backend/tests python -m pytest -q tests/test_brep_connection_diameter_characterization.py'",
+    "result": "14 passed",
+    "coverage": [
+      "analytic enumeration and provenance",
+      "outer/inner measurement observation",
+      "wrong diameter",
+      "blind recess",
+      "external boss",
+      "internal cavity",
+      "duplicate and parallel ambiguity",
+      "stepped connector",
+      "chamfered mouth",
+      "rotated axis",
+      "expected-value selection guard",
+      "determinism",
+      "tolerance separation"
+    ],
+    "prior_parked_characterization": "23 passed in the existing test-only B-Rep characterization suite before this checkpoint",
+    "backend_suite": "not run; no production files or shared runtime libraries changed"
+  },
+  "evidence_paths": [
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-e2-connection-diameter-characterization.json",
+    "backend/tests/brep_connection_diameter_characterization.py",
+    "backend/tests/test_brep_connection_diameter_characterization.py",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-brep-physical-hole-evidence-contract-reconstruction.json"
+  ],
+  "conclusion": "The analytic extractor is useful for authoritative measurement characterization and has low false-positive behavior on the tested controls, but the current hose_connection_diameter requirement lacks diameter role and interface identity. Later production integration is not yet justified for this requirement."
+}
