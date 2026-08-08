@@ -1,0 +1,759 @@
+{
+  "artifacts": {
+    "hashes": {
+      "router_jig:brep": "34ba63150432ad46b384805193486741904d8dc50931a7a609469e98989dc787",
+      "router_jig:step": "52a42a333856ea61681eff9b7c01feb0945f2fa01c9387aa6ff27781f3e78228",
+      "router_jig:stl": "3bb206c54e74a2b2f66219c323bcb4339c4104fe28b28e65d7493b5acba0a777"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "jig-guide-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 2,
+    "repair_calls": 0,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "0d78cfa2634f6481f5fadb0c2067c25305795768edfd7ebc751f437020e995aa",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "994c5324-6740-4abd-a35c-973da525718f:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "15afbfe5-cd68-428e-8d17-1655bb25f5d1",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "1a9e1b3b-c625-45c5-8361-e0953b05b735",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "15afbfe5-cd68-428e-8d17-1655bb25f5d1",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "1a9e1b3b-c625-45c5-8361-e0953b05b735",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "b07914f1c7ff917e608be2507f5a0c85d32a2ecf35b040fff0bdc891c1fa8020",
+              "request_hash": "aae9d1b8433c303500215c29216762626bd8697dc80e7bfcb0c2e56819faefeb",
+              "request_started_at": "2026-08-08T11:47:00.667067+00:00",
+              "response_length": 3283,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "b07914f1c7ff917e608be2507f5a0c85d32a2ecf35b040fff0bdc891c1fa8020",
+        "repair_level": "initial",
+        "result_hash": "e52f48c39acaed9e99e2852fd8809b78b208e0ccfe304e3ff17ff84f69319159",
+        "revision_id": "75a42dfa-1e73-4c58-a170-2c9bfdbb63a6",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "dim_envelope_x",
+            "dim_envelope_y",
+            "dim_envelope_z",
+            "req_interchangeable_templates",
+            "req_stable_jig_body"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "0d78cfa2634f6481f5fadb0c2067c25305795768edfd7ebc751f437020e995aa",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "router_jig"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "0d78cfa2634f6481f5fadb0c2067c25305795768edfd7ebc751f437020e995aa",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "994c5324-6740-4abd-a35c-973da525718f:recovery-recheck:1",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "initial",
+        "result_hash": "e52f48c39acaed9e99e2852fd8809b78b208e0ccfe304e3ff17ff84f69319159",
+        "revision_id": "75a42dfa-1e73-4c58-a170-2c9bfdbb63a6",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "dim_envelope_x",
+            "dim_envelope_y",
+            "dim_envelope_z",
+            "req_interchangeable_templates",
+            "req_stable_jig_body"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "0d78cfa2634f6481f5fadb0c2067c25305795768edfd7ebc751f437020e995aa",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "router_jig"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 2
+  },
+  "category": "jig_guides",
+  "comparison_specification_hash": "06a503b0093d755d62cbf66f9761dfe8b20c88ee1297a11c497ad9126cc10ab8",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "router_jig",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "router_jig",
+        "purpose": "Design a router jig for cutting repeatable corner radii with a stable jig body and interchangeable templates."
+      },
+      "project_id": "d510f62e-e697-4ed9-9108-28bd770765ad",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": 156.97772216796875
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "dim_envelope_x"
+        },
+        {
+          "authoritative_value": {
+            "value": 70.7106819152832
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "dim_envelope_y"
+        },
+        {
+          "authoritative_value": {
+            "value": 27.000000000000018
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "dim_envelope_z"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_interchangeable_templates"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_stable_jig_body"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 156.97772216796875
+          },
+          "kind": "dimension",
+          "object_type": "radius_jig",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.",
+          "requirement_id": "dim_envelope_x",
+          "scope": "router_jig",
+          "source": "initial_user",
+          "subject": "radius_jig"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 70.7106819152832
+          },
+          "kind": "dimension",
+          "object_type": "radius_jig",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.",
+          "requirement_id": "dim_envelope_y",
+          "scope": "router_jig",
+          "source": "initial_user",
+          "subject": "radius_jig"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 27.000000000000018
+          },
+          "kind": "dimension",
+          "object_type": "radius_jig",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.",
+          "requirement_id": "dim_envelope_z",
+          "scope": "router_jig",
+          "source": "initial_user",
+          "subject": "radius_jig"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "template_family",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "template_family: interchangeable radius templates descriptive",
+          "requirement_id": "req_interchangeable_templates",
+          "scope": "router_jig",
+          "source": "initial_user",
+          "subject": "template_family"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "jig_body",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "It should include a stable jig body and interchangeable templates for different radius sizes.",
+          "requirement_id": "req_stable_jig_body",
+          "scope": "router_jig",
+          "source": "initial_user",
+          "subject": "jig_body"
+        }
+      ],
+      "revision_id": "994c5324-6740-4abd-a35c-973da525718f:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "994c5324-6740-4abd-a35c-973da525718f"
+    },
+    "contract_hash": "9989cf1c617906899d347d7e50ee47330d334e7279e2d2fab1f8a4a85f3f8dea",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "semantic_requirement_unverifiable",
+  "first_blocker_stage": "semantic_verification",
+  "first_incorrect_owner": "application",
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": "semantic_measurement",
+  "project_runtime_id": "d510f62e-e697-4ed9-9108-28bd770765ad",
+  "prompt": "Design a router jig for cutting repeatable corner radii. It should include a stable jig body and interchangeable templates for different radius sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.\n- template_family: interchangeable radius templates descriptive",
+  "prompt_sha256": "20843e3531d0524b5fa6073dc26b84ff43246531a65a92d014928b4f1f2bf8d4",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "214c072a-f7b9-4078-9a5f-af8e3c8c603a",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "a133dcb1-927a-4739-b63d-ac72cf6e38f3",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "4aeede7cabe401269c1acebb873779bfec83efb50a01074565166d7c49a1fcf1",
+      "request_hash": "6bf10dce1c53371b36f57938bcabb7ddab85263cfef4bde9e4327af154debfbc",
+      "request_started_at": "2026-08-08T11:46:55.665442+00:00",
+      "response_length": 5073,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "15afbfe5-cd68-428e-8d17-1655bb25f5d1",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "1a9e1b3b-c625-45c5-8361-e0953b05b735",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "b07914f1c7ff917e608be2507f5a0c85d32a2ecf35b040fff0bdc891c1fa8020",
+      "request_hash": "aae9d1b8433c303500215c29216762626bd8697dc80e7bfcb0c2e56819faefeb",
+      "request_started_at": "2026-08-08T11:47:00.667067+00:00",
+      "response_length": 3283,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "measured",
+    "eligible_interpretation": false,
+    "mapping_status": null,
+    "metrics": {
+      "bounding_box_error_by_axis_mm": {
+        "x": 4.746425474877469e-12,
+        "y": 8.526512829121202e-13,
+        "z": 1.7763568394002505e-14
+      },
+      "solid_count_agreement": true,
+      "surface_area_difference_mm2": 13869.860017222923,
+      "surface_area_difference_ratio": 0.597458052279611,
+      "volume_difference_mm3": 198237.93056093596,
+      "volume_difference_ratio": 3.194401435088374
+    },
+    "raw_generated": {
+      "authority": "analytic_brep",
+      "file_type": "step",
+      "geometry": {
+        "bounding_box_mm": {
+          "size_x": 156.977722167964,
+          "size_y": 70.71068191528235,
+          "size_z": 27.0
+        },
+        "center_of_mass_mm": [
+          -6.816029565723937,
+          -1.9655002486069757,
+          14.01091532841521
+        ],
+        "component_count": 1,
+        "solid_count": 1,
+        "surface_area_mm2": 37084.644660767764,
+        "volume_mm3": 260295.85740238556
+      },
+      "mesh": {},
+      "quality_classification": "analytic_brep_authoritative",
+      "schema_version": "external-cad-reference-derived-v1",
+      "topology": {
+        "face_count": 10,
+        "schema_version": "topology-evidence-v2",
+        "shell_count": 1,
+        "valid": true
+      },
+      "units": "unverified_model_units"
+    },
+    "raw_reference": {
+      "authority": "mesh_derived",
+      "canonical_part_count": 1,
+      "canonical_part_ids": [
+        "radius_jig"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 156.97772216796875,
+              "size_y": 70.7106819152832,
+              "size_z": 27.000000000000018
+            },
+            "center_of_mass_mm": [
+              -1.7508528870035288e-14,
+              70.42733182569853,
+              6.889108541517511
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 23214.78464354484,
+            "volume_mm3": 62057.92684144961
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 2052,
+            "vertex_count": 1022,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-003/derived-reference.json",
+      "quality_classification": "watertight_mesh_reference"
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "36f55aa532f158a486c9c9d94114a3e7953ea834ea8b014013e396e0c46b25e1",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Overall envelope for radius jig",
+        "id": "assumption_jig_body_envelope",
+        "importance": "important",
+        "kind": "dimension",
+        "label": "Overall envelope for radius jig",
+        "object_type": "radius_jig",
+        "operator": "approximately",
+        "protected": true,
+        "raw_evidence": "Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "radius_jig",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          156.97772216796875,
+          70.7106819152832,
+          27.000000000000018
+        ]
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "61859769-9f9e-4cea-8f07-9e802103ca74",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "d510f62e-e697-4ed9-9108-28bd770765ad",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:59.080820",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "radius_jig",
+        "operator": "approximately",
+        "originating_message": "Design a router jig for cutting repeatable corner radii. It should include a stable jig body and interchangeable templates for different radius sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.\n- template_family: interchangeable radius templates descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.",
+        "record_id": "fab56306-ee87-4794-9271-0352e6af7883",
+        "requirement_id": "dim_envelope_x",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "radius_jig",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:46:59.080822",
+        "value": 156.97772216796875,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:59.080823",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "radius_jig",
+        "operator": "approximately",
+        "originating_message": "Design a router jig for cutting repeatable corner radii. It should include a stable jig body and interchangeable templates for different radius sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.\n- template_family: interchangeable radius templates descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.",
+        "record_id": "6dc4605d-f0dc-42e2-a5d1-7b8c4a735e29",
+        "requirement_id": "dim_envelope_y",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "radius_jig",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:46:59.080824",
+        "value": 70.7106819152832,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:59.080825",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "radius_jig",
+        "operator": "approximately",
+        "originating_message": "Design a router jig for cutting repeatable corner radii. It should include a stable jig body and interchangeable templates for different radius sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.\n- template_family: interchangeable radius templates descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.",
+        "record_id": "00230d4c-911b-4c3f-a3ae-98e8b6750bf9",
+        "requirement_id": "dim_envelope_z",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "radius_jig",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:46:59.080825",
+        "value": 27.000000000000018,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:59.080826",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "jig_body",
+        "operator": "present",
+        "originating_message": "Design a router jig for cutting repeatable corner radii. It should include a stable jig body and interchangeable templates for different radius sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.\n- template_family: interchangeable radius templates descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "It should include a stable jig body and interchangeable templates for different radius sizes.",
+        "record_id": "730bddd3-9633-4b0b-b286-0b74a30d81cf",
+        "requirement_id": "req_stable_jig_body",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "jig_body",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:46:59.080826",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:59.080827",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "template_family",
+        "operator": "present",
+        "originating_message": "Design a router jig for cutting repeatable corner radii. It should include a stable jig body and interchangeable templates for different radius sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.\n- template_family: interchangeable radius templates descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "template_family: interchangeable radius templates descriptive",
+        "record_id": "e218713a-5461-4901-a845-6ac52f9a5b36",
+        "requirement_id": "req_interchangeable_templates",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "template_family",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:46:59.080828",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:47:08.133311+00:00"
+  },
+  "revision_id": "75a42dfa-1e73-4c58-a170-2c9bfdbb63a6",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 0,
+    "total_authoritative_requirements": 5,
+    "unsupported_verifier": 5,
+    "unverifiable": 5
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 12.489068936993135,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 10,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "output_id": "router_jig",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 2,
+    "job_ids": [
+      "994c5324-6740-4abd-a35c-973da525718f:attempt:1:worker",
+      "994c5324-6740-4abd-a35c-973da525718f:recovery-recheck:1:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "34ba63150432ad46b384805193486741904d8dc50931a7a609469e98989dc787",
+          "step": "52a42a333856ea61681eff9b7c01feb0945f2fa01c9387aa6ff27781f3e78228",
+          "stl": "3bb206c54e74a2b2f66219c323bcb4339c4104fe28b28e65d7493b5acba0a777"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 156.977722167964,
+              "size_y": 70.71068191528235,
+              "size_z": 27.0
+            },
+            "center_of_mass_mm": [
+              -6.816029565723937,
+              -1.9655002486069757,
+              14.01091532841521
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 37084.644660767764,
+            "volume_mm3": 260295.85740238556
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 10,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "router_jig",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/d510f62e-e697-4ed9-9108-28bd770765ad/revisions/75a42dfa-1e73-4c58-a170-2c9bfdbb63a6/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "994c5324-6740-4abd-a35c-973da525718f"
+}

@@ -1,0 +1,25 @@
+{
+  "benchmark_project_id": "stand-support-002",
+  "category": "stand_supports",
+  "failure_class": null,
+  "first_blocker_stage": "replacement_excluded",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "prompt_sha256": "92b9ca3c48c8050a2e2ee8745f1604155d4b505f2de121d75e610c119c859463",
+  "provider_calls": 0,
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "status": "replacement_required"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "state": "excluded_replacement_required",
+  "terminal_stage": "replacement_excluded",
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions": 0,
+  "worker_executions_reconciled": true
+}

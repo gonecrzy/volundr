@@ -1,0 +1,711 @@
+{
+  "artifacts": {
+    "hashes": {
+      "vacuum_adapter:brep": "7778a0730c5ec0623410cc6e92150fa25e8c30cdd171607035097c4edc7aa120",
+      "vacuum_adapter:step": "04f179beab97617e6ed16f99d599bbf6952e9488fef3974e3bff4cedb346f498",
+      "vacuum_adapter:stl": "f60bbf82f401d83893c6e363823163dfcb11393174f8ea1fc06a46affdfe6feb"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "adapter-coupler-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 2,
+    "repair_calls": 0,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "854f153c143ea8b9c158ee41b522807029675f167af760c65eca3a43f3aab8e8",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "8d7f16ee-8689-4580-a772-169ea43ef6d9:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "bc76051c-fd10-4d10-ae64-12f30053b2ff",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "e998bf02-bf86-426b-9373-9adf4f376b33",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "bc76051c-fd10-4d10-ae64-12f30053b2ff",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "e998bf02-bf86-426b-9373-9adf4f376b33",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "7837e508edb96c246b46f1e458eab723d57eba42ba92993850468de79659daf5",
+              "request_hash": "a0aa96ff6d7039ca5f5ba1783ff40de16861ee3ef980ae131c57903d52942829",
+              "request_started_at": "2026-08-08T11:37:43.854614+00:00",
+              "response_length": 4524,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "7837e508edb96c246b46f1e458eab723d57eba42ba92993850468de79659daf5",
+        "repair_level": "initial",
+        "result_hash": "131528842f4ac3aa087b7bcf52b2a8461bc7dff56cc0c213f613314f84eaf602",
+        "revision_id": "79bfa038-778b-4afb-a266-d2497f3fb42b",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_secure_seat"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "hose_connection_diameter",
+            "req_airflow_path",
+            "req_connection"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "854f153c143ea8b9c158ee41b522807029675f167af760c65eca3a43f3aab8e8",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "vacuum_adapter"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "854f153c143ea8b9c158ee41b522807029675f167af760c65eca3a43f3aab8e8",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "8d7f16ee-8689-4580-a772-169ea43ef6d9:recovery-recheck:1",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "initial",
+        "result_hash": "131528842f4ac3aa087b7bcf52b2a8461bc7dff56cc0c213f613314f84eaf602",
+        "revision_id": "79bfa038-778b-4afb-a266-d2497f3fb42b",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_secure_seat"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "hose_connection_diameter",
+            "req_airflow_path",
+            "req_connection"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "854f153c143ea8b9c158ee41b522807029675f167af760c65eca3a43f3aab8e8",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "vacuum_adapter"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 2
+  },
+  "category": "adapter_coupler",
+  "comparison_specification_hash": "268a51d7030a53143cf2ee8f6987a88c7ff821fec27ea7cad41e17bc2f777611",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "vacuum_adapter",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "vacuum adapter",
+        "purpose": "Connect a Dyson V-series accessory interface to a 35 mm dust-extraction hose while maintaining airflow and a secure seat."
+      },
+      "project_id": "61101e23-f316-4d7a-8ae5-1dca4593c7f8",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": 35.0
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "hose_connection_diameter"
+        },
+        {
+          "authoritative_value": {
+            "value": "usable"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_airflow_path"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_connection"
+        },
+        {
+          "authoritative_value": {
+            "value": "secure"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_secure_seat"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 35.0
+          },
+          "kind": "dimension",
+          "object_type": "hose",
+          "operator": "exact",
+          "origin": "user_explicit",
+          "raw_evidence": "35 mm dust-extraction hose",
+          "requirement_id": "hose_connection_diameter",
+          "scope": "vacuum_adapter",
+          "source": "initial_user",
+          "subject": "dust-extraction hose"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": "usable"
+          },
+          "kind": "feature",
+          "object_type": "adapter",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "maintain a usable airflow path",
+          "requirement_id": "req_airflow_path",
+          "scope": "vacuum_adapter",
+          "source": "initial_user",
+          "subject": "airflow path"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "adapter",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "Design a vacuum adapter that connects a Dyson V-series accessory interface to a 35 mm dust-extraction hose.",
+          "requirement_id": "req_connection",
+          "scope": "vacuum_adapter",
+          "source": "initial_user",
+          "subject": "vacuum adapter"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": "secure"
+          },
+          "kind": "retention",
+          "object_type": "adapter",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "It should seat securely",
+          "requirement_id": "req_secure_seat",
+          "scope": "vacuum_adapter",
+          "source": "initial_user",
+          "subject": "vacuum adapter"
+        }
+      ],
+      "revision_id": "8d7f16ee-8689-4580-a772-169ea43ef6d9:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "8d7f16ee-8689-4580-a772-169ea43ef6d9"
+    },
+    "contract_hash": "e9046d667c5fed789cf9cf9a75532f1328576d3a1609c430f0590dbcbd5fe709",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "semantic_requirement_unverifiable",
+  "first_blocker_stage": "semantic_verification",
+  "first_incorrect_owner": "application",
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": "semantic_measurement",
+  "project_runtime_id": "61101e23-f316-4d7a-8ae5-1dca4593c7f8",
+  "prompt": "Design a vacuum adapter that connects a Dyson V-series accessory interface to a 35 mm dust-extraction hose. It should seat securely and maintain a usable airflow path.",
+  "prompt_sha256": "7e884a03dc61389eb988cc3a3b2b67ab756a962500c6859f7f81a1e72442656a",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "e16e6e51-0d6f-4324-bb19-12f142d147b6",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "594fcc77-371f-4529-9ef3-413c4d65170e",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "a2f44fd864462c38befb0bfd50814e2824684e55e4e97c8a3b779d9145f1a016",
+      "request_hash": "a0946b83265dfe60dada53de881df203439066099bd8fe651525e6e4fdc0c40d",
+      "request_started_at": "2026-08-08T11:37:38.852034+00:00",
+      "response_length": 4502,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "bc76051c-fd10-4d10-ae64-12f30053b2ff",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "e998bf02-bf86-426b-9373-9adf4f376b33",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "7837e508edb96c246b46f1e458eab723d57eba42ba92993850468de79659daf5",
+      "request_hash": "a0aa96ff6d7039ca5f5ba1783ff40de16861ee3ef980ae131c57903d52942829",
+      "request_started_at": "2026-08-08T11:37:43.854614+00:00",
+      "response_length": 4524,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "measured",
+    "eligible_interpretation": false,
+    "mapping_status": null,
+    "metrics": {
+      "bounding_box_error_by_axis_mm": {
+        "x": 9.499437821324221,
+        "y": 9.499633551409374,
+        "z": 14.095407211919749
+      },
+      "solid_count_agreement": null,
+      "surface_area_difference_mm2": 16365.30359191266,
+      "surface_area_difference_ratio": 0.4644837692801279,
+      "volume_difference_mm3": null,
+      "volume_difference_ratio": null
+    },
+    "raw_generated": {
+      "authority": "analytic_brep",
+      "file_type": "step",
+      "geometry": {
+        "bounding_box_mm": {
+          "size_x": 36.0,
+          "size_y": 36.0,
+          "size_z": 90.0
+        },
+        "center_of_mass_mm": [
+          3.345271392077455e-13,
+          -4.644539480933757e-16,
+          45.919836161497955
+        ],
+        "component_count": 1,
+        "solid_count": 1,
+        "surface_area_mm2": 18868.01277837976,
+        "volume_mm3": 26844.90922492535
+      },
+      "mesh": {},
+      "quality_classification": "analytic_brep_authoritative",
+      "schema_version": "external-cad-reference-derived-v1",
+      "topology": {
+        "face_count": 16,
+        "schema_version": "topology-evidence-v2",
+        "shell_count": 1,
+        "valid": true
+      },
+      "units": "unverified_model_units"
+    },
+    "raw_reference": {
+      "authority": "mesh_derived",
+      "canonical_part_count": 1,
+      "canonical_part_ids": [
+        "dyson_dust_adapter"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "3mf",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 45.49943782132422,
+              "size_y": 45.499633551409374,
+              "size_z": 104.09540721191975
+            },
+            "center_of_mass_mm": null,
+            "component_count": 1,
+            "solid_count": null,
+            "surface_area_mm2": 35233.31637029242,
+            "volume_mm3": null
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 15246,
+            "vertex_count": 7624,
+            "watertight": false,
+            "winding_consistent": true
+          },
+          "quality_classification": "nonwatertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-002/derived-reference.json",
+      "quality_classification": "nonwatertight_mesh_reference"
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "d30fc847990660b53e3476bb7e46c807f1e15d36ab579ef382db0bb8055617e9",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Dyson V-series accessory interface standard dimensions",
+        "id": "assumption_dyson_interface",
+        "kind": "dimension",
+        "label": "Dyson V-series accessory interface standard dimensions",
+        "object_type": "interface",
+        "operator": "exact",
+        "raw_evidence": "connects a Dyson V-series accessory interface",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "Dyson V-series interface",
+        "target": null,
+        "unit": "mm",
+        "value": 31.5
+      },
+      {
+        "description": "35 mm dust-extraction hose outer/inner connection diameter",
+        "id": "assumption_hose_diameter",
+        "kind": "dimension",
+        "label": "35 mm dust-extraction hose outer/inner connection diameter",
+        "object_type": "hose",
+        "operator": "exact",
+        "raw_evidence": "35 mm dust-extraction hose",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "dust-extraction hose",
+        "target": null,
+        "unit": "mm",
+        "value": 35.0
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "cf9c0d6f-fff8-4077-a42c-b2d1f9add6b1",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "61101e23-f316-4d7a-8ae5-1dca4593c7f8",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:37:41.572407",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "hose",
+        "operator": "exact",
+        "originating_message": "Design a vacuum adapter that connects a Dyson V-series accessory interface to a 35 mm dust-extraction hose. It should seat securely and maintain a usable airflow path.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "35 mm dust-extraction hose",
+        "record_id": "acbc13a3-22a3-4965-8b73-343f612815a5",
+        "requirement_id": "hose_connection_diameter",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "dust-extraction hose",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:37:41.572410",
+        "value": 35.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:37:41.572411",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "adapter",
+        "operator": "present",
+        "originating_message": "Design a vacuum adapter that connects a Dyson V-series accessory interface to a 35 mm dust-extraction hose. It should seat securely and maintain a usable airflow path.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Design a vacuum adapter that connects a Dyson V-series accessory interface to a 35 mm dust-extraction hose.",
+        "record_id": "7fe5d2af-c236-4c13-87f4-e7380bab5b12",
+        "requirement_id": "req_connection",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "vacuum adapter",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "Dyson V-series accessory interface and 35 mm dust-extraction hose",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:37:41.572412",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:37:41.572413",
+        "explicit": true,
+        "kind": "retention",
+        "object_type": "adapter",
+        "operator": "qualitative",
+        "originating_message": "Design a vacuum adapter that connects a Dyson V-series accessory interface to a 35 mm dust-extraction hose. It should seat securely and maintain a usable airflow path.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "It should seat securely",
+        "record_id": "6efe4cd6-393c-4e9a-b1a9-3945f115adc7",
+        "requirement_id": "req_secure_seat",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "vacuum adapter",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "retention",
+        "unit": null,
+        "updated_at": "2026-08-08T11:37:41.572413",
+        "value": "secure",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:37:41.572414",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "adapter",
+        "operator": "qualitative",
+        "originating_message": "Design a vacuum adapter that connects a Dyson V-series accessory interface to a 35 mm dust-extraction hose. It should seat securely and maintain a usable airflow path.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "maintain a usable airflow path",
+        "record_id": "8df500d8-c8e1-48d5-a26f-df20c7e824cb",
+        "requirement_id": "req_airflow_path",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "airflow path",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "qualitative_behavior",
+        "unit": null,
+        "updated_at": "2026-08-08T11:37:41.572414",
+        "value": "usable",
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:37:53.589281+00:00"
+  },
+  "revision_id": "79bfa038-778b-4afb-a266-d2497f3fb42b",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 1,
+    "total_authoritative_requirements": 4,
+    "unsupported_verifier": 3,
+    "unverifiable": 3
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 17.10478529399552,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 16,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "output_id": "vacuum_adapter",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 2,
+    "job_ids": [
+      "8d7f16ee-8689-4580-a772-169ea43ef6d9:attempt:1:worker",
+      "8d7f16ee-8689-4580-a772-169ea43ef6d9:recovery-recheck:1:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "7778a0730c5ec0623410cc6e92150fa25e8c30cdd171607035097c4edc7aa120",
+          "step": "04f179beab97617e6ed16f99d599bbf6952e9488fef3974e3bff4cedb346f498",
+          "stl": "f60bbf82f401d83893c6e363823163dfcb11393174f8ea1fc06a46affdfe6feb"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 36.0,
+              "size_y": 36.0,
+              "size_z": 90.0
+            },
+            "center_of_mass_mm": [
+              3.345271392077455e-13,
+              -4.644539480933757e-16,
+              45.919836161497955
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 18868.01277837976,
+            "volume_mm3": 26844.90922492535
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 16,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "vacuum_adapter",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/61101e23-f316-4d7a-8ae5-1dca4593c7f8/revisions/79bfa038-778b-4afb-a266-d2497f3fb42b/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "8d7f16ee-8689-4580-a772-169ea43ef6d9"
+}

@@ -1,0 +1,1032 @@
+{
+  "artifacts": {
+    "hashes": {
+      "battery_case:brep": "3cee3704322300a863daf855b403667b59d612e0ef996b8bcfdbcc1b0e35a65c",
+      "battery_case:step": "5b5225db5c0faedc22f5ef2a83c7b12477c61fd57cfbe885714d0df0912a1bdf",
+      "battery_case:stl": "4d9f5f2683ed1bcd50d9308c6a1a8cd22a274bfa27abedac9c7f36718da38749"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "container-case-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 1,
+    "repair_calls": 2,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "6ae55c2597c40118fc983783809f60a6306797d8dd54bc95884bd467854d9fbe",
+        "extraction_succeeded": true,
+        "failure_boundary": "topology",
+        "failure_class": "invalid_shape",
+        "first_incorrect_owner": "geometry",
+        "normalized_error": "output shape is invalid",
+        "observed_stage": "topology",
+        "operation_id": "16f665cf-3dfd-458e-9954-31ecd0877944:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "605cb6e1-bee5-415c-b209-af450363ceec",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "d59b30df-c264-4c38-bfff-c4b33ad67e95",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "605cb6e1-bee5-415c-b209-af450363ceec",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "d59b30df-c264-4c38-bfff-c4b33ad67e95",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "654747253d79050db70375a5c25eec8e53eb23693c1e1301de1ae77f43be0012",
+              "request_hash": "57f635b486231d711270780aa1eead3033db163a74bb4e4efb06d095c2611d26",
+              "request_started_at": "2026-08-08T11:38:39.155478+00:00",
+              "response_length": 4970,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "654747253d79050db70375a5c25eec8e53eb23693c1e1301de1ae77f43be0012",
+        "repair_level": "initial",
+        "result_hash": "a4b111930b4ab6e363c32c33ecaa2682926aa8f705e0cc0a9f49d0d25e74e0df",
+        "revision_id": "b0dab01f-e5d9-4f4f-8883-474c6c2c1e39",
+        "semantic_result": {},
+        "source_contract_valid": true,
+        "source_hash": "6ae55c2597c40118fc983783809f60a6306797d8dd54bc95884bd467854d9fbe",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 2,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "solid_count_mismatch",
+          "schema_version": "topology-evidence-v2",
+          "valid": false
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "battery_case"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 2,
+        "extracted_source_hash": "b7d5f5d6bf0ca8f337997531669fdb9691dd806b97bdacaab6bf29e41ed3b656",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "16f665cf-3dfd-458e-9954-31ecd0877944:attempt:2",
+        "progress": {
+          "measurable_progress": true,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [
+            "topology_became_valid",
+            "solid_count_reached_expected"
+          ],
+          "progress_result": "progressed",
+          "protected_fact_regression": false,
+          "repair_level": "L2",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": "886da617-e3d2-40f3-97aa-cadf4bc69c60",
+          "attempt_number": 2,
+          "failure_class": null,
+          "level": "L2",
+          "logical_operation_id": "f50ee85f-6d77-42b2-99b7-3231d5a05633",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "886da617-e3d2-40f3-97aa-cadf4bc69c60",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "f50ee85f-6d77-42b2-99b7-3231d5a05633",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "e666d5f4feafe59a6506fe1cb6e2ea2ff64ebd6363bedba1484dfa7611b5d444",
+              "request_hash": "ce3b9d0164840a5c28ff78875eeab6b3f0cdaf9c99ed4b4620371861c0b5019c",
+              "request_started_at": "2026-08-08T11:38:46.408506+00:00",
+              "response_length": 3620,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "e666d5f4feafe59a6506fe1cb6e2ea2ff64ebd6363bedba1484dfa7611b5d444",
+        "repair_level": "L2",
+        "result_hash": "a129881e021bd0f59245cd5c0e6612b55ab8ebb1161d2df1fb95a1847fb94720",
+        "revision_id": "87f68f3a-4ddc-4774-b325-e8ddc08ec828",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "retention_features"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "cell_diameter",
+            "cell_length",
+            "durable_reusable_enclosure",
+            "protective_case",
+            "screw_on_lid"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "b7d5f5d6bf0ca8f337997531669fdb9691dd806b97bdacaab6bf29e41ed3b656",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "battery_case"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 2,
+        "extracted_source_hash": "b7d5f5d6bf0ca8f337997531669fdb9691dd806b97bdacaab6bf29e41ed3b656",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "16f665cf-3dfd-458e-9954-31ecd0877944:recovery-recheck:2",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L2",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "L2",
+        "result_hash": "a129881e021bd0f59245cd5c0e6612b55ab8ebb1161d2df1fb95a1847fb94720",
+        "revision_id": "87f68f3a-4ddc-4774-b325-e8ddc08ec828",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "retention_features"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "cell_diameter",
+            "cell_length",
+            "durable_reusable_enclosure",
+            "protective_case",
+            "screw_on_lid"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "b7d5f5d6bf0ca8f337997531669fdb9691dd806b97bdacaab6bf29e41ed3b656",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "battery_case"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 3
+  },
+  "category": "container_cases",
+  "comparison_specification_hash": "c71de82b52d38707bc29064a409e673a41a337f8131f5ed11b98cd6f9fb0a58b",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "battery_case",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "battery_case",
+        "purpose": "Design a protective 26650 battery case with a screw-on lid and retention features."
+      },
+      "project_id": "72bc39e8-bfe5-4c25-afe4-1824ea935f20",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": "durable and reusable"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "durable_reusable_enclosure"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "protective_case"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "retention_features"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "screw_on_lid"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 26.0
+          },
+          "kind": "dimension",
+          "object_type": "battery_cell",
+          "operator": "exact",
+          "origin": "model_design_choice",
+          "raw_evidence": "26650 battery",
+          "requirement_id": "cell_diameter",
+          "scope": "battery_case",
+          "source": "volundr_proposal",
+          "subject": "26650 battery"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 65.0
+          },
+          "kind": "dimension",
+          "object_type": "battery_cell",
+          "operator": "exact",
+          "origin": "model_design_choice",
+          "raw_evidence": "26650 battery",
+          "requirement_id": "cell_length",
+          "scope": "battery_case",
+          "source": "volundr_proposal",
+          "subject": "26650 battery"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": "durable and reusable"
+          },
+          "kind": "qualitative",
+          "object_type": "battery_case",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "durable, reusable enclosure",
+          "requirement_id": "durable_reusable_enclosure",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "battery_case"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "battery_case",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "protective 26650 battery case",
+          "requirement_id": "protective_case",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "battery_case"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "retention",
+          "object_type": "retention_feature",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "retention features. It should keep the cell secure",
+          "requirement_id": "retention_features",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "battery_case"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "lid",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "screw-on lid",
+          "requirement_id": "screw_on_lid",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "lid"
+        }
+      ],
+      "revision_id": "16f665cf-3dfd-458e-9954-31ecd0877944:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "16f665cf-3dfd-458e-9954-31ecd0877944"
+    },
+    "contract_hash": "35559caa48104f7cf7301ff9cc81965aa55f41737c34b5a5c58a486e73cd4447",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "invalid_shape",
+  "first_blocker_stage": "topology",
+  "first_incorrect_owner": "geometry",
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": "topology",
+  "project_runtime_id": "72bc39e8-bfe5-4c25-afe4-1824ea935f20",
+  "prompt": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.",
+  "prompt_sha256": "a55ec2128402adf48517c58ed8bdd21bdab84b33afa501032b6853be37738e4d",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "75cbdbc1-0850-4973-9d52-f9c22b0d617f",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "d0bc98c6-5bc7-4acf-8fe2-d22b67355e29",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "09fee79d3946fa9a37225456f08d7b2feae1c88035e3a253cadc44d7ada1a034",
+      "request_hash": "8be608417a72c05c174eec9f656e628be5bacb3a06bcf0b5717cfce1453a72db",
+      "request_started_at": "2026-08-08T11:38:34.152562+00:00",
+      "response_length": 4873,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "605cb6e1-bee5-415c-b209-af450363ceec",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "d59b30df-c264-4c38-bfff-c4b33ad67e95",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "654747253d79050db70375a5c25eec8e53eb23693c1e1301de1ae77f43be0012",
+      "request_hash": "57f635b486231d711270780aa1eead3033db163a74bb4e4efb06d095c2611d26",
+      "request_started_at": "2026-08-08T11:38:39.155478+00:00",
+      "response_length": 4970,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "886da617-e3d2-40f3-97aa-cadf4bc69c60",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "f50ee85f-6d77-42b2-99b7-3231d5a05633",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "e666d5f4feafe59a6506fe1cb6e2ea2ff64ebd6363bedba1484dfa7611b5d444",
+      "request_hash": "ce3b9d0164840a5c28ff78875eeab6b3f0cdaf9c99ed4b4620371861c0b5019c",
+      "request_started_at": "2026-08-08T11:38:46.408506+00:00",
+      "response_length": 3620,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "unavailable",
+    "eligible_interpretation": false,
+    "mapping_status": "explicit_reference_output_mapping_required",
+    "metrics": {
+      "aggregate": {
+        "bounding_box_error_by_axis_mm": {
+          "x": null,
+          "y": null,
+          "z": null
+        },
+        "solid_count_agreement": null,
+        "surface_area_difference_mm2": null,
+        "surface_area_difference_ratio": null,
+        "volume_difference_mm3": null,
+        "volume_difference_ratio": null
+      },
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "per_part": {},
+      "project_part_count_agreement": false
+    },
+    "raw_generated": {
+      "battery_case": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 33.6,
+            "size_y": 33.6,
+            "size_z": 76.8
+          },
+          "center_of_mass_mm": [
+            1.6186249894501523e-12,
+            -1.7628949204107228e-13,
+            40.81253280769582
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 16814.823866442206,
+          "volume_mm3": 27811.405585309276
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 28,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 2,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      }
+    },
+    "raw_reference": {
+      "authority": null,
+      "canonical_part_count": 5,
+      "canonical_part_ids": [
+        "flexible_strap",
+        "battery_body",
+        "screw_lid",
+        "strap_retainer",
+        "lower_bumper"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 92.30131530761719,
+              "size_y": 1.2699999809265137,
+              "size_z": 36.067970633506775
+            },
+            "center_of_mass_mm": [
+              44.43805379945141,
+              0.6349999904632568,
+              18.033999918859422
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 1610.9983098497325,
+            "volume_mm3": 723.9582148135008
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 2764,
+            "vertex_count": 1380,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 35.17900085449219,
+              "size_y": 78.73999786376953,
+              "size_z": 35.17900085449219
+            },
+            "center_of_mass_mm": null,
+            "component_count": 2,
+            "solid_count": null,
+            "surface_area_mm2": 17078.328132315673,
+            "volume_mm3": null
+          },
+          "mesh": {
+            "component_count": 2,
+            "face_count": 21310,
+            "vertex_count": 10656,
+            "watertight": false,
+            "winding_consistent": true
+          },
+          "quality_classification": "nonwatertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 36.74241638183594,
+              "size_y": 12.699999809265137,
+              "size_z": 36.74241638183594
+            },
+            "center_of_mass_mm": [
+              18.38685835759343,
+              5.312175977221082,
+              18.37493837441471
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 3762.378131984764,
+            "volume_mm3": 9521.981442263486
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 21454,
+            "vertex_count": 10729,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 15.239999771118164,
+              "size_y": 4.445000171661377,
+              "size_z": 15.239999771118164
+            },
+            "center_of_mass_mm": [
+              7.619999818418906,
+              2.012723776119588,
+              7.619999818468141
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 552.0873694814418,
+            "volume_mm3": 559.7312918377929
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 3240,
+            "vertex_count": 1620,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 27.939998626708984,
+              "size_y": 1.2699999809265137,
+              "size_z": 27.939998626708984
+            },
+            "center_of_mass_mm": [
+              13.970008454408909,
+              0.43142249735667093,
+              13.969995067800394
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 1180.93829522653,
+            "volume_mm3": 320.53624669547764
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 7950,
+            "vertex_count": 3967,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/container-case-001/derived-reference.json",
+      "quality_classification": null
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "21895cb048edc5aeb71c43a9b5086b8c90c9218a5b5787ca23e19b09c44663bf",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "26650 cell nominal dimensions",
+        "id": "cell_dimensions_26650",
+        "importance": "critical",
+        "kind": "dimension",
+        "label": "26650 cell nominal dimensions",
+        "object_type": "battery_cell",
+        "operator": "exact",
+        "protected": true,
+        "raw_evidence": "26650 battery case",
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "26650 battery",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          26.0,
+          65.0
+        ]
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "4bf5831b-6949-4ad8-a1f7-af40fc2c52d9",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "72bc39e8-bfe5-4c25-afe4-1824ea935f20",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:38:37.179509",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "battery_cell",
+        "operator": "exact",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "26650 battery",
+        "record_id": "901f8623-a6b5-43cd-82b7-180efda10bad",
+        "requirement_id": "cell_diameter",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "26650 battery",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:38:37.179512",
+        "value": 26.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:38:37.179514",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "battery_cell",
+        "operator": "exact",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "26650 battery",
+        "record_id": "5e9349a5-fd29-4c59-9e9e-0fd34c814b17",
+        "requirement_id": "cell_length",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "26650 battery",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:38:37.179515",
+        "value": 65.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:38:37.179517",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "battery_case",
+        "operator": "present",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "protective 26650 battery case",
+        "record_id": "dd5834ef-f2da-4544-aa3d-7951e9875c4b",
+        "requirement_id": "protective_case",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "battery_case",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:38:37.179518",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:38:37.179520",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "lid",
+        "operator": "present",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "screw-on lid",
+        "record_id": "f3e524e0-1622-40b4-99e0-1d5309be39e5",
+        "requirement_id": "screw_on_lid",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "lid",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "battery_case",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:38:37.179521",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:38:37.179522",
+        "explicit": true,
+        "kind": "retention",
+        "object_type": "retention_feature",
+        "operator": "present",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "retention features. It should keep the cell secure",
+        "record_id": "c2b8ebfb-db20-4d0b-924a-b7bef5ce26ef",
+        "requirement_id": "retention_features",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "battery_case",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "battery_cell",
+        "tolerance": null,
+        "type": "retention",
+        "unit": null,
+        "updated_at": "2026-08-08T11:38:37.179524",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:38:37.179526",
+        "explicit": true,
+        "kind": "qualitative",
+        "object_type": "battery_case",
+        "operator": "qualitative",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "durable, reusable enclosure",
+        "record_id": "4ec5ca9d-339e-442a-99ab-f40fb19e87d3",
+        "requirement_id": "durable_reusable_enclosure",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "battery_case",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "qualitative_behavior",
+        "unit": null,
+        "updated_at": "2026-08-08T11:38:37.179527",
+        "value": "durable and reusable",
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:38:53.798973+00:00"
+  },
+  "revision_id": "87f68f3a-4ddc-4774-b325-e8ddc08ec828",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 1,
+    "total_authoritative_requirements": 6,
+    "unsupported_verifier": 5,
+    "unverifiable": 5
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 22.144443968005362,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 28,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 2,
+          "valid": true
+        },
+        "output_id": "battery_case",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 3,
+    "job_ids": [
+      "16f665cf-3dfd-458e-9954-31ecd0877944:attempt:1:worker",
+      "16f665cf-3dfd-458e-9954-31ecd0877944:attempt:2:worker",
+      "16f665cf-3dfd-458e-9954-31ecd0877944:recovery-recheck:2:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "3cee3704322300a863daf855b403667b59d612e0ef996b8bcfdbcc1b0e35a65c",
+          "step": "5b5225db5c0faedc22f5ef2a83c7b12477c61fd57cfbe885714d0df0912a1bdf",
+          "stl": "4d9f5f2683ed1bcd50d9308c6a1a8cd22a274bfa27abedac9c7f36718da38749"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 33.6,
+              "size_y": 33.6,
+              "size_z": 76.8
+            },
+            "center_of_mass_mm": [
+              1.6186249894501523e-12,
+              -1.7628949204107228e-13,
+              40.81253280769582
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 16814.823866442206,
+            "volume_mm3": 27811.405585309276
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 28,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 2,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "battery_case",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/72bc39e8-bfe5-4c25-afe4-1824ea935f20/revisions/87f68f3a-4ddc-4774-b325-e8ddc08ec828/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "16f665cf-3dfd-458e-9954-31ecd0877944"
+}

@@ -1,0 +1,174 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "adapter-coupler-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "adapter_coupler",
+  "comparison_specification_hash": "636e55a6149454c21258c79b3f6445d347060a5dc8f6c2e59d0a93b88d9d07b5",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "62104961-97f3-4729-875e-c218fe5aa1b6",
+  "prompt": "Design a multi-part adapter that connects an Electrolux or AEG vacuum tube to a Miele nozzle. Include the tube interface, nozzle body, and the functional button/rocker pieces needed for retention.",
+  "prompt_sha256": "7ce474644d3744253a0a3354b0752b199d47cc9ca23a880a72d609c2bb464fc6",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "832a0b2d-bc7d-405e-8bd7-cbf2b31d8247",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "f202805d-98f8-493c-a571-f1794fbce439",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "490062fab805b965d106d5b26943b340718077412e7181c9f3c041eafdcafcb8",
+      "request_hash": "52f000b2f58519872c716364e0bd7b4e4011b2298e02370e6c81ad1ee9ca3ac6",
+      "request_started_at": "2026-08-08T11:37:53.645999+00:00",
+      "response_length": 3818,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "ac01a0affd303ef0b0cf4f873df78329ac98ae6198e1282b9c1b4230c11d060b",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Removable fit clearance for tube and nozzle interfaces",
+        "id": "assumption_standard_vacuum_fit_clearance",
+        "importance": "important",
+        "kind": "clearance",
+        "label": "Removable fit clearance for tube and nozzle interfaces",
+        "object_type": "adapter",
+        "operator": "range",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "adapter",
+        "target": "interface",
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          0.3,
+          0.5
+        ]
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact outer and inner diameters of the Electrolux/AEG vacuum tube and the Miele nozzle inlet, including the locking notch or tab locations?",
+        "question_id": "b052058b-a9c9-49d8-aa57-58ed6d7af420",
+        "reason": "Missing mating dimensions are mandatory for designing functional vacuum adapters securely.",
+        "requirement_id": "cq_mating_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "e46c6c9e-da6e-4da1-b0b8-55c2b1929c94",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Exact outer and inner diameters of the Electrolux/AEG vacuum tube",
+        "id": "exact_outer_and_inner_diameters_of_the_electrolux_aeg_vacuum_tube",
+        "importance": "critical",
+        "reason": "Exact outer and inner diameters of the Electrolux/AEG vacuum tube",
+        "source": "user"
+      },
+      {
+        "description": "Exact outer and inner diameters of the Miele nozzle inlet",
+        "id": "exact_outer_and_inner_diameters_of_the_miele_nozzle_inlet",
+        "importance": "critical",
+        "reason": "Exact outer and inner diameters of the Miele nozzle inlet",
+        "source": "user"
+      },
+      {
+        "description": "Specific geometry and placement of locking tabs or buttons",
+        "id": "specific_geometry_and_placement_of_locking_tabs_or_buttons",
+        "importance": "critical",
+        "reason": "Specific geometry and placement of locking tabs or buttons",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "62104961-97f3-4729-875e-c218fe5aa1b6",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:37:56.128597+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 2.5026871339941863,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "57d08caa-03ba-42c2-8a7a-f8ae817b161d"
+}

@@ -1,0 +1,179 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "electronics-enclosure-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 2
+  },
+  "category": "electronics_enclosures",
+  "comparison_specification_hash": "ca252b59d505853880d15adcecb4e19c74a115730230df874c6052cf1f16e7da",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "06594de6-b9e9-4b19-8cba-81a643525d28",
+  "prompt": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.",
+  "prompt_sha256": "6c6740ed04ad8c74ad9a6a343fe502ea28c51c1d69b8e6f2b10630d46184a774",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "0b16e2ac-635a-4ef0-8308-1bd050b42f83",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "899058a6-826f-40a9-9bea-b5d51c81dbb2",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "ad91012645f13c987bf3e5a37b0ab6d6cd1ab8918e879138fcd4c5aa68a190bf",
+      "request_hash": "1f410b2d1e7c9ed5b755567ee1273254334198b1728d3cb7451f5a72ada10bb5",
+      "request_started_at": "2026-08-08T11:39:08.920369+00:00",
+      "response_length": 4045,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "f4743832-48c9-4b89-8c27-362064bd5fa6",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "10249202-cd35-4f6b-8d2a-d8550ee948cd",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "69eee29596abb348012c02285a0bd40006c966a8500e60e89e24cf474e98d89c",
+      "request_hash": "30d26f58ad3b6aa5e70e7af74b7eaf7ed31159910bb64a6541ded94bd77d66f8",
+      "request_started_at": "2026-08-08T11:39:13.923270+00:00",
+      "response_length": 4107,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "d271587831b513c985f8ecc32397f07eaf8225acbd0e95333bb5552ffc7f6acc",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "General close-fit clearance applied per side for protective instrument enclosure.",
+        "id": "assumption_clearance",
+        "importance": "important",
+        "kind": "clearance",
+        "object_type": "housing",
+        "operator": "range",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "housing",
+        "target": "ARCELI LCR-T4 meter",
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          0.15,
+          0.25
+        ]
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact external dimensions (length, width, height) of the ARCELI LCR-T4 meter, including the display and control placement relative to the edges?",
+        "question_id": "3c7109d2-2bd5-4813-8d8e-4ed9ae819a5f",
+        "reason": "Exact physical dimensions of the target device are required to model a properly fitting protective housing while keeping controls and display accessible.",
+        "requirement_id": "q_missing_mating_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "c26e0834-df09-4c69-aced-f019293db122",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "ARCELI LCR-T4 meter exact physical dimensions and component locations",
+        "id": "arceli_lcr_t4_meter_exact_physical_dimensions_and_component_locations",
+        "importance": "critical",
+        "reason": "ARCELI LCR-T4 meter exact physical dimensions and component locations",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 2,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 1,
+    "schema_retries": 2,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "06594de6-b9e9-4b19-8cba-81a643525d28",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:39:16.277432+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 9.49616538999544,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "91d33723-741e-469d-9ae9-7fca9111c899"
+}

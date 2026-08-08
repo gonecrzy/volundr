@@ -1,0 +1,250 @@
+{
+  "by_mode": {
+    "comparison_specification": {
+      "cad_generation_calls": 36,
+      "cad_repair_calls": 13,
+      "candidate_ready_count": 0,
+      "clarification_required_count": 6,
+      "fallback_calls": 1,
+      "first_blocker_distribution": {
+        "clarification_required": 6,
+        "semantic_verification": 15,
+        "source_contract": 3,
+        "topology": 3
+      },
+      "generation_ready_count": 21,
+      "mean_clarification_question_count": 0.18518518518518517,
+      "projects_attempted": 27,
+      "requirement_extraction_calls": 33,
+      "schema_retry_count": 12,
+      "source_label_anomaly_counts": {
+        "missing_or_clarification_labeled_user": 0,
+        "model_assumption_labeled_user_required": 0,
+        "user_explicit_lost_authority": 0
+      },
+      "terminal_states": {
+        "awaiting_clarification": 6,
+        "failed": 1,
+        "verification_failed": 20
+      },
+      "worker_executions": 44
+    },
+    "premise_only": {
+      "cad_generation_calls": 7,
+      "cad_repair_calls": 10,
+      "candidate_ready_count": 0,
+      "clarification_required_count": 21,
+      "fallback_calls": 0,
+      "first_blocker_distribution": {
+        "clarification_required": 21,
+        "semantic_verification": 1,
+        "source_execution": 2,
+        "topology": 3
+      },
+      "generation_ready_count": 6,
+      "mean_clarification_question_count": 1.2222222222222223,
+      "projects_attempted": 27,
+      "requirement_extraction_calls": 31,
+      "schema_retry_count": 8,
+      "source_label_anomaly_counts": {
+        "missing_or_clarification_labeled_user": 0,
+        "model_assumption_labeled_user_required": 0,
+        "user_explicit_lost_authority": 0
+      },
+      "terminal_states": {
+        "awaiting_clarification": 21,
+        "verification_failed": 6
+      },
+      "worker_executions": 17
+    }
+  },
+  "category_breakdown": {
+    "adapter_coupler": {
+      "candidate_ready_count": 0,
+      "clarification_count": 3,
+      "development_records": 3,
+      "exclusion_count": 0,
+      "first_blocker_distribution": {
+        "clarification_required": 3,
+        "semantic_verification": 1,
+        "source_contract": 2
+      },
+      "generation_count": 3
+    },
+    "clamp_clip": {
+      "candidate_ready_count": 0,
+      "clarification_count": 4,
+      "development_records": 3,
+      "exclusion_count": 0,
+      "first_blocker_distribution": {
+        "clarification_required": 4,
+        "semantic_verification": 1,
+        "source_execution": 1
+      },
+      "generation_count": 2
+    },
+    "container_cases": {
+      "candidate_ready_count": 0,
+      "clarification_count": 2,
+      "development_records": 3,
+      "exclusion_count": 0,
+      "first_blocker_distribution": {
+        "clarification_required": 2,
+        "semantic_verification": 2,
+        "topology": 2
+      },
+      "generation_count": 4
+    },
+    "electronics_enclosures": {
+      "candidate_ready_count": 0,
+      "clarification_count": 3,
+      "development_records": 3,
+      "exclusion_count": 0,
+      "first_blocker_distribution": {
+        "clarification_required": 3,
+        "semantic_verification": 2,
+        "topology": 1
+      },
+      "generation_count": 3
+    },
+    "functional_assemblies": {
+      "candidate_ready_count": 0,
+      "clarification_count": 1,
+      "development_records": 3,
+      "exclusion_count": 2,
+      "first_blocker_distribution": {
+        "clarification_required": 1,
+        "semantic_verification": 2,
+        "topology": 1
+      },
+      "generation_count": 3
+    },
+    "holders_organizers": {
+      "candidate_ready_count": 0,
+      "clarification_count": 3,
+      "development_records": 3,
+      "exclusion_count": 0,
+      "first_blocker_distribution": {
+        "clarification_required": 3,
+        "semantic_verification": 2,
+        "topology": 1
+      },
+      "generation_count": 3
+    },
+    "jig_guides": {
+      "candidate_ready_count": 0,
+      "clarification_count": 2,
+      "development_records": 3,
+      "exclusion_count": 2,
+      "first_blocker_distribution": {
+        "clarification_required": 2,
+        "semantic_verification": 1,
+        "source_contract": 1
+      },
+      "generation_count": 2
+    },
+    "mounting_brackets": {
+      "candidate_ready_count": 0,
+      "clarification_count": 3,
+      "development_records": 3,
+      "exclusion_count": 0,
+      "first_blocker_distribution": {
+        "clarification_required": 3,
+        "semantic_verification": 2,
+        "source_execution": 1
+      },
+      "generation_count": 3
+    },
+    "replacement_parts": {
+      "candidate_ready_count": 0,
+      "clarification_count": 5,
+      "development_records": 3,
+      "exclusion_count": 0,
+      "first_blocker_distribution": {
+        "clarification_required": 5,
+        "semantic_verification": 1
+      },
+      "generation_count": 1
+    },
+    "stand_supports": {
+      "candidate_ready_count": 0,
+      "clarification_count": 1,
+      "development_records": 3,
+      "exclusion_count": 2,
+      "first_blocker_distribution": {
+        "clarification_required": 1,
+        "semantic_verification": 2,
+        "topology": 1
+      },
+      "generation_count": 3
+    }
+  },
+  "cell_count": 60,
+  "comparison": {
+    "comparison_ready_project_count": 2,
+    "eligible_interpreted_cells": 1,
+    "raw_only_cells": 25,
+    "replacement_required_project_count": 3,
+    "specification_underconstrained_project_count": 25,
+    "unavailable_cells": 28
+  },
+  "evidence_reconciled_offline": true,
+  "first_blocker_clusters": [
+    {
+      "count": 27,
+      "failure_class": "None",
+      "first_incorrect_owner": "None",
+      "observed_stage": "clarification_required"
+    },
+    {
+      "count": 16,
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "observed_stage": "semantic_verification"
+    },
+    {
+      "count": 6,
+      "failure_class": "invalid_shape",
+      "first_incorrect_owner": "geometry",
+      "observed_stage": "topology"
+    },
+    {
+      "count": 2,
+      "failure_class": "source_contract_violation",
+      "first_incorrect_owner": "geometry",
+      "observed_stage": "source_contract"
+    },
+    {
+      "count": 1,
+      "failure_class": "cadquery_api_error",
+      "first_incorrect_owner": "geometry",
+      "observed_stage": "source_execution"
+    },
+    {
+      "count": 1,
+      "failure_class": "python_type_error",
+      "first_incorrect_owner": "geometry",
+      "observed_stage": "source_execution"
+    },
+    {
+      "count": 1,
+      "failure_class": "python_syntax_error",
+      "first_incorrect_owner": "geometry",
+      "observed_stage": "source_contract"
+    }
+  ],
+  "holdout_runs": 0,
+  "live_workflow_count": 54,
+  "no_product_changes_during_survey": true,
+  "provider_calls": 107,
+  "replacement_exclusion_count": 6,
+  "schema_version": "external-cad-development-first-pass-v1-summary",
+  "source_label_anomalies": {
+    "missing_or_clarification_labeled_user": 0,
+    "model_assumption_labeled_user_required": 0,
+    "user_explicit_lost_authority": 0
+  },
+  "survey_status": "complete",
+  "validation_runs": 0,
+  "worker_executions": 61
+}

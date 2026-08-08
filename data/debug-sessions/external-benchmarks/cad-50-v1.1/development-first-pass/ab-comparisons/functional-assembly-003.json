@@ -1,0 +1,1799 @@
+{
+  "benchmark_project_id": "functional-assembly-003",
+  "comparison_specification": {
+    "artifacts": {
+      "hashes": {
+        "peristaltic_pump_assembly:brep": "90b6ba4b0139693fe87da8efc34df0e71d6ce3e5f40d1872ada68aadf1db920d",
+        "peristaltic_pump_assembly:step": "caaff5935552938400706b02070d0b10fd6800dd30ef709a34ddea622328c822",
+        "peristaltic_pump_assembly:stl": "d05f84bab68337b5d3c1dc3d5e081e902b61c1234eb704182002fa9aeaa40589"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "functional-assembly-003",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 2,
+      "repair_calls": 0,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "59c99a9dff9ed81308c6a37cc0d0636f3dc922c82102e5e4501232189970cc7f",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "1c5ebb6b-0a7e-4029-bf02-8675f8fa6762:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "de5e0edf-2b3b-40f9-988c-0a1d3f1ed316",
+            "attempt_number": 1,
+            "failure_class": null,
+            "level": "initial",
+            "logical_operation_id": "788523d9-f67f-4367-8c87-35bc4ec2b0e2",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "de5e0edf-2b3b-40f9-988c-0a1d3f1ed316",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "788523d9-f67f-4367-8c87-35bc4ec2b0e2",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "04b671c2d0e6ebe233355e194edae9ee920d770d45929daccc17230e3c289a7d",
+                "request_hash": "5c294efea04fa0818f0b51bb856a725811e18abff7adfd9b0b7d2fc048b09aa4",
+                "request_started_at": "2026-08-08T11:45:25.570973+00:00",
+                "response_length": 3457,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "04b671c2d0e6ebe233355e194edae9ee920d770d45929daccc17230e3c289a7d",
+          "repair_level": "initial",
+          "result_hash": "f9d0f6bdd2d2b23065b2064f936628f38186fe63410a958d3c0ee9eb2d11c681",
+          "revision_id": "db968e3d-6daf-46aa-b531-a13015b4cdda",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_constrain_tubing",
+              "req_distinct_parts",
+              "req_support_pump"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_bearing_plate_bottom_x",
+              "envelope_bearing_plate_bottom_y",
+              "envelope_bearing_plate_bottom_z",
+              "envelope_bearing_plate_top_x",
+              "envelope_bearing_plate_top_y",
+              "envelope_bearing_plate_top_z",
+              "envelope_pump_base_x",
+              "envelope_pump_base_y",
+              "envelope_pump_base_z",
+              "envelope_pump_mount_x",
+              "envelope_pump_mount_y",
+              "envelope_pump_mount_z",
+              "envelope_pump_spacer_x",
+              "envelope_pump_spacer_y",
+              "envelope_pump_spacer_z",
+              "req_output_count"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "59c99a9dff9ed81308c6a37cc0d0636f3dc922c82102e5e4501232189970cc7f",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "peristaltic_pump_assembly"
+            ],
+            "phase": "failed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "59c99a9dff9ed81308c6a37cc0d0636f3dc922c82102e5e4501232189970cc7f",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": null,
+          "normalized_error": null,
+          "observed_stage": null,
+          "operation_id": "1c5ebb6b-0a7e-4029-bf02-8675f8fa6762:recovery-recheck:1",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L0",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": null,
+            "attempt_number": null,
+            "failure_class": null,
+            "level": null,
+            "logical_operation_id": null,
+            "status": null,
+            "transport_attempts": []
+          },
+          "raw_response_hash": null,
+          "repair_level": "initial",
+          "result_hash": "f9d0f6bdd2d2b23065b2064f936628f38186fe63410a958d3c0ee9eb2d11c681",
+          "revision_id": "db968e3d-6daf-46aa-b531-a13015b4cdda",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_constrain_tubing",
+              "req_distinct_parts",
+              "req_support_pump"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_bearing_plate_bottom_x",
+              "envelope_bearing_plate_bottom_y",
+              "envelope_bearing_plate_bottom_z",
+              "envelope_bearing_plate_top_x",
+              "envelope_bearing_plate_top_y",
+              "envelope_bearing_plate_top_z",
+              "envelope_pump_base_x",
+              "envelope_pump_base_y",
+              "envelope_pump_base_z",
+              "envelope_pump_mount_x",
+              "envelope_pump_mount_y",
+              "envelope_pump_mount_z",
+              "envelope_pump_spacer_x",
+              "envelope_pump_spacer_y",
+              "envelope_pump_spacer_z",
+              "req_output_count"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "59c99a9dff9ed81308c6a37cc0d0636f3dc922c82102e5e4501232189970cc7f",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "peristaltic_pump_assembly"
+            ],
+            "phase": "failed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 2
+    },
+    "category": "functional_assemblies",
+    "comparison_specification_hash": "71d92687f3ac07a2bf10c4c5549731f2de9c043d677cee919969da8a6f5fa833",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "peristaltic_pump_assembly",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "peristaltic pump assembly",
+          "purpose": "Design a printable peristaltic pump assembly for an automated fertilizer system."
+        },
+        "project_id": "97f14d28-a55a-455b-b59b-80601e7f0a53",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": 24.85
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_bearing_plate_bottom_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 27.6
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_bearing_plate_bottom_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 10.1
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_bearing_plate_bottom_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 24.85
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_bearing_plate_top_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 27.6
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_bearing_plate_top_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 10.1
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_bearing_plate_top_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 45.95
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_pump_base_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 46.93
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_pump_base_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 16.8
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_pump_base_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 45.98
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_pump_mount_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 14.99
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_pump_mount_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 28.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_pump_mount_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 44.95
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_pump_spacer_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 45.93
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_pump_spacer_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 4.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_pump_spacer_z"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_constrain_tubing"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_distinct_parts"
+          },
+          {
+            "authoritative_value": {
+              "value": 5
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_output_count"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_support_pump"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 24.85
+            },
+            "kind": "dimension",
+            "object_type": "bearing_plate_bottom",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.",
+            "requirement_id": "envelope_bearing_plate_bottom_x",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "bearing_plate_bottom"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 27.6
+            },
+            "kind": "dimension",
+            "object_type": "bearing_plate_bottom",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.",
+            "requirement_id": "envelope_bearing_plate_bottom_y",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "bearing_plate_bottom"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 10.1
+            },
+            "kind": "dimension",
+            "object_type": "bearing_plate_bottom",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.",
+            "requirement_id": "envelope_bearing_plate_bottom_z",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "bearing_plate_bottom"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 24.85
+            },
+            "kind": "dimension",
+            "object_type": "bearing_plate_top",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.",
+            "requirement_id": "envelope_bearing_plate_top_x",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "bearing_plate_top"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 27.6
+            },
+            "kind": "dimension",
+            "object_type": "bearing_plate_top",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.",
+            "requirement_id": "envelope_bearing_plate_top_y",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "bearing_plate_top"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 10.1
+            },
+            "kind": "dimension",
+            "object_type": "bearing_plate_top",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.",
+            "requirement_id": "envelope_bearing_plate_top_z",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "bearing_plate_top"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 45.95
+            },
+            "kind": "dimension",
+            "object_type": "pump_base",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.",
+            "requirement_id": "envelope_pump_base_x",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "pump_base"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 46.93
+            },
+            "kind": "dimension",
+            "object_type": "pump_base",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.",
+            "requirement_id": "envelope_pump_base_y",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "pump_base"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 16.8
+            },
+            "kind": "dimension",
+            "object_type": "pump_base",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.",
+            "requirement_id": "envelope_pump_base_z",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "pump_base"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 45.98
+            },
+            "kind": "dimension",
+            "object_type": "pump_mount",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.",
+            "requirement_id": "envelope_pump_mount_x",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "pump_mount"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 14.99
+            },
+            "kind": "dimension",
+            "object_type": "pump_mount",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.",
+            "requirement_id": "envelope_pump_mount_y",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "pump_mount"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 28.0
+            },
+            "kind": "dimension",
+            "object_type": "pump_mount",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.",
+            "requirement_id": "envelope_pump_mount_z",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "pump_mount"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 44.95
+            },
+            "kind": "dimension",
+            "object_type": "pump_spacer",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.",
+            "requirement_id": "envelope_pump_spacer_x",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "pump_spacer"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 45.93
+            },
+            "kind": "dimension",
+            "object_type": "pump_spacer",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.",
+            "requirement_id": "envelope_pump_spacer_y",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "pump_spacer"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 4.0
+            },
+            "kind": "dimension",
+            "object_type": "pump_spacer",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.",
+            "requirement_id": "envelope_pump_spacer_z",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "pump_spacer"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "relationship",
+            "object_type": "tubing",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "keep the tubing path constrained",
+            "requirement_id": "req_constrain_tubing",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "assembly"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "relationship",
+            "object_type": "printed_parts",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "assemble from distinct printed parts.",
+            "requirement_id": "req_distinct_parts",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "assembly"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 5
+            },
+            "kind": "capacity",
+            "object_type": "printed_output",
+            "operator": "exact",
+            "origin": "user_explicit",
+            "raw_evidence": "Provide exactly 5 printed output(s).",
+            "requirement_id": "req_output_count",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "printed_outputs"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "support",
+            "object_type": "pump_mechanism",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "It should support the pump mechanism",
+            "requirement_id": "req_support_pump",
+            "scope": "peristaltic_pump_assembly",
+            "source": "initial_user",
+            "subject": "assembly"
+          }
+        ],
+        "revision_id": "1c5ebb6b-0a7e-4029-bf02-8675f8fa6762:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "1c5ebb6b-0a7e-4029-bf02-8675f8fa6762"
+      },
+      "contract_hash": "e17aadb117a037c63e0b4330645fdb39cf2e3e92901f8d59657fef8f13330730",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "semantic_requirement_unverifiable",
+    "first_blocker_stage": "semantic_verification",
+    "first_incorrect_owner": "application",
+    "mode": "comparison_specification",
+    "normal_recovery_resolved": false,
+    "observed_stage": "semantic_measurement",
+    "project_runtime_id": "97f14d28-a55a-455b-b59b-80601e7f0a53",
+    "prompt": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+    "prompt_sha256": "0780340031760f6f78ee4a53c1eb95f6a39556d9feab38e98083ad2382519a56",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "081b7cf7-076d-41bc-8aab-c94d2f55eba9",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "db76bd49-7dad-4192-ae04-7262e545bc53",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "be7311aa3553689c9e020919e9c5b9cdd3c0222218b0e008b6adc1645b3a6b3e",
+        "request_hash": "54cda5d3ff00cb389f7780bce903eb35cad41752e3e7cfd6cfb9639a53fe4439",
+        "request_started_at": "2026-08-08T11:45:17.111474+00:00",
+        "response_length": 12975,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "de5e0edf-2b3b-40f9-988c-0a1d3f1ed316",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "788523d9-f67f-4367-8c87-35bc4ec2b0e2",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "04b671c2d0e6ebe233355e194edae9ee920d770d45929daccc17230e3c289a7d",
+        "request_hash": "5c294efea04fa0818f0b51bb856a725811e18abff7adfd9b0b7d2fc048b09aa4",
+        "request_started_at": "2026-08-08T11:45:25.570973+00:00",
+        "response_length": 3457,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "unavailable",
+      "eligible_interpretation": false,
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "metrics": {
+        "aggregate": {
+          "bounding_box_error_by_axis_mm": {
+            "x": null,
+            "y": null,
+            "z": null
+          },
+          "solid_count_agreement": null,
+          "surface_area_difference_mm2": null,
+          "surface_area_difference_ratio": null,
+          "volume_difference_mm3": null,
+          "volume_difference_ratio": null
+        },
+        "mapping_status": "explicit_reference_output_mapping_required",
+        "per_part": {},
+        "project_part_count_agreement": false
+      },
+      "raw_generated": {
+        "peristaltic_pump_assembly": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 45.977,
+              "size_y": 46.9348,
+              "size_z": 44.4
+            },
+            "center_of_mass_mm": [
+              -1.1318253494551238e-13,
+              -3.067427282716647,
+              18.817922585660106
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 19698.317307619,
+            "volume_mm3": 54073.36371669839
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 57,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 2,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        }
+      },
+      "raw_reference": {
+        "authority": null,
+        "canonical_part_count": 5,
+        "canonical_part_ids": [
+          "bearing_plate_bottom",
+          "bearing_plate_top",
+          "pump_mount",
+          "pump_base",
+          "pump_spacer"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 24.84999942779541,
+                "size_y": 27.59956169128418,
+                "size_z": 10.099999904632568
+              },
+              "center_of_mass_mm": [
+                -0.009371767463479508,
+                -0.458349078849424,
+                9.502049154627047
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 1479.9222401586114,
+              "volume_mm3": 1746.1347047147483
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 1666,
+              "vertex_count": 833,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 24.84999942779541,
+                "size_y": 27.59956169128418,
+                "size_z": 10.100000143051147
+              },
+              "center_of_mass_mm": [
+                -0.009371767283433308,
+                0.4583490565525892,
+                -0.7020491059572247
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 1479.9222593978554,
+              "volume_mm3": 1746.1347896571679
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 1666,
+              "vertex_count": 833,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 45.97696304321289,
+                "size_y": 14.988612174987793,
+                "size_z": 28.000000953674316
+              },
+              "center_of_mass_mm": [
+                -5.533236392394455e-05,
+                19.849809709509266,
+                19.22255377578627
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 4201.101732444673,
+              "volume_mm3": 5267.854644814699
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 3840,
+              "vertex_count": 1914,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 45.95392990112305,
+                "size_y": 46.934804916381836,
+                "size_z": 16.800000190734863
+              },
+              "center_of_mass_mm": [
+                -0.04939224004232615,
+                2.5440127257540697,
+                -1.6496533666394906
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 8319.780260609197,
+              "volume_mm3": 14163.814694232693
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 11056,
+              "vertex_count": 5516,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 44.95399475097656,
+                "size_y": 45.93480110168457,
+                "size_z": 4.0
+              },
+              "center_of_mass_mm": [
+                -0.0712286034583242,
+                -0.474292391470658,
+                -11.100000381469728
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 3577.769188754787,
+              "volume_mm3": 4492.794352203074
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 1016,
+              "vertex_count": 500,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-003/derived-reference.json",
+        "quality_classification": null
+      },
+      "status": "specification_underconstrained"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "17dbc85184579dec8e35bc06b58c74ad443594e65369eba83d55af29a94be076",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Components are designed to fit together cleanly as a functional assembly.",
+          "id": "components_are_designed_to_fit_together_cleanly_as_a_functional_assembly",
+          "requires_approval": false,
+          "source": "ai_assumption"
+        },
+        {
+          "description": "Overall envelope dimensions provided define the bounding boxes for the 5 specified printed outputs.",
+          "id": "overall_envelope_dimensions_provided_define_the_bounding_boxes_for_the_5_specified_printed_outputs",
+          "requires_approval": false,
+          "source": "ai_assumption"
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "4bb71c68-8500-44be-bc79-d03e7e70038e",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "97f14d28-a55a-455b-b59b-80601e7f0a53",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558983",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "bearing_plate_bottom",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.",
+          "record_id": "13bec278-eee5-4c8d-b0bf-b90bcd9ef950",
+          "requirement_id": "envelope_bearing_plate_bottom_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "bearing_plate_bottom",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558985",
+          "value": 24.85,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558986",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "bearing_plate_bottom",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.",
+          "record_id": "dc7013e9-7d50-4fd1-a6ab-b0ad903fdc49",
+          "requirement_id": "envelope_bearing_plate_bottom_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "bearing_plate_bottom",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558987",
+          "value": 27.6,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558987",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "bearing_plate_bottom",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.",
+          "record_id": "692ec387-4799-489d-8589-6af31434e4bb",
+          "requirement_id": "envelope_bearing_plate_bottom_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "bearing_plate_bottom",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558988",
+          "value": 10.1,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558988",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "bearing_plate_top",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.",
+          "record_id": "2c7c77ab-455a-4079-aac4-e5e3ef82a40d",
+          "requirement_id": "envelope_bearing_plate_top_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "bearing_plate_top",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558989",
+          "value": 24.85,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558990",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "bearing_plate_top",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.",
+          "record_id": "f0333cd9-c4e6-45f3-bb04-c14163d826c8",
+          "requirement_id": "envelope_bearing_plate_top_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "bearing_plate_top",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558990",
+          "value": 27.6,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558991",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "bearing_plate_top",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.",
+          "record_id": "3990f4f9-eab9-4171-a436-2f58a8474db4",
+          "requirement_id": "envelope_bearing_plate_top_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "bearing_plate_top",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558991",
+          "value": 10.1,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558992",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pump_base",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.",
+          "record_id": "8c248c04-b9d7-4486-aae7-fa76ad78cc2e",
+          "requirement_id": "envelope_pump_base_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pump_base",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558993",
+          "value": 45.95,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558993",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pump_base",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.",
+          "record_id": "74103037-d6d0-40f4-9607-916c02734779",
+          "requirement_id": "envelope_pump_base_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pump_base",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558994",
+          "value": 46.93,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558994",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pump_base",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.",
+          "record_id": "9aaa016d-a1e1-48fb-b0a3-cd5c5db1025a",
+          "requirement_id": "envelope_pump_base_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pump_base",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558995",
+          "value": 16.8,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558996",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pump_mount",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.",
+          "record_id": "55e6e1e2-1d52-4b16-87be-66e8e1b4ca13",
+          "requirement_id": "envelope_pump_mount_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pump_mount",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558996",
+          "value": 45.98,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558997",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pump_mount",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.",
+          "record_id": "bc7fbd90-dd27-4afa-b58f-5add7f0ba4a2",
+          "requirement_id": "envelope_pump_mount_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pump_mount",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558997",
+          "value": 14.99,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.558998",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pump_mount",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.",
+          "record_id": "9bd42f33-a96a-4d05-b8c4-c94a62011375",
+          "requirement_id": "envelope_pump_mount_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pump_mount",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.558999",
+          "value": 28.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.559000",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pump_spacer",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.",
+          "record_id": "a8a67a91-3c4d-4ffe-bd8d-fff54d6d0f84",
+          "requirement_id": "envelope_pump_spacer_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pump_spacer",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.559000",
+          "value": 44.95,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.559001",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pump_spacer",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.",
+          "record_id": "8317ee90-bf60-49eb-8170-71f83c8f50dc",
+          "requirement_id": "envelope_pump_spacer_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pump_spacer",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.559002",
+          "value": 45.93,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.559003",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pump_spacer",
+          "operator": "approximately",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.",
+          "record_id": "10537a7c-5a21-4b62-9fc6-8f0182a54860",
+          "requirement_id": "envelope_pump_spacer_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pump_spacer",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:45:25.559003",
+          "value": 4.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.559004",
+          "explicit": true,
+          "kind": "capacity",
+          "object_type": "printed_output",
+          "operator": "exact",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Provide exactly 5 printed output(s).",
+          "record_id": "8da1e40a-8998-4bbd-9f7e-01d03a91e386",
+          "requirement_id": "req_output_count",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "printed_outputs",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "capacity",
+          "unit": null,
+          "updated_at": "2026-08-08T11:45:25.559004",
+          "value": 5,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.559005",
+          "explicit": true,
+          "kind": "support",
+          "object_type": "pump_mechanism",
+          "operator": "present",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "It should support the pump mechanism",
+          "record_id": "9fabc07c-ad57-47de-b4a1-ed0b849a03c6",
+          "requirement_id": "req_support_pump",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "assembly",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "pump_mechanism",
+          "tolerance": null,
+          "type": "support",
+          "unit": null,
+          "updated_at": "2026-08-08T11:45:25.559006",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.559007",
+          "explicit": true,
+          "kind": "relationship",
+          "object_type": "tubing",
+          "operator": "present",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "keep the tubing path constrained",
+          "record_id": "2b77e357-7232-4740-a64f-fd151dbd343e",
+          "requirement_id": "req_constrain_tubing",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "assembly",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "tubing",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:45:25.559007",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:45:25.559008",
+          "explicit": true,
+          "kind": "relationship",
+          "object_type": "printed_parts",
+          "operator": "present",
+          "originating_message": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "assemble from distinct printed parts.",
+          "record_id": "edcec701-a9b7-4ad1-9acf-92512a2bdd3d",
+          "requirement_id": "req_distinct_parts",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "assembly",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "printed_parts",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:45:25.559009",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:45:33.769802+00:00"
+    },
+    "revision_id": "db968e3d-6daf-46aa-b531-a13015b4cdda",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 3,
+      "total_authoritative_requirements": 19,
+      "unsupported_verifier": 16,
+      "unverifiable": 16
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 16.67608568999276,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 57,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 2,
+            "valid": true
+          },
+          "output_id": "peristaltic_pump_assembly",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "90b6ba4b0139693fe87da8efc34df0e71d6ce3e5f40d1872ada68aadf1db920d",
+            "step": "caaff5935552938400706b02070d0b10fd6800dd30ef709a34ddea622328c822",
+            "stl": "d05f84bab68337b5d3c1dc3d5e081e902b61c1234eb704182002fa9aeaa40589"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 45.977,
+                "size_y": 46.9348,
+                "size_z": 44.4
+              },
+              "center_of_mass_mm": [
+                -1.1318253494551238e-13,
+                -3.067427282716647,
+                18.817922585660106
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 19698.317307619,
+              "volume_mm3": 54073.36371669839
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 57,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 2,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "peristaltic_pump_assembly",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "1c5ebb6b-0a7e-4029-bf02-8675f8fa6762"
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "artifacts": {
+      "hashes": {},
+      "package_available": false
+    },
+    "benchmark_project_id": "functional-assembly-003",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 0,
+      "repair_calls": 0,
+      "repair_history": [],
+      "total_transport_attempts": 1
+    },
+    "category": "functional_assemblies",
+    "comparison_specification_hash": "71d92687f3ac07a2bf10c4c5549731f2de9c043d677cee919969da8a6f5fa833",
+    "executable_contract": {
+      "contract": null,
+      "contract_hash": null,
+      "contract_source": null,
+      "created": false
+    },
+    "failure_class": null,
+    "first_blocker_stage": "clarification_required",
+    "first_incorrect_owner": null,
+    "mode": "premise_only",
+    "normal_recovery_resolved": false,
+    "observed_stage": null,
+    "project_runtime_id": "d2896cc6-9d12-4163-9c43-a279b0343aef",
+    "prompt": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.",
+    "prompt_sha256": "0f952b868543f7172fd73d7878a4d839b138b2cf212a3706d54658c34d29e9d2",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "8d589220-8273-4571-9c03-d37ce6dff11f",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "5164964f-4acb-40b6-8209-6ac0bcec0b09",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "9e23e1136a7663f8e0091757575378f009f0424cff5f1bd3b3160ac435a1c451",
+        "request_hash": "f7d38335d850a23797e7ee53fb4f01cfb8c2a0b408862d0263e3cc2276923185",
+        "request_started_at": "2026-08-08T11:39:41.200824+00:00",
+        "response_length": 3875,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "mapping_status": "not_generated",
+      "metrics": {},
+      "raw_generated": null,
+      "raw_reference": null,
+      "status": "unavailable"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "17dbc85184579dec8e35bc06b58c74ad443594e65369eba83d55af29a94be076",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Standard mounting and motor interface assumed for baseline peristaltic mechanism",
+          "id": "assumption_mounting_and_motor",
+          "label": "Standard mounting and motor interface assumed for baseline peristaltic mechanism",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "value": "Generic mounting pattern and standard stepper/DC motor interface assumed"
+        }
+      ],
+      "clarification_question_count": 2,
+      "clarification_questions": [
+        {
+          "display_order": 0,
+          "question": "What is the outer diameter and inner diameter of the flexible tubing used in the peristaltic pump?",
+          "question_id": "9c963c9c-0ab4-49ba-ae65-85e331b01fef",
+          "reason": "Missing mating dimensions for the tubing path constraint feature.",
+          "requirement_id": "q_tubing_diameter"
+        },
+        {
+          "display_order": 1,
+          "question": "What specific motor type or mounting flange (e.g., NEMA 17, TT motor) is being used to drive the pump mechanism?",
+          "question_id": "fa7b0237-3594-4f47-b7fa-6d349040c9cb",
+          "reason": "Missing mating dimensions for the pump mechanism and motor interface.",
+          "requirement_id": "q_motor_type"
+        }
+      ],
+      "clarification_required": true,
+      "design_specification_id": "9083fdd0-d898-4408-aa85-b9d4d24dd390",
+      "generation_ready": false,
+      "missing_requirements": [
+        {
+          "description": "Tubing dimensions (OD/ID)",
+          "id": "tubing_dimensions_od_id",
+          "importance": "critical",
+          "reason": "Tubing dimensions (OD/ID)",
+          "source": "user"
+        },
+        {
+          "description": "Motor interface / mounting geometry",
+          "id": "motor_interface_mounting_geometry",
+          "importance": "critical",
+          "reason": "Motor interface / mounting geometry",
+          "source": "user"
+        }
+      ],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "d2896cc6-9d12-4163-9c43-a279b0343aef",
+      "requirements": [],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:39:43.585872+00:00"
+    },
+    "revision_id": null,
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": null,
+      "review_required": 0,
+      "total_authoritative_requirements": 0,
+      "unsupported_verifier": 0,
+      "unverifiable": 0
+    },
+    "state": "awaiting_clarification",
+    "terminal_stage": "clarification_required",
+    "timing_seconds": 2.405308822999359,
+    "topology": {
+      "outputs": [],
+      "valid": null
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": []
+    },
+    "workflow_id": "9950265b-f33e-41de-a656-59d3eb6a4eeb"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

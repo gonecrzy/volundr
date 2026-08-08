@@ -1,0 +1,41 @@
+{
+  "benchmark_project_id": "jig-guide-002",
+  "comparison_specification": {
+    "benchmark_project_id": "jig-guide-002",
+    "category": "jig_guides",
+    "failure_class": null,
+    "first_blocker_stage": "replacement_excluded",
+    "first_incorrect_owner": null,
+    "mode": "comparison_specification",
+    "prompt_sha256": "dbea600de98091debda959258e2b7683daadeb3b4c5efb161f8bc2861625995f",
+    "provider_calls": 0,
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "status": "replacement_required"
+    },
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "state": "excluded_replacement_required",
+    "terminal_stage": "replacement_excluded",
+    "worker_executions": 0
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "benchmark_project_id": "jig-guide-002",
+    "category": "jig_guides",
+    "failure_class": null,
+    "first_blocker_stage": "replacement_excluded",
+    "first_incorrect_owner": null,
+    "mode": "premise_only",
+    "prompt_sha256": "ea3a30bebe406b5ec62bf22f2f120cd7a41e3e877b5ee728e40738b272e43c34",
+    "provider_calls": 0,
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "status": "replacement_required"
+    },
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "state": "excluded_replacement_required",
+    "terminal_stage": "replacement_excluded",
+    "worker_executions": 0
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

@@ -1,0 +1,956 @@
+{
+  "artifacts": {
+    "hashes": {
+      "coffee_scale_assembly:brep": "6988961b5b1fd5cc2729e06ef68a995406197194592f4cf8b7147053b8aefd7b",
+      "coffee_scale_assembly:step": "35b05bbd68c223481358fad31fea8b31dd092e95790ea9c26bafdfe8e73d7cef",
+      "coffee_scale_assembly:stl": "2ec7bc98084a81395b4d3db21a491a74d3dbc4e4569a7ab3caa692f107e667df"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "functional-assembly-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 1,
+    "repair_calls": 2,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "f7241b1ed51278759ef6fb9d9028c9ad6bb383a9e3d1bf1d22984ebcac0928e6",
+        "extraction_succeeded": true,
+        "failure_boundary": "topology",
+        "failure_class": "invalid_shape",
+        "first_incorrect_owner": "geometry",
+        "normalized_error": "output shape is invalid",
+        "observed_stage": "topology",
+        "operation_id": "2e8cc6af-27f7-45c2-9156-0ad21d619f0d:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "4bce04da-cfbd-45d7-9f22-036b4047568f",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "f4da25c4-d18b-45d1-85ef-5be91277e11a",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "4bce04da-cfbd-45d7-9f22-036b4047568f",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "f4da25c4-d18b-45d1-85ef-5be91277e11a",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "0a7d70f5411920ba6867ce46bf3eca346aa1b668c0c3c11cb4b86a2666a7557e",
+              "request_hash": "969ccd8b4e2d4e8bbf59eabc7076756f05faf762ef0b8994485fe062514f4c4a",
+              "request_started_at": "2026-08-08T11:39:28.932232+00:00",
+              "response_length": 3320,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "0a7d70f5411920ba6867ce46bf3eca346aa1b668c0c3c11cb4b86a2666a7557e",
+        "repair_level": "initial",
+        "result_hash": "93dfeb33a0ceed34fcc3019b292d234581a02adbe0d92b313499a5d29ffd2e87",
+        "revision_id": "20ef122f-3563-4e70-ab7e-ab009cc595ff",
+        "semantic_result": {},
+        "source_contract_valid": true,
+        "source_hash": "f7241b1ed51278759ef6fb9d9028c9ad6bb383a9e3d1bf1d22984ebcac0928e6",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 2,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "solid_count_mismatch",
+          "schema_version": "topology-evidence-v2",
+          "valid": false
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "coffee_scale_assembly"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 2,
+        "extracted_source_hash": "566a5dd3ddea1a58e4236b7e35cccb182c19bd57bc154825964099c31aca4406",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "2e8cc6af-27f7-45c2-9156-0ad21d619f0d:attempt:2",
+        "progress": {
+          "measurable_progress": true,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [
+            "topology_became_valid",
+            "solid_count_reached_expected"
+          ],
+          "progress_result": "progressed",
+          "protected_fact_regression": false,
+          "repair_level": "L2",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": "acfe5040-da64-4f4b-8565-6a3b7a4fa42f",
+          "attempt_number": 2,
+          "failure_class": null,
+          "level": "L2",
+          "logical_operation_id": "207154ce-30dc-4d4c-b18f-ef83573a52ae",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "acfe5040-da64-4f4b-8565-6a3b7a4fa42f",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "207154ce-30dc-4d4c-b18f-ef83573a52ae",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "27a18d52dd7c1b70f4cba5632b0bdab05ccc75f9932c5560f4e1f87c94ac7a51",
+              "request_hash": "56368afc57e3bb0fa2a67b10fc59d2128bec56f1c5d308d167179c36d542c2f4",
+              "request_started_at": "2026-08-08T11:39:34.634752+00:00",
+              "response_length": 3419,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "27a18d52dd7c1b70f4cba5632b0bdab05ccc75f9932c5560f4e1f87c94ac7a51",
+        "repair_level": "L2",
+        "result_hash": "79d3de38c5880436dd4d7238c55cae2206094ecdfcf5390048be38ff3a1c4113",
+        "revision_id": "9021e52d-304a-4d56-8e73-1ab73d4b0175",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "platform",
+            "req_control_button",
+            "req_electronics_body",
+            "req_front_cover",
+            "req_platform"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "566a5dd3ddea1a58e4236b7e35cccb182c19bd57bc154825964099c31aca4406",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "coffee_scale_assembly"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 2,
+        "extracted_source_hash": "566a5dd3ddea1a58e4236b7e35cccb182c19bd57bc154825964099c31aca4406",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "2e8cc6af-27f7-45c2-9156-0ad21d619f0d:recovery-recheck:2",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L2",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "L2",
+        "result_hash": "79d3de38c5880436dd4d7238c55cae2206094ecdfcf5390048be38ff3a1c4113",
+        "revision_id": "9021e52d-304a-4d56-8e73-1ab73d4b0175",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "platform",
+            "req_control_button",
+            "req_electronics_body",
+            "req_front_cover",
+            "req_platform"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "566a5dd3ddea1a58e4236b7e35cccb182c19bd57bc154825964099c31aca4406",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "coffee_scale_assembly"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 3
+  },
+  "category": "functional_assemblies",
+  "comparison_specification_hash": "3c6d895e749537195406c2321a6d0a11089d35400024962af09e68701724838b",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "coffee_scale_assembly",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "coffee scale assembly",
+        "purpose": "Design a compact multi-part coffee scale that supports a coffee vessel and protects internal electronics."
+      },
+      "project_id": "907aa5e3-8397-40f1-bb57-8df8c4a2960b",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "platform"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_control_button"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_electronics_body"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_front_cover"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_platform"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "platform",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "with a platform",
+          "requirement_id": "platform",
+          "scope": "coffee_scale_assembly",
+          "source": "initial_user"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "control button",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "control button",
+          "requirement_id": "req_control_button",
+          "scope": "coffee_scale_assembly",
+          "source": "initial_user"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "electronics body",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "electronics body",
+          "requirement_id": "req_electronics_body",
+          "scope": "coffee_scale_assembly",
+          "source": "initial_user"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "front cover",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "front cover",
+          "requirement_id": "req_front_cover",
+          "scope": "coffee_scale_assembly",
+          "source": "initial_user"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "platform",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "with a platform",
+          "requirement_id": "req_platform",
+          "scope": "coffee_scale_assembly",
+          "source": "initial_user"
+        }
+      ],
+      "revision_id": "2e8cc6af-27f7-45c2-9156-0ad21d619f0d:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "2e8cc6af-27f7-45c2-9156-0ad21d619f0d"
+    },
+    "contract_hash": "1aeb0ae1079085120617dc4e0419d8b83228e4e7dfdeef24baba54338a51e467",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "invalid_shape",
+  "first_blocker_stage": "topology",
+  "first_incorrect_owner": "geometry",
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": "topology",
+  "project_runtime_id": "907aa5e3-8397-40f1-bb57-8df8c4a2960b",
+  "prompt": "Design a compact multi-part coffee scale with a platform, electronics body, front cover, and control button. It should support a coffee vessel and protect the electronics during use.",
+  "prompt_sha256": "60b4e4e1c848fd463b20874f7d11c1982517f65eb0bd99dd71c2fc89a78707fe",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "7cc72d66-fc32-40ac-82d8-b8a0c0cb35a8",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "6d448a15-de60-4590-adf6-5fe6484c3010",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "38c0178ac0fe9e0484cb9be7dd4a47da918b7cb0ed356868ce1c6d956cea994f",
+      "request_hash": "c667b9c61a03252d21395a5ba6f0e0e5bc17ce3656b1909a88c28b62dfa49b43",
+      "request_started_at": "2026-08-08T11:39:23.929239+00:00",
+      "response_length": 4668,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "4bce04da-cfbd-45d7-9f22-036b4047568f",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "f4da25c4-d18b-45d1-85ef-5be91277e11a",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "0a7d70f5411920ba6867ce46bf3eca346aa1b668c0c3c11cb4b86a2666a7557e",
+      "request_hash": "969ccd8b4e2d4e8bbf59eabc7076756f05faf762ef0b8994485fe062514f4c4a",
+      "request_started_at": "2026-08-08T11:39:28.932232+00:00",
+      "response_length": 3320,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "acfe5040-da64-4f4b-8565-6a3b7a4fa42f",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "207154ce-30dc-4d4c-b18f-ef83573a52ae",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "27a18d52dd7c1b70f4cba5632b0bdab05ccc75f9932c5560f4e1f87c94ac7a51",
+      "request_hash": "56368afc57e3bb0fa2a67b10fc59d2128bec56f1c5d308d167179c36d542c2f4",
+      "request_started_at": "2026-08-08T11:39:34.634752+00:00",
+      "response_length": 3419,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "unavailable",
+    "eligible_interpretation": false,
+    "mapping_status": "explicit_reference_output_mapping_required",
+    "metrics": {
+      "aggregate": {
+        "bounding_box_error_by_axis_mm": {
+          "x": null,
+          "y": null,
+          "z": null
+        },
+        "solid_count_agreement": null,
+        "surface_area_difference_mm2": null,
+        "surface_area_difference_ratio": null,
+        "volume_difference_mm3": null,
+        "volume_difference_ratio": null
+      },
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "per_part": {},
+      "project_part_count_agreement": false
+    },
+    "raw_generated": {
+      "coffee_scale_assembly": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 120.0,
+            "size_y": 105.0,
+            "size_z": 33.5
+          },
+          "center_of_mass_mm": [
+            0.0500648989430709,
+            -0.31165399592063486,
+            16.739291674392735
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 39115.0,
+          "volume_mm3": 404475.0
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 13,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      }
+    },
+    "raw_reference": {
+      "authority": null,
+      "canonical_part_count": 4,
+      "canonical_part_ids": [
+        "scale_platform",
+        "scale_front_cover",
+        "scale_body",
+        "scale_button"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 80.00000762939453,
+              "size_y": 109.99317169189453,
+              "size_z": 9.0
+            },
+            "center_of_mass_mm": [
+              158.78157071885192,
+              157.52016220574058,
+              2.4933118417330262
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 20608.74779671673,
+            "volume_mm3": 31559.637732553918
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 1982,
+            "vertex_count": 993,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 76.31513977050781,
+              "size_y": 27.997642517089844,
+              "size_z": 11.0
+            },
+            "center_of_mass_mm": [
+              171.0941071277891,
+              82.17940653586462,
+              4.973577294207388
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 5438.805422008403,
+            "volume_mm3": 9143.047182366876
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 1916,
+            "vertex_count": 956,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 80.0,
+              "size_y": 140.0000011601951,
+              "size_z": 19.49222755432129
+            },
+            "center_of_mass_mm": [
+              83.02216638560286,
+              59.01396935537555,
+              5.4471336508743216
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 34303.348805571135,
+            "volume_mm3": 59594.77316384653
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 5660,
+            "vertex_count": 2820,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 9.999160766601562,
+              "size_y": 9.999580383300781,
+              "size_z": 9.350000619888306
+            },
+            "center_of_mass_mm": [
+              133.6420570765951,
+              95.5983538758798,
+              4.162895973658686
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 391.0411436714568,
+            "volume_mm3": 550.0161763623865
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 7694,
+            "vertex_count": 3849,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-001/derived-reference.json",
+      "quality_classification": null
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "332422774dae0a7036c7ec1bf61ab43d18157cddf2496fd354a6d26967493ae4",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Standard functional wall thickness applied for durability and protection of electronics.",
+        "id": "assumption_wall_thickness",
+        "importance": "important",
+        "kind": "dimension",
+        "label": "Functional Wall Thickness",
+        "object_type": "electronics body",
+        "operator": "exact",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "electronics body",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": 3.0
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "6e27efc4-33c5-4287-a53c-8afa6adf27a4",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "907aa5e3-8397-40f1-bb57-8df8c4a2960b",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:39:26.681045",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "platform",
+        "operator": "present",
+        "originating_message": "Design a compact multi-part coffee scale with a platform, electronics body, front cover, and control button. It should support a coffee vessel and protect the electronics during use.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "with a platform",
+        "record_id": "96216006-26ac-4d19-9213-4bc8f9e82523",
+        "requirement_id": "platform",
+        "source": "initial_user",
+        "status": "active",
+        "subject": null,
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "platform",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:39:26.681047",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:39:26.681048",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "control button",
+        "operator": "present",
+        "originating_message": "Design a compact multi-part coffee scale with a platform, electronics body, front cover, and control button. It should support a coffee vessel and protect the electronics during use.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "control button",
+        "record_id": "57754c60-b7a6-460f-8094-3207b23ccfe1",
+        "requirement_id": "req_control_button",
+        "source": "initial_user",
+        "status": "active",
+        "subject": null,
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:39:26.681049",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:39:26.681050",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "electronics body",
+        "operator": "present",
+        "originating_message": "Design a compact multi-part coffee scale with a platform, electronics body, front cover, and control button. It should support a coffee vessel and protect the electronics during use.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "electronics body",
+        "record_id": "b0d14391-d73a-4e50-9956-2ae6d4c0fcdb",
+        "requirement_id": "req_electronics_body",
+        "source": "initial_user",
+        "status": "active",
+        "subject": null,
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:39:26.681050",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:39:26.681051",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "front cover",
+        "operator": "present",
+        "originating_message": "Design a compact multi-part coffee scale with a platform, electronics body, front cover, and control button. It should support a coffee vessel and protect the electronics during use.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "front cover",
+        "record_id": "d69fdb69-1d33-422c-8fb7-a064c46551a1",
+        "requirement_id": "req_front_cover",
+        "source": "initial_user",
+        "status": "active",
+        "subject": null,
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:39:26.681051",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:39:26.681052",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "platform",
+        "operator": "present",
+        "originating_message": "Design a compact multi-part coffee scale with a platform, electronics body, front cover, and control button. It should support a coffee vessel and protect the electronics during use.",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "with a platform",
+        "record_id": "ce139f34-7e0c-4fdc-9d10-4b347bba5af8",
+        "requirement_id": "req_platform",
+        "source": "initial_user",
+        "status": "active",
+        "subject": null,
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "coffee vessel",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:39:26.681053",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:39:41.150448+00:00"
+  },
+  "revision_id": "9021e52d-304a-4d56-8e73-1ab73d4b0175",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 0,
+    "total_authoritative_requirements": 5,
+    "unsupported_verifier": 5,
+    "unverifiable": 5
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 19.53187944300589,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 13,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "output_id": "coffee_scale_assembly",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 3,
+    "job_ids": [
+      "2e8cc6af-27f7-45c2-9156-0ad21d619f0d:attempt:1:worker",
+      "2e8cc6af-27f7-45c2-9156-0ad21d619f0d:attempt:2:worker",
+      "2e8cc6af-27f7-45c2-9156-0ad21d619f0d:recovery-recheck:2:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "6988961b5b1fd5cc2729e06ef68a995406197194592f4cf8b7147053b8aefd7b",
+          "step": "35b05bbd68c223481358fad31fea8b31dd092e95790ea9c26bafdfe8e73d7cef",
+          "stl": "2ec7bc98084a81395b4d3db21a491a74d3dbc4e4569a7ab3caa692f107e667df"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 120.0,
+              "size_y": 105.0,
+              "size_z": 33.5
+            },
+            "center_of_mass_mm": [
+              0.0500648989430709,
+              -0.31165399592063486,
+              16.739291674392735
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 39115.0,
+            "volume_mm3": 404475.0
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 13,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "coffee_scale_assembly",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/907aa5e3-8397-40f1-bb57-8df8c4a2960b/revisions/9021e52d-304a-4d56-8e73-1ab73d4b0175/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "2e8cc6af-27f7-45c2-9156-0ad21d619f0d"
+}

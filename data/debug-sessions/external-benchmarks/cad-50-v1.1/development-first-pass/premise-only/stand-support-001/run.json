@@ -1,0 +1,167 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "stand-support-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "stand_supports",
+  "comparison_specification_hash": "7756f3551a5575c7dfbe9877ea41a421b77fdd47cfca722732adb7a8e8dc1993",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "9bbff3dd-a0e7-4b8d-a9b0-06f01e88dedb",
+  "prompt": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.",
+  "prompt_sha256": "06cc1b38d43678c490d227a7d9b8d7d6339135b60b9e09249f74b3290dcdaf1c",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "a9f21bd7-e59f-415f-b2f1-cc84a97e4ba1",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "65928781-81c3-4fac-864d-6eb427155080",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "51a58b81c9fea0d32b05aeff7ad07985915b2e6c02f39732e7ce451bfe62191b",
+      "request_hash": "e7a3d8df801bd787872178cb854323d4a0fb48dbe815874bcc692d0a69f82f73",
+      "request_started_at": "2026-08-08T11:41:03.261327+00:00",
+      "response_length": 4890,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "80ddd5206b6895b2be127f9e0fa4b6d474868c73bb704fa09d6eaa50447d1e21",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Assume a default ergonomic viewing angle of approximately 60 degrees for the phone.",
+        "id": "assumption_viewing_angle",
+        "importance": "important",
+        "kind": "orientation",
+        "operator": "approximately",
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "stand",
+        "target": "phone",
+        "unit": "degrees",
+        "value": 60
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "Which specific iPhone model or exact width/height dimensions should the stand accommodate?",
+        "question_id": "d3536148-0ded-46f3-bdd7-dbd0784f4582",
+        "reason": "Missing mating dimensions and device form factor for precise phone cradle sizing.",
+        "requirement_id": "q_iphone_model"
+      },
+      {
+        "display_order": 1,
+        "question": "What are the exact diameter and thickness dimensions of the MagSafe charger being used, or is it the official Apple MagSafe puck (~56mm diameter, ~5mm thickness)?",
+        "question_id": "b0d6e635-b44e-4001-9940-c08991fd687d",
+        "reason": "Missing mating dimensions for the MagSafe charger pocket and alignment feature.",
+        "requirement_id": "q_magsafe_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "372cdda3-9e29-4fbf-9165-3bc70d3c8963",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Specific iPhone model or outer dimensions for cradle fit.",
+        "id": "missing_iphone_dimensions",
+        "importance": "critical",
+        "reason": "Required to size the phone support and viewing slot accurately.",
+        "source": "user"
+      },
+      {
+        "description": "MagSafe puck outer diameter and thickness.",
+        "id": "missing_magsafe_dimensions",
+        "importance": "critical",
+        "reason": "Required to securely seat and align the charger.",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "9bbff3dd-a0e7-4b8d-a9b0-06f01e88dedb",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:41:06.439194+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 5.867212636003387,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "f14bee32-9258-4a69-af9d-7302e80e6519"
+}

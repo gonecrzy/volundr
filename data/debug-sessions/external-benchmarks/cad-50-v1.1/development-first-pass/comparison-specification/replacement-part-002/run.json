@@ -1,0 +1,147 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "replacement-part-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "replacement_parts",
+  "comparison_specification_hash": "b90049cc75fdd7eb4053ac893f44f9a2c89c856fba351ec2e41a0b4184c4de1e",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "8c908920-5802-4c52-83a1-8264aeb57d80",
+  "prompt": "Design a replacement latch for a Tineco A10/A11 Hero accessory attachment. It should reproduce the retention function and fit the original mating interface.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output tineco_hero_latch should have an overall envelope of approximately 36.5 mm x 21.205398559570312 mm x 10.0 mm.\n- appliance: Tineco A10/A11 Hero descriptive",
+  "prompt_sha256": "d4591082ec99b3ab15997b52292d98614df364cb13405c0c18b678e8426b736f",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "575bd158-cc83-4dab-97e2-de8dd864c42b",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "d6954afc-29cb-4d0a-9cdc-42b5cd0d27b8",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "bdf0ed8ad8d45de320bf7c79740e7d3c777f574564529aea1768329e0e066b43",
+      "request_hash": "2b518e66120172c35267e1d24cfadf7f6f2ba817d8cdfba8f8e37d0bf75c85c7",
+      "request_started_at": "2026-08-08T11:47:49.435745+00:00",
+      "response_length": 5001,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "3aae9ae4da6bdaa1dce60ddfdf599d5dfa9f670b1e7ffd550144661c7824a0c8",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Mating interface dimensions inferred from standard Tineco A10/A11 Hero accessory attachment geometry.",
+        "id": "assumption_mating_interface_dimensions",
+        "kind": "dimension",
+        "label": "Mating interface dimensions inferred from standard Tineco A10/A11 Hero accessory attachment geometry.",
+        "object_type": "latch",
+        "operator": "approximately",
+        "raw_evidence": "fit the original mating interface",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "tineco_hero_latch",
+        "target": "mating_interface",
+        "tolerance": null,
+        "unit": "mm",
+        "value": null
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": true,
+    "design_specification_id": "544fbb30-a3d4-4e73-9629-9cc97ccd35b1",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Missing exact internal geometry and locking tab dimensions of the Tineco A10/A11 Hero accessory attachment mating interface.",
+        "id": "missing_exact_internal_geometry_and_locking_tab_dimensions_of_the_tineco_a10_a11_hero_accessory_attachment_mating_interf",
+        "importance": "critical",
+        "reason": "Missing exact internal geometry and locking tab dimensions of the Tineco A10/A11 Hero accessory attachment mating interface.",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "8c908920-5802-4c52-83a1-8264aeb57d80",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:47:52.571176+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 4.922956124006305,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "4a1567d0-586a-4525-8df8-d0356b7169ff"
+}

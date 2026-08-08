@@ -1,0 +1,178 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "clamp-clip-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 2
+  },
+  "category": "clamp_clip",
+  "comparison_specification_hash": "51b9354354d4e0265b965c5d6fa62e5883649f8b3d3c2968f4d61136d9e10a1a",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "35742cba-95df-45c4-add3-86cd1584f1f3",
+  "prompt": "Design a two-part clamp system for securing a Shaper Origin workstation to a portable work surface. It should fit the workstation feet accurately and allow quick assembly and removal.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output holder_guide should have an overall envelope of approximately 65.0 mm x 13.0 mm x 18.000000000002352 mm.\n- Output holder_left should have an overall envelope of approximately 33.0 mm x 250.0 mm x 23.0 mm.\n- mounting_context: T-Loc Systainer or MDF board descriptive\n- supported_tool: Shaper Origin workstation descriptive",
+  "prompt_sha256": "27ded8d5921646abe27b3b209cb476bc174ea328a3030f67bc0eee186c9cd583",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "3bb51cbf-cc03-4fc7-bdff-a693544d2db2",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "f6a86b14-bbd7-4582-9671-761f349c29a8",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "2a459303add7ad37c7cfb3018d43a86ee4be298b0f69fc0f10bc7b546f9eedff",
+      "request_hash": "4c02b7c9157eea95b9fb8a7d3a316736c6740e4ef9a240e3bc55cf8a65400914",
+      "request_started_at": "2026-08-08T11:43:20.715483+00:00",
+      "response_length": 5234,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "8510b45c-90e7-4e9b-8635-e6d828867c01",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "927a32de-b6bc-4e18-91a2-e737e83a8a4f",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "9ae13d8fb936cb0aa777facc4cf1949b8635d2d39a87b44da732b69fb1aedb52",
+      "request_hash": "c37a163970a98fcfe1069b0d6b140f8d2f5b48ebcb39a4dd89388c9624ea8824",
+      "request_started_at": "2026-08-08T11:43:25.717952+00:00",
+      "response_length": 5217,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "a6f8965cf2229916b0d90df8fa7d9a4d000fb864cdbe603f74fe4d2ecd068098",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Standard clearance fit for removable parts as specified in versioned defaults.",
+        "id": "assumption_removable_fit",
+        "importance": "important",
+        "kind": "clearance",
+        "object_type": "clamp_system",
+        "operator": "range",
+        "protected": false,
+        "raw_evidence": "allow quick assembly and removal",
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "clamp_system",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          0.3,
+          0.5
+        ]
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": true,
+    "design_specification_id": "5048572b-ec9c-4bff-8871-3b6751702955",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Exact dimensions, spacing, and geometry of the Shaper Origin workstation feet for precise mating.",
+        "id": "exact_dimensions_spacing_and_geometry_of_the_shaper_origin_workstation_feet_for_precise_mating",
+        "importance": "critical",
+        "reason": "Exact dimensions, spacing, and geometry of the Shaper Origin workstation feet for precise mating.",
+        "source": "user"
+      },
+      {
+        "description": "Exact thickness and edge profile of the portable work surface (T-Loc Systainer or MDF board).",
+        "id": "exact_thickness_and_edge_profile_of_the_portable_work_surface_t_loc_systainer_or_mdf_board",
+        "importance": "critical",
+        "reason": "Exact thickness and edge profile of the portable work surface (T-Loc Systainer or MDF board).",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 2,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 1,
+    "schema_retries": 2,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "35742cba-95df-45c4-add3-86cd1584f1f3",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:43:28.649087+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 9.294115142009105,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "5430a644-ce5b-4aee-850d-4739a1e16dd2"
+}

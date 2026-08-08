@@ -1,0 +1,145 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "replacement-part-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "replacement_parts",
+  "comparison_specification_hash": "b90049cc75fdd7eb4053ac893f44f9a2c89c856fba351ec2e41a0b4184c4de1e",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "5bcdab43-6980-4e99-a952-fdcca0c461dd",
+  "prompt": "Design a replacement latch for a Tineco A10/A11 Hero accessory attachment. It should reproduce the retention function and fit the original mating interface.",
+  "prompt_sha256": "79c68007fd79404bff961d8f87fa711988d854c5ca0c82fc2d9bdf6e0ad530b7",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "e290b1e3-4d16-48cc-9ce2-27201210acad",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "81dff557-56f4-4c3c-90f9-e3db6d6a23b6",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "8c3ac2771cb0dc77585a3ce78d77b6e7f08ecc4ea345b68c48e919d1c7b1507e",
+      "request_hash": "bbe4418d668ca7f53b419facac3fda74d27dafe23c855f5fbc54aba1b57bbff3",
+      "request_started_at": "2026-08-08T11:40:53.254709+00:00",
+      "response_length": 3357,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "3aae9ae4da6bdaa1dce60ddfdf599d5dfa9f670b1e7ffd550144661c7824a0c8",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Standard 3D printing tolerances and general functional wall thickness apply based on volundr-defaults-v1.",
+        "id": "assumption_default_tolerances",
+        "requires_approval": false,
+        "source": "product_default"
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the precise mating interface dimensions, latch hook geometry, and pivot/spring pocket dimensions of the Tineco A10/A11 Hero accessory attachment?",
+        "question_id": "d712b99b-f3e3-4544-a452-3f35506fe98b",
+        "reason": "Missing mating dimensions are mandatory for designing a replacement latch that fits the original interface.",
+        "requirement_id": "q_mating_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "d0867a55-6334-417d-9df8-6cd825e162bf",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Precise dimensions and geometry of the Tineco A10/A11 Hero accessory attachment mating interface and latch mechanism.",
+        "id": "precise_dimensions_and_geometry_of_the_tineco_a10_a11_hero_accessory_attachment_mating_interface_and_latch_mechanism",
+        "importance": "critical",
+        "reason": "Precise dimensions and geometry of the Tineco A10/A11 Hero accessory attachment mating interface and latch mechanism.",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "5bcdab43-6980-4e99-a952-fdcca0c461dd",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:40:55.488521+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 5.26559095599805,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "cb66b20c-e204-46a9-ac0d-e9d688d520a5"
+}

@@ -216,7 +216,8 @@ def _build_preflight(
         "environment_boundary": {
             "corpus_manifest_env_present": bool(corpus_env),
             "settings_corpus_manifest_configured": settings.executable_cadquery_corpus_manifest_path is not None,
-            "reference_geometry_loaded_by_runner": False,
+            "reference_geometry_loaded_before_provider": False,
+            "reference_geometry_loaded_post_generation_for_comparison": True,
             "holdout_details_loaded_by_runner": False,
             "reference_geometry_sent_to_provider": False,
             "historical_pilot_evidence_overwritten": False,
@@ -260,6 +261,7 @@ def _safe_transport_record(record: Mapping[str, Any]) -> dict[str, Any]:
         "status_code",
         "failure_class",
         "retry_delay_seconds",
+        "started_monotonic",
         "request_started_at",
         "response_received",
         "response_length",
@@ -744,6 +746,8 @@ def _build_cell_record(
         worker = item.get("worker_result") or {}
         if worker.get("job_id"):
             worker_ids.add(str(worker["job_id"]))
+        elif worker.get("phase") or worker.get("output_ids"):
+            worker_ids.add(f"{item.get('operation_id')}:worker")
 
     verification = _json_object(workflow.verification_json)
     semantic_counts = _semantic_counts(verification, ledger)
@@ -836,6 +840,7 @@ def _build_cell_record(
         "worker": {
             "execution_count": len(worker_ids),
             "job_ids": sorted(worker_ids),
+            "revision_execution_manifest_path": revision.execution_manifest_path if revision else None,
             "outputs": generated_outputs,
         },
         "topology": {
@@ -965,6 +970,13 @@ def _rate_limit_audit(provider: Any, records: list[dict[str, Any]]) -> dict[str,
         for item in all_transport
         if item.get("started_monotonic") is not None
     ]
+    if not starts:
+        starts = [
+            parsed.timestamp()
+            for item in all_transport
+            for parsed in [_parse_timestamp(item.get("request_started_at"))]
+            if parsed is not None
+        ]
     starts.sort()
     gaps = [right - left for left, right in zip(starts, starts[1:])]
     rolling_max = 0
@@ -998,6 +1010,17 @@ def _rate_limit_audit(provider: Any, records: list[dict[str, Any]]) -> dict[str,
             },
         },
     }
+
+
+def _parse_timestamp(value: Any):
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        from datetime import datetime
+
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
 
 
 def _aggregate(records: list[dict[str, Any]], projects: tuple[FrozenSurveyProject, ...]) -> dict[str, Any]:

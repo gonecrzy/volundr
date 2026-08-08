@@ -1,0 +1,183 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "adapter-coupler-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 2
+  },
+  "category": "adapter_coupler",
+  "comparison_specification_hash": "636e55a6149454c21258c79b3f6445d347060a5dc8f6c2e59d0a93b88d9d07b5",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "f31478ec-1b45-45ad-af9c-ae1a8f47dde8",
+  "prompt": "Design a multi-part adapter that connects an Electrolux or AEG vacuum tube to a Miele nozzle. Include the tube interface, nozzle body, and the functional button/rocker pieces needed for retention.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output adapter_top should have an overall envelope of approximately 37.10571126878992 mm x 15.093290520755334 mm x 76.00000010000099 mm.\n- Output adapter_tube should have an overall envelope of approximately 42.973422620237 mm x 47.5000001 mm x 125.00000000000009 mm.\n- Output retention_button should have an overall envelope of approximately 17.0 mm x 5.500000100000001 mm x 29.0 mm.\n- Output retention_rocker should have an overall envelope of approximately 9.50000000000248 mm x 8.800000000000487 mm x 45.70000000000048 mm.\n- source_interface: Electrolux/AEG vacuum tube descriptive\n- target_interface: Miele nozzle descriptive",
+  "prompt_sha256": "f88f162c7d94731cf65298947960ea9f120a80aa5989f76c957de58c1abba4a3",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "2638b5f1-7d25-4a0d-9275-2da4a9a693e1",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "00be99ed-dcf4-49fc-aa8e-f5a5270d79ee",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "5a7cc7009d703bc3f96fac6f129c363de8c047eadd5864e63293ca108cd0031d",
+      "request_hash": "637b2e6b82911493f1ba3c38fc1a592bd645572876d0536931b10b02065c093e",
+      "request_started_at": "2026-08-08T11:42:45.735538+00:00",
+      "response_length": 13447,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "9ad1c9d1-3a67-4eb4-b655-80803270d8d5",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "108bd0a4-5bb5-4d06-ad4e-a15ee2f83d5f",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "b48a6a7a5313858c4f53fe7b3f153ae177e56b202010a2c349c16075114c8c8d",
+      "request_hash": "f92396a91ddb240f0a2b8789815afcc71e1140e7fa30645b18795f9f4a2bc7b2",
+      "request_started_at": "2026-08-08T11:42:54.202326+00:00",
+      "response_length": 14428,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "ac01a0affd303ef0b0cf4f873df78329ac98ae6198e1282b9c1b4230c11d060b",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Assumed parts are designed to be FDM 3D printable.",
+        "id": "assumed_parts_are_designed_to_be_fdm_3d_printable",
+        "kind": "qualitative",
+        "object_type": "multi-part adapter",
+        "operator": "qualitative",
+        "raw_evidence": "Design a multi-part adapter that connects an Electrolux or AEG vacuum tube to a Miele nozzle.",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "adapter_assembly",
+        "value": "FDM 3D printable parts"
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact inner and outer diameters, locking tab locations, or cross-section geometry of the Electrolux/AEG vacuum tube and Miele nozzle mating ends to ensure airtight and secure fit?",
+        "question_id": "3e41bb4a-6199-4f50-8654-4933ff6126c4",
+        "reason": null,
+        "requirement_id": "q1_mating_dimensions"
+      },
+      {
+        "display_order": 1,
+        "question": "What specific engagement travel, pivot axis, or spring/latch mechanism is required for the retention_button and retention_rocker pieces?",
+        "question_id": "b7490188-ceea-428b-8f42-5d1fe5aa8831",
+        "reason": null,
+        "requirement_id": "q2_retention_mechanism"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "08fe1a71-9630-4087-800b-8b01ae1c0e9a",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Precise inner and outer dimensions and locking latch features for the Electrolux/AEG tube end.",
+        "id": "missing_mating_geometry_electrolux",
+        "importance": "critical",
+        "source": "user"
+      },
+      {
+        "description": "Precise inner and outer dimensions and locking latch features for the Miele nozzle end.",
+        "id": "missing_mating_geometry_miele",
+        "importance": "critical",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 2,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 1,
+    "schema_retries": 2,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "f31478ec-1b45-45ad-af9c-ae1a8f47dde8",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:43:02.961290+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 17.248984858000767,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "9ca7fcb8-a9a5-40a0-a4b1-05d6b4ea38ed"
+}

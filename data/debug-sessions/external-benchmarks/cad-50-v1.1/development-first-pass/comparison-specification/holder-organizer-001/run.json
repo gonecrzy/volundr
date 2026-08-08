@@ -1,0 +1,804 @@
+{
+  "artifacts": {
+    "hashes": {
+      "trimmer_wall_mount:brep": "dbcdf3d020d8c955901c9cc467f2173e6f019d73648dd7237443c56e17df590d",
+      "trimmer_wall_mount:step": "fd98fe2c1b6e61abb7dd8ea6ad2569a401fa6ab4e792a598bfba65b1661f8bce",
+      "trimmer_wall_mount:stl": "14b6772b8f242dc328d20ccfe09885ad19bf425edd21f1a856b8d636082f7bf4"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "holder-organizer-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 2,
+    "repair_calls": 0,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "c67181dfbfc0f917b340c8fd9c06bcebe31fe40e1a8d614484d0c36eacb97587",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "a7aee9d8-e9df-48e1-a555-665525a61084:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "ab98b564-df57-4d87-b6c7-ba70124c9cf2",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "dd700f2e-1be1-4717-bcd5-53b12dd368f4",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "ab98b564-df57-4d87-b6c7-ba70124c9cf2",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "dd700f2e-1be1-4717-bcd5-53b12dd368f4",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "55e7aaffee1539fe862ca74f29b9049bbaeb578f8a1fa229faabcf413573cd86",
+              "request_hash": "ec6a85d0bde9dde48147b65473997d98b3e8ee8c485809145a96e9bbfd6b54f2",
+              "request_started_at": "2026-08-08T11:45:38.916321+00:00",
+              "response_length": 4045,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "55e7aaffee1539fe862ca74f29b9049bbaeb578f8a1fa229faabcf413573cd86",
+        "repair_level": "initial",
+        "result_hash": "516fb03b9994a02f533aa7998ca1ce580d9f15763f6313d70aa773fb28ee1689",
+        "revision_id": "7b196fb6-4107-418d-8554-3498b7928ba7",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_screw_interface",
+            "req_upright_storage"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "envelope_height",
+            "envelope_length",
+            "envelope_width",
+            "req_supported_tool"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "c67181dfbfc0f917b340c8fd9c06bcebe31fe40e1a8d614484d0c36eacb97587",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "trimmer_wall_mount"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "c67181dfbfc0f917b340c8fd9c06bcebe31fe40e1a8d614484d0c36eacb97587",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "a7aee9d8-e9df-48e1-a555-665525a61084:recovery-recheck:1",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "initial",
+        "result_hash": "516fb03b9994a02f533aa7998ca1ce580d9f15763f6313d70aa773fb28ee1689",
+        "revision_id": "7b196fb6-4107-418d-8554-3498b7928ba7",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_screw_interface",
+            "req_upright_storage"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "envelope_height",
+            "envelope_length",
+            "envelope_width",
+            "req_supported_tool"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "c67181dfbfc0f917b340c8fd9c06bcebe31fe40e1a8d614484d0c36eacb97587",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "trimmer_wall_mount"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 2
+  },
+  "category": "holders_organizers",
+  "comparison_specification_hash": "de0b1b85af621a6745a8f927272999d44c7036beac04624f729cb6fa74209859",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "trimmer_wall_mount",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "trimmer_wall_mount",
+        "purpose": "Design a sturdy wall-mounted holder for a string trimmer to keep the tool upright for storage and provide a secure screw-mounted interface around the tool body."
+      },
+      "project_id": "d4a4ba60-53c7-492d-8c1e-a5ed69dbe1d5",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": 50.0
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "envelope_height"
+        },
+        {
+          "authoritative_value": {
+            "value": 99.17847919464111
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "envelope_length"
+        },
+        {
+          "authoritative_value": {
+            "value": 135.75859451293945
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "envelope_width"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_screw_interface"
+        },
+        {
+          "authoritative_value": {
+            "value": "Stihl FS91 or FS31"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_supported_tool"
+        },
+        {
+          "authoritative_value": {
+            "value": "upright"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_upright_storage"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 50.0
+          },
+          "kind": "dimension",
+          "object_type": "trimmer_wall_mount",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm",
+          "requirement_id": "envelope_height",
+          "scope": "trimmer_wall_mount",
+          "source": "initial_user",
+          "subject": "trimmer_wall_mount"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 99.17847919464111
+          },
+          "kind": "dimension",
+          "object_type": "trimmer_wall_mount",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm",
+          "requirement_id": "envelope_length",
+          "scope": "trimmer_wall_mount",
+          "source": "initial_user",
+          "subject": "trimmer_wall_mount"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 135.75859451293945
+          },
+          "kind": "dimension",
+          "object_type": "trimmer_wall_mount",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm",
+          "requirement_id": "envelope_width",
+          "scope": "trimmer_wall_mount",
+          "source": "initial_user",
+          "subject": "trimmer_wall_mount"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "retention",
+          "object_type": "string trimmer",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "secure screw-mounted interface around the tool body",
+          "requirement_id": "req_screw_interface",
+          "scope": "trimmer_wall_mount",
+          "source": "initial_user",
+          "subject": "trimmer_wall_mount"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": "Stihl FS91 or FS31"
+          },
+          "kind": "capacity",
+          "object_type": "string trimmer",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+          "requirement_id": "req_supported_tool",
+          "scope": "trimmer_wall_mount",
+          "source": "initial_user",
+          "subject": "trimmer_wall_mount"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": "upright"
+          },
+          "kind": "orientation",
+          "object_type": "string trimmer",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "keep the tool upright for storage",
+          "requirement_id": "req_upright_storage",
+          "scope": "trimmer_wall_mount",
+          "source": "initial_user",
+          "subject": "trimmer_wall_mount"
+        }
+      ],
+      "revision_id": "a7aee9d8-e9df-48e1-a555-665525a61084:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "a7aee9d8-e9df-48e1-a555-665525a61084"
+    },
+    "contract_hash": "499bf4a37a3325d5522e94131efd96c93c2f242d4994a3b52f590708ec255924",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "semantic_requirement_unverifiable",
+  "first_blocker_stage": "semantic_verification",
+  "first_incorrect_owner": "application",
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": "semantic_measurement",
+  "project_runtime_id": "d4a4ba60-53c7-492d-8c1e-a5ed69dbe1d5",
+  "prompt": "Design a sturdy wall-mounted holder for a string trimmer. It should keep the tool upright for storage and provide a secure screw-mounted interface around the tool body.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output trimmer_wall_mount should have an overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm.\n- supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+  "prompt_sha256": "b0f1551ce6abf2794176fbd69ecd0c19bd9cf5f77321ac86e4f7699b6850a2e6",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "3ed3ec3a-e68d-4957-91b0-75e8435dae77",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "5821dd19-cc3a-4f0e-bc7c-5e8db8493a8c",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "027d9af8ac9c36e7a25d99e15ccb47858d9e39b69947d80f762fafa08d57ab25",
+      "request_hash": "46d999788bf6dbb89b7116b176f11a7dded4dc24637671fde1ef7226c86b36ff",
+      "request_started_at": "2026-08-08T11:45:33.913970+00:00",
+      "response_length": 5337,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "ab98b564-df57-4d87-b6c7-ba70124c9cf2",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "dd700f2e-1be1-4717-bcd5-53b12dd368f4",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "55e7aaffee1539fe862ca74f29b9049bbaeb578f8a1fa229faabcf413573cd86",
+      "request_hash": "ec6a85d0bde9dde48147b65473997d98b3e8ee8c485809145a96e9bbfd6b54f2",
+      "request_started_at": "2026-08-08T11:45:38.916321+00:00",
+      "response_length": 4045,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "measured",
+    "eligible_interpretation": false,
+    "mapping_status": null,
+    "metrics": {
+      "bounding_box_error_by_axis_mm": {
+        "x": 1.1368683772161603e-13,
+        "y": 5.400124791776761e-13,
+        "z": 3.0
+      },
+      "solid_count_agreement": true,
+      "surface_area_difference_mm2": 16999.13244710597,
+      "surface_area_difference_ratio": 0.438439316167569,
+      "volume_difference_mm3": 176972.1766711127,
+      "volume_difference_ratio": 0.590037566496215
+    },
+    "raw_generated": {
+      "authority": "analytic_brep",
+      "file_type": "step",
+      "geometry": {
+        "bounding_box_mm": {
+          "size_x": 99.178479194641,
+          "size_y": 135.75859451294,
+          "size_z": 53.0
+        },
+        "center_of_mass_mm": [
+          48.12302874083356,
+          -1.177808668265169e-14,
+          25.25619882173135
+        ],
+        "component_count": 1,
+        "solid_count": 1,
+        "surface_area_mm2": 55771.04869699128,
+        "volume_mm3": 476905.9210969398
+      },
+      "mesh": {},
+      "quality_classification": "analytic_brep_authoritative",
+      "schema_version": "external-cad-reference-derived-v1",
+      "topology": {
+        "face_count": 22,
+        "schema_version": "topology-evidence-v2",
+        "shell_count": 1,
+        "valid": true
+      },
+      "units": "unverified_model_units"
+    },
+    "raw_reference": {
+      "authority": "mesh_derived",
+      "canonical_part_count": 1,
+      "canonical_part_ids": [
+        "trimmer_wall_mount"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 99.17847919464111,
+              "size_y": 135.75859451293945,
+              "size_z": 50.0
+            },
+            "center_of_mass_mm": [
+              51.86962579397862,
+              -0.11993377550795006,
+              0.400171053747289
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 38771.91624988531,
+            "volume_mm3": 299933.7444258271
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 4180,
+            "vertex_count": 2088,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/holder-organizer-001/derived-reference.json",
+      "quality_classification": "watertight_mesh_reference"
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "06f8956cc3fede382f3b2a90bb7d3eebe68044e2fdd82e7b31ddd8a25956bb07",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Assume standard vertical wall-mounting orientation and screw spacing for the wall-mounted holder.",
+        "id": "assumption_wall_mount_orientation",
+        "kind": "orientation",
+        "operator": "qualitative",
+        "raw_evidence": "wall-mounted",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "trimmer_wall_mount",
+        "value": "vertical planar wall mount with standard screw spacing"
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "3efc9eca-1bea-4860-a1a4-6b92a5c01324",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "d4a4ba60-53c7-492d-8c1e-a5ed69dbe1d5",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:37.383608",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "trimmer_wall_mount",
+        "operator": "approximately",
+        "originating_message": "Design a sturdy wall-mounted holder for a string trimmer. It should keep the tool upright for storage and provide a secure screw-mounted interface around the tool body.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output trimmer_wall_mount should have an overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm.\n- supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm",
+        "record_id": "f64ecdc2-1442-4e5e-a676-2a19346b4dcd",
+        "requirement_id": "envelope_length",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "trimmer_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:45:37.383611",
+        "value": 99.17847919464111,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:37.383612",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "trimmer_wall_mount",
+        "operator": "approximately",
+        "originating_message": "Design a sturdy wall-mounted holder for a string trimmer. It should keep the tool upright for storage and provide a secure screw-mounted interface around the tool body.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output trimmer_wall_mount should have an overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm.\n- supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm",
+        "record_id": "c4522fbc-389c-4505-bc10-43700ddaca4f",
+        "requirement_id": "envelope_width",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "trimmer_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:45:37.383612",
+        "value": 135.75859451293945,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:37.383613",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "trimmer_wall_mount",
+        "operator": "approximately",
+        "originating_message": "Design a sturdy wall-mounted holder for a string trimmer. It should keep the tool upright for storage and provide a secure screw-mounted interface around the tool body.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output trimmer_wall_mount should have an overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm.\n- supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm",
+        "record_id": "3be6d3f7-03e6-4376-8f9a-bdeadd9eecc2",
+        "requirement_id": "envelope_height",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "trimmer_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:45:37.383614",
+        "value": 50.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:37.383615",
+        "explicit": true,
+        "kind": "orientation",
+        "object_type": "string trimmer",
+        "operator": "qualitative",
+        "originating_message": "Design a sturdy wall-mounted holder for a string trimmer. It should keep the tool upright for storage and provide a secure screw-mounted interface around the tool body.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output trimmer_wall_mount should have an overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm.\n- supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "keep the tool upright for storage",
+        "record_id": "7ba6a264-e606-471c-a8c3-042ef173907e",
+        "requirement_id": "req_upright_storage",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "trimmer_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "string trimmer",
+        "tolerance": null,
+        "type": "orientation",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:37.383615",
+        "value": "upright",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:37.383616",
+        "explicit": true,
+        "kind": "retention",
+        "object_type": "string trimmer",
+        "operator": "present",
+        "originating_message": "Design a sturdy wall-mounted holder for a string trimmer. It should keep the tool upright for storage and provide a secure screw-mounted interface around the tool body.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output trimmer_wall_mount should have an overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm.\n- supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "secure screw-mounted interface around the tool body",
+        "record_id": "5bfe5d63-ada0-4ef8-950a-74c2ddae62bd",
+        "requirement_id": "req_screw_interface",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "trimmer_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "tool body",
+        "tolerance": null,
+        "type": "retention",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:37.383616",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:37.383617",
+        "explicit": true,
+        "kind": "capacity",
+        "object_type": "string trimmer",
+        "operator": "qualitative",
+        "originating_message": "Design a sturdy wall-mounted holder for a string trimmer. It should keep the tool upright for storage and provide a secure screw-mounted interface around the tool body.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output trimmer_wall_mount should have an overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm.\n- supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+        "record_id": "43805be2-1345-4f97-b2b8-97c2faeea607",
+        "requirement_id": "req_supported_tool",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "trimmer_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "Stihl FS91 or FS31 trimmer descriptive",
+        "tolerance": null,
+        "type": "capacity",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:37.383617",
+        "value": "Stihl FS91 or FS31",
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:45:47.411976+00:00"
+  },
+  "revision_id": "7b196fb6-4107-418d-8554-3498b7928ba7",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 2,
+    "total_authoritative_requirements": 6,
+    "unsupported_verifier": 4,
+    "unverifiable": 4
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 13.517597985002794,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 22,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "output_id": "trimmer_wall_mount",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 2,
+    "job_ids": [
+      "a7aee9d8-e9df-48e1-a555-665525a61084:attempt:1:worker",
+      "a7aee9d8-e9df-48e1-a555-665525a61084:recovery-recheck:1:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "dbcdf3d020d8c955901c9cc467f2173e6f019d73648dd7237443c56e17df590d",
+          "step": "fd98fe2c1b6e61abb7dd8ea6ad2569a401fa6ab4e792a598bfba65b1661f8bce",
+          "stl": "14b6772b8f242dc328d20ccfe09885ad19bf425edd21f1a856b8d636082f7bf4"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 99.178479194641,
+              "size_y": 135.75859451294,
+              "size_z": 53.0
+            },
+            "center_of_mass_mm": [
+              48.12302874083356,
+              -1.177808668265169e-14,
+              25.25619882173135
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 55771.04869699128,
+            "volume_mm3": 476905.9210969398
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 22,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "trimmer_wall_mount",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/d4a4ba60-53c7-492d-8c1e-a5ed69dbe1d5/revisions/7b196fb6-4107-418d-8554-3498b7928ba7/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "a7aee9d8-e9df-48e1-a555-665525a61084"
+}

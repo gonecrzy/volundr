@@ -1,0 +1,161 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "functional-assembly-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "functional_assemblies",
+  "comparison_specification_hash": "71d92687f3ac07a2bf10c4c5549731f2de9c043d677cee919969da8a6f5fa833",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "d2896cc6-9d12-4163-9c43-a279b0343aef",
+  "prompt": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.",
+  "prompt_sha256": "0f952b868543f7172fd73d7878a4d839b138b2cf212a3706d54658c34d29e9d2",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "8d589220-8273-4571-9c03-d37ce6dff11f",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "5164964f-4acb-40b6-8209-6ac0bcec0b09",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "9e23e1136a7663f8e0091757575378f009f0424cff5f1bd3b3160ac435a1c451",
+      "request_hash": "f7d38335d850a23797e7ee53fb4f01cfb8c2a0b408862d0263e3cc2276923185",
+      "request_started_at": "2026-08-08T11:39:41.200824+00:00",
+      "response_length": 3875,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "17dbc85184579dec8e35bc06b58c74ad443594e65369eba83d55af29a94be076",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Standard mounting and motor interface assumed for baseline peristaltic mechanism",
+        "id": "assumption_mounting_and_motor",
+        "label": "Standard mounting and motor interface assumed for baseline peristaltic mechanism",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "value": "Generic mounting pattern and standard stepper/DC motor interface assumed"
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What is the outer diameter and inner diameter of the flexible tubing used in the peristaltic pump?",
+        "question_id": "9c963c9c-0ab4-49ba-ae65-85e331b01fef",
+        "reason": "Missing mating dimensions for the tubing path constraint feature.",
+        "requirement_id": "q_tubing_diameter"
+      },
+      {
+        "display_order": 1,
+        "question": "What specific motor type or mounting flange (e.g., NEMA 17, TT motor) is being used to drive the pump mechanism?",
+        "question_id": "fa7b0237-3594-4f47-b7fa-6d349040c9cb",
+        "reason": "Missing mating dimensions for the pump mechanism and motor interface.",
+        "requirement_id": "q_motor_type"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "9083fdd0-d898-4408-aa85-b9d4d24dd390",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Tubing dimensions (OD/ID)",
+        "id": "tubing_dimensions_od_id",
+        "importance": "critical",
+        "reason": "Tubing dimensions (OD/ID)",
+        "source": "user"
+      },
+      {
+        "description": "Motor interface / mounting geometry",
+        "id": "motor_interface_mounting_geometry",
+        "importance": "critical",
+        "reason": "Motor interface / mounting geometry",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "d2896cc6-9d12-4163-9c43-a279b0343aef",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:39:43.585872+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 2.405308822999359,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "9950265b-f33e-41de-a656-59d3eb6a4eeb"
+}

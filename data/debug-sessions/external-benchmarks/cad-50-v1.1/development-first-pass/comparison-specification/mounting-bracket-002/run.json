@@ -1,0 +1,1065 @@
+{
+  "artifacts": {
+    "hashes": {
+      "mounting_bracket:brep": "6f20785ff938897c7ac497354f7708beded21864813f942271749863b677af88",
+      "mounting_bracket:step": "344bd38ceb3bd43764cb10214f88ff8044cb53d03618eae1607abc8c6a29ec32",
+      "mounting_bracket:stl": "ed7823bf98504815def047d663ca90f4eab4983144c10efc6b5d7d5c699c62b2"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "mounting-bracket-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 2,
+    "repair_calls": 0,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "efc6c6ee889bb1aa0cae771575a1b709154faa6da8645bdc8913a549f6bfc68c",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "a15ac4aa-df45-4a5f-8745-727f119134b9:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "a7e83eee-460e-44ed-8e11-ef4060dbe808",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "cc2a8d0c-e14e-4010-8caf-2e49e7534604",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "a7e83eee-460e-44ed-8e11-ef4060dbe808",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "cc2a8d0c-e14e-4010-8caf-2e49e7534604",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "12956ab3bf6d3af870aa7a5178b4e1f1568d75e7436088712b9a668d8e7e4266",
+              "request_hash": "55f3c20ea4e373c53c489fb40b10c64a1a2d82f0d23ca332217b9cbedf5136e7",
+              "request_started_at": "2026-08-08T11:47:18.284602+00:00",
+              "response_length": 3711,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "12956ab3bf6d3af870aa7a5178b4e1f1568d75e7436088712b9a668d8e7e4266",
+        "repair_level": "initial",
+        "result_hash": "253ec294e8fb0382dd95d357cd62c85dd5c47892e5c2e825f744cee4f6eaad3b",
+        "revision_id": "3d58a6da-8d80-421a-a2ad-7fdb315055d3",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_load_cell_foot",
+            "req_m4_hardware",
+            "req_scale_platform"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "load_cell_foot_envelope_x",
+            "load_cell_foot_envelope_y",
+            "load_cell_foot_envelope_z",
+            "req_screw_head_clearance",
+            "scale_platform_envelope_x",
+            "scale_platform_envelope_y",
+            "scale_platform_envelope_z"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "efc6c6ee889bb1aa0cae771575a1b709154faa6da8645bdc8913a549f6bfc68c",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "mounting_bracket"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "efc6c6ee889bb1aa0cae771575a1b709154faa6da8645bdc8913a549f6bfc68c",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "a15ac4aa-df45-4a5f-8745-727f119134b9:recovery-recheck:1",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "initial",
+        "result_hash": "253ec294e8fb0382dd95d357cd62c85dd5c47892e5c2e825f744cee4f6eaad3b",
+        "revision_id": "3d58a6da-8d80-421a-a2ad-7fdb315055d3",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_load_cell_foot",
+            "req_m4_hardware",
+            "req_scale_platform"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "load_cell_foot_envelope_x",
+            "load_cell_foot_envelope_y",
+            "load_cell_foot_envelope_z",
+            "req_screw_head_clearance",
+            "scale_platform_envelope_x",
+            "scale_platform_envelope_y",
+            "scale_platform_envelope_z"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "efc6c6ee889bb1aa0cae771575a1b709154faa6da8645bdc8913a549f6bfc68c",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "mounting_bracket"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 2
+  },
+  "category": "mounting_brackets",
+  "comparison_specification_hash": "63a4a7c1410ced842d14b1c906b7b917704288dfab5874e06f6740a3ef3dba9c",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "mounting_bracket",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "mounting_bracket",
+        "purpose": "Design a simple two-part mount for testing a common load cell as a small scale."
+      },
+      "project_id": "57ef6e07-c2f7-44d4-a210-a4dfb4003790",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": 109.4681
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "load_cell_foot_envelope_x"
+        },
+        {
+          "authoritative_value": {
+            "value": 66.9101
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "load_cell_foot_envelope_y"
+        },
+        {
+          "authoritative_value": {
+            "value": 15.0
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "load_cell_foot_envelope_z"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_load_cell_foot"
+        },
+        {
+          "authoritative_value": {
+            "value": "M4 screws"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_m4_hardware"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_scale_platform"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_screw_head_clearance"
+        },
+        {
+          "authoritative_value": {
+            "value": 80.0
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "scale_platform_envelope_x"
+        },
+        {
+          "authoritative_value": {
+            "value": 79.9751
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "scale_platform_envelope_y"
+        },
+        {
+          "authoritative_value": {
+            "value": 10.0
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "scale_platform_envelope_z"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 109.4681
+          },
+          "kind": "dimension",
+          "object_type": "load_cell_foot",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm",
+          "requirement_id": "load_cell_foot_envelope_x",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "load_cell_foot"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 66.9101
+          },
+          "kind": "dimension",
+          "object_type": "load_cell_foot",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm",
+          "requirement_id": "load_cell_foot_envelope_y",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "load_cell_foot"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 15.0
+          },
+          "kind": "dimension",
+          "object_type": "load_cell_foot",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm",
+          "requirement_id": "load_cell_foot_envelope_z",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "load_cell_foot"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "support",
+          "object_type": "load_cell_foot",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "It should include a stable lower foot/base and an upper scale platform connected through the load cell.",
+          "requirement_id": "req_load_cell_foot",
+          "scope": "assembly",
+          "source": "initial_user",
+          "subject": "load_cell_foot"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": "M4 screws"
+          },
+          "kind": "relationship",
+          "object_type": "hardware",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.",
+          "requirement_id": "req_m4_hardware",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "load_cell_hardware"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "support",
+          "object_type": "scale_platform",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "It should include a stable lower foot/base and an upper scale platform connected through the load cell.",
+          "requirement_id": "req_scale_platform",
+          "scope": "assembly",
+          "source": "initial_user",
+          "subject": "scale_platform"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "clearance",
+          "object_type": "fastener_clearance",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "provide enough clearance around the screw heads for typical M4 hex-head fasteners.",
+          "requirement_id": "req_screw_head_clearance",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "screw_head_clearance"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 80.0
+          },
+          "kind": "dimension",
+          "object_type": "scale_platform",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm",
+          "requirement_id": "scale_platform_envelope_x",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "scale_platform"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 79.9751
+          },
+          "kind": "dimension",
+          "object_type": "scale_platform",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm",
+          "requirement_id": "scale_platform_envelope_y",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "scale_platform"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 10.0
+          },
+          "kind": "dimension",
+          "object_type": "scale_platform",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm",
+          "requirement_id": "scale_platform_envelope_z",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "scale_platform"
+        }
+      ],
+      "revision_id": "a15ac4aa-df45-4a5f-8745-727f119134b9:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "a15ac4aa-df45-4a5f-8745-727f119134b9"
+    },
+    "contract_hash": "2f7d229f5d4c1e3161fefe6dba3817ff852389e807533310bbb59cee4a9dca77",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "semantic_requirement_unverifiable",
+  "first_blocker_stage": "semantic_verification",
+  "first_incorrect_owner": "application",
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": "semantic_measurement",
+  "project_runtime_id": "57ef6e07-c2f7-44d4-a210-a4dfb4003790",
+  "prompt": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+  "prompt_sha256": "faa7cdcbb30a371ce29936e50f7db058b581d2e871fe20b5633f9d3d8d022e13",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "61adf274-3a6b-4651-aa75-3fc25477a9ad",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "793fd0ff-5aa1-4bb9-ae77-e60dafe11385",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "eb328e8fdbd977ed48251b297d244fd9fc3952ef935e6735d2ca3f1c3a732b8b",
+      "request_hash": "1f06a07b4bf13dfa282f484b4c0203a5a777d6767c800a5abaef3d844008383c",
+      "request_started_at": "2026-08-08T11:47:13.183346+00:00",
+      "response_length": 8053,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "a7e83eee-460e-44ed-8e11-ef4060dbe808",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "cc2a8d0c-e14e-4010-8caf-2e49e7534604",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "12956ab3bf6d3af870aa7a5178b4e1f1568d75e7436088712b9a668d8e7e4266",
+      "request_hash": "55f3c20ea4e373c53c489fb40b10c64a1a2d82f0d23ca332217b9cbedf5136e7",
+      "request_started_at": "2026-08-08T11:47:18.284602+00:00",
+      "response_length": 3711,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "unavailable",
+    "eligible_interpretation": false,
+    "mapping_status": "explicit_reference_output_mapping_required",
+    "metrics": {
+      "aggregate": {
+        "bounding_box_error_by_axis_mm": {
+          "x": null,
+          "y": null,
+          "z": null
+        },
+        "solid_count_agreement": null,
+        "surface_area_difference_mm2": null,
+        "surface_area_difference_ratio": null,
+        "volume_difference_mm3": null,
+        "volume_difference_ratio": null
+      },
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "per_part": {},
+      "project_part_count_agreement": false
+    },
+    "raw_generated": {
+      "mounting_bracket": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 109.4681,
+            "size_y": 79.9751,
+            "size_z": 35.0
+          },
+          "center_of_mass_mm": [
+            0.05353724865746167,
+            0.039328165511157254,
+            15.971495224220481
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 35833.53531194865,
+          "volume_mm3": 182300.51166318837
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 24,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 2,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      }
+    },
+    "raw_reference": {
+      "authority": null,
+      "canonical_part_count": 2,
+      "canonical_part_ids": [
+        "load_cell_foot",
+        "scale_platform"
+      ],
+      "canonical_parts": [
+        {
+          "authority": null,
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 109.46806335449219,
+              "size_y": 66.91010284423828,
+              "size_z": 15.0
+            },
+            "center_of_mass_mm": [
+              26.301060736746166,
+              -0.0010775297590114826,
+              5.429664398789139
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 9308.296880528796,
+            "volume_mm3": 24846.064764170704
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 3412,
+            "vertex_count": 1704,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": null,
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": null,
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 80.0,
+              "size_y": 79.97513580322266,
+              "size_z": 10.0
+            },
+            "center_of_mass_mm": [
+              47.25000023138486,
+              1.377680568100244e-10,
+              32.19117313326188
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 11301.807746876679,
+            "volume_mm3": 25133.43524706409
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 4548,
+            "vertex_count": 2272,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": null,
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-002/derived-reference.json",
+      "quality_classification": null
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "91ade80b36cb66643af6b8bfbe38e1214a197a668fa07be175c276c672f96b4c",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Standard M4 hex-head fastener clearance is applied for screw head access.",
+        "id": "assumption_m4_hardware",
+        "importance": "important",
+        "kind": "clearance",
+        "object_type": "hardware",
+        "operator": "qualitative",
+        "protected": true,
+        "raw_evidence": "Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "load_cell_hardware",
+        "target": "screw_head_clearance",
+        "tolerance": null,
+        "unit": "mm",
+        "value": "m4_standard_clearance"
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "b00f6e36-3243-480c-ada2-4236725c2947",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "57ef6e07-c2f7-44d4-a210-a4dfb4003790",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274536",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "load_cell_foot",
+        "operator": "approximately",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm",
+        "record_id": "3bedacb9-40ba-4a67-8e3f-d4e8c7448170",
+        "requirement_id": "load_cell_foot_envelope_x",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "load_cell_foot",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_x",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:47:18.274538",
+        "value": 109.4681,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274539",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "load_cell_foot",
+        "operator": "approximately",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm",
+        "record_id": "40632b5f-fd6b-42c5-b532-26ef39ce2477",
+        "requirement_id": "load_cell_foot_envelope_y",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "load_cell_foot",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_y",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:47:18.274540",
+        "value": 66.9101,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274540",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "load_cell_foot",
+        "operator": "approximately",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm",
+        "record_id": "1e02d279-a413-47d7-b0fc-220c7d52e0c0",
+        "requirement_id": "load_cell_foot_envelope_z",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "load_cell_foot",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_z",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:47:18.274541",
+        "value": 15.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274542",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "scale_platform",
+        "operator": "approximately",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm",
+        "record_id": "05cf9b34-a9e9-4a76-b96c-84b0f9a9b6ce",
+        "requirement_id": "scale_platform_envelope_x",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "scale_platform",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_x",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:47:18.274542",
+        "value": 80.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274543",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "scale_platform",
+        "operator": "approximately",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm",
+        "record_id": "b9de47d4-e3e5-4aa8-a7c3-7b1e50a7b128",
+        "requirement_id": "scale_platform_envelope_y",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "scale_platform",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_y",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:47:18.274543",
+        "value": 79.9751,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274544",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "scale_platform",
+        "operator": "approximately",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm",
+        "record_id": "fe7af78b-f81a-41c2-801d-8b8ff07d6312",
+        "requirement_id": "scale_platform_envelope_z",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "scale_platform",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_z",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:47:18.274544",
+        "value": 10.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274545",
+        "explicit": true,
+        "kind": "support",
+        "object_type": "load_cell_foot",
+        "operator": "present",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "It should include a stable lower foot/base and an upper scale platform connected through the load cell.",
+        "record_id": "2fca7239-bb6d-4858-bc19-f1f7918b88ae",
+        "requirement_id": "req_load_cell_foot",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "load_cell_foot",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "assembly",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:18.274546",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274546",
+        "explicit": true,
+        "kind": "support",
+        "object_type": "scale_platform",
+        "operator": "present",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "It should include a stable lower foot/base and an upper scale platform connected through the load cell.",
+        "record_id": "fcdf38a8-4ab8-460f-aed5-662de5a19887",
+        "requirement_id": "req_scale_platform",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "scale_platform",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "assembly",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:18.274547",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274547",
+        "explicit": true,
+        "kind": "relationship",
+        "object_type": "hardware",
+        "operator": "present",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.",
+        "record_id": "791c1b2b-ac95-4f63-9b1a-2eb86ca552d4",
+        "requirement_id": "req_m4_hardware",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "load_cell_hardware",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "fasteners",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:18.274548",
+        "value": "M4 screws",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:18.274549",
+        "explicit": true,
+        "kind": "clearance",
+        "object_type": "fastener_clearance",
+        "operator": "present",
+        "originating_message": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "provide enough clearance around the screw heads for typical M4 hex-head fasteners.",
+        "record_id": "87c7a5aa-7125-4c42-b809-d0ccc1a177f6",
+        "requirement_id": "req_screw_head_clearance",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "screw_head_clearance",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "screw_heads",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:18.274549",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:47:25.838010+00:00"
+  },
+  "revision_id": "3d58a6da-8d80-421a-a2ad-7fdb315055d3",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 3,
+    "total_authoritative_requirements": 10,
+    "unsupported_verifier": 7,
+    "unverifiable": 7
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 14.13977781801077,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 24,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 2,
+          "valid": true
+        },
+        "output_id": "mounting_bracket",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 2,
+    "job_ids": [
+      "a15ac4aa-df45-4a5f-8745-727f119134b9:attempt:1:worker",
+      "a15ac4aa-df45-4a5f-8745-727f119134b9:recovery-recheck:1:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "6f20785ff938897c7ac497354f7708beded21864813f942271749863b677af88",
+          "step": "344bd38ceb3bd43764cb10214f88ff8044cb53d03618eae1607abc8c6a29ec32",
+          "stl": "ed7823bf98504815def047d663ca90f4eab4983144c10efc6b5d7d5c699c62b2"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 109.4681,
+              "size_y": 79.9751,
+              "size_z": 35.0
+            },
+            "center_of_mass_mm": [
+              0.05353724865746167,
+              0.039328165511157254,
+              15.971495224220481
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 35833.53531194865,
+            "volume_mm3": 182300.51166318837
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 24,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 2,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "mounting_bracket",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/57ef6e07-c2f7-44d4-a210-a4dfb4003790/revisions/3d58a6da-8d80-421a-a2ad-7fdb315055d3/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "a15ac4aa-df45-4a5f-8745-727f119134b9"
+}

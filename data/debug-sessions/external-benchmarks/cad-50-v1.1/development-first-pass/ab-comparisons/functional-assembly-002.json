@@ -1,0 +1,41 @@
+{
+  "benchmark_project_id": "functional-assembly-002",
+  "comparison_specification": {
+    "benchmark_project_id": "functional-assembly-002",
+    "category": "functional_assemblies",
+    "failure_class": null,
+    "first_blocker_stage": "replacement_excluded",
+    "first_incorrect_owner": null,
+    "mode": "comparison_specification",
+    "prompt_sha256": "facc25077ce5641bf4edaaaac71213151d8150fc4d38ed140ee1c316ecf7f91a",
+    "provider_calls": 0,
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "status": "replacement_required"
+    },
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "state": "excluded_replacement_required",
+    "terminal_stage": "replacement_excluded",
+    "worker_executions": 0
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "benchmark_project_id": "functional-assembly-002",
+    "category": "functional_assemblies",
+    "failure_class": null,
+    "first_blocker_stage": "replacement_excluded",
+    "first_incorrect_owner": null,
+    "mode": "premise_only",
+    "prompt_sha256": "db9cc8a1cb0dc4158db8bd536943cc5772209aaf16039fc727f30c730b1008bf",
+    "provider_calls": 0,
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "status": "replacement_required"
+    },
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "state": "excluded_replacement_required",
+    "terminal_stage": "replacement_excluded",
+    "worker_executions": 0
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

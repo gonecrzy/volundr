@@ -1,0 +1,1207 @@
+{
+  "artifacts": {
+    "hashes": {
+      "adapter:brep": "2cead2088c1960717d3a7cb3b5cd636c15135213d0e430127de5e1f6dbb3259a",
+      "adapter:step": "67b7ac639c4c96d7e58f2f85ab48081bdc6c05483fc2b0725fd84db6c8795f1d",
+      "adapter:stl": "3146d805d5ec6523d3e74fb63984417e43a53631d23da8eadac4783f42576b91"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "adapter-coupler-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 1,
+    "repair_calls": 2,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "4274b1efa3c8324a23517b663f1c2cc37eacea1c4199c6c2cc7a07630224f122",
+        "extraction_succeeded": true,
+        "failure_boundary": "source_contract",
+        "failure_class": "source_contract_violation",
+        "first_incorrect_owner": "geometry",
+        "normalized_error": "source contract violation for ['adapter']: ownership decorators require static metadata arguments",
+        "observed_stage": "source_contract",
+        "operation_id": "3ccbdcdd-97c0-4df4-958a-96d31a122097:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "84e9c9e9-9c51-4401-834b-2f626ebb2c80",
+          "attempt_number": 1,
+          "failure_class": "source_contract_violation",
+          "level": "initial",
+          "logical_operation_id": "0d3537f3-c44e-4aee-af51-c6f3d752f89b",
+          "status": "contract_failure",
+          "transport_attempts": [
+            {
+              "attempt_id": "84e9c9e9-9c51-4401-834b-2f626ebb2c80",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "0d3537f3-c44e-4aee-af51-c6f3d752f89b",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "58cf97fd57998b9732fc80b28a399f35fece6a5f2a92f45086dfa3b5a34de55e",
+              "request_hash": "d779af823459189b493afed1427c85eac5d24ec1d016856625497817cc3d4bc3",
+              "request_started_at": "2026-08-08T11:41:38.237580+00:00",
+              "response_length": 2891,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "58cf97fd57998b9732fc80b28a399f35fece6a5f2a92f45086dfa3b5a34de55e",
+        "repair_level": "initial",
+        "result_hash": "8e741eef845afbbc9539dda88ef1b4f7648a67b4ec4984d4570c5119b8acc64c",
+        "revision_id": null,
+        "semantic_result": {},
+        "source_contract_valid": false,
+        "source_hash": "4274b1efa3c8324a23517b663f1c2cc37eacea1c4199c6c2cc7a07630224f122",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": null,
+          "expected_solid_count": null,
+          "failure_class": null,
+          "outcome": null,
+          "schema_version": null,
+          "valid": null
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": null,
+          "phase": null,
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 2,
+        "extracted_source_hash": "78e6a1801110f2492586f076db23270762a0de7fc7a53b597dd127284340f0ec",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "3ccbdcdd-97c0-4df4-958a-96d31a122097:attempt:2",
+        "progress": {
+          "measurable_progress": true,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [
+            "source_contract_passed",
+            "extracted_source_hash_changed",
+            "diagnostic_code_changed",
+            "violation_count_decreased",
+            "contract_failure_signature_removed"
+          ],
+          "progress_result": "progressed",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": true
+        },
+        "provider_attempt": {
+          "attempt_id": "868f3612-4193-4fc0-9937-9b0014e2b315",
+          "attempt_number": 2,
+          "failure_class": null,
+          "level": "L0",
+          "logical_operation_id": "71524ced-c6cd-487d-b785-bae0910ff09c",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "868f3612-4193-4fc0-9937-9b0014e2b315",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "71524ced-c6cd-487d-b785-bae0910ff09c",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "ab3efcd207f22f01a67f5245637d479d6b8120555d3cf38e9f3527b2185b5519",
+              "request_hash": "14352cc852dbecdeb395cd400e6f917204d031817cc44e0420a9d1e1c458c917",
+              "request_started_at": "2026-08-08T11:41:43.240032+00:00",
+              "response_length": 2868,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "ab3efcd207f22f01a67f5245637d479d6b8120555d3cf38e9f3527b2185b5519",
+        "repair_level": "L0",
+        "result_hash": "3449f1cf24fcb37fcb536c093808bf5d83df4de0d04a094ca812ffe2a2143193",
+        "revision_id": "ee23d1d2-08fc-4bfa-80d7-9fa47071ef75",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_connection",
+            "req_no_special_tools",
+            "req_retention_thumb_tab",
+            "req_secure_lock"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "dim_adapter_envelope_x",
+            "dim_adapter_envelope_y",
+            "dim_adapter_envelope_z",
+            "dim_thumb_tab_envelope_x",
+            "dim_thumb_tab_envelope_y",
+            "dim_thumb_tab_envelope_z",
+            "req_printed_output_count",
+            "special_tool"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "78e6a1801110f2492586f076db23270762a0de7fc7a53b597dd127284340f0ec",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "adapter"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 2,
+        "extracted_source_hash": "78e6a1801110f2492586f076db23270762a0de7fc7a53b597dd127284340f0ec",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "3ccbdcdd-97c0-4df4-958a-96d31a122097:recovery-recheck:2",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "L0",
+        "result_hash": "3449f1cf24fcb37fcb536c093808bf5d83df4de0d04a094ca812ffe2a2143193",
+        "revision_id": "ee23d1d2-08fc-4bfa-80d7-9fa47071ef75",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_connection",
+            "req_no_special_tools",
+            "req_retention_thumb_tab",
+            "req_secure_lock"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "dim_adapter_envelope_x",
+            "dim_adapter_envelope_y",
+            "dim_adapter_envelope_z",
+            "dim_thumb_tab_envelope_x",
+            "dim_thumb_tab_envelope_y",
+            "dim_thumb_tab_envelope_z",
+            "req_printed_output_count",
+            "special_tool"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "78e6a1801110f2492586f076db23270762a0de7fc7a53b597dd127284340f0ec",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "adapter"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 3
+  },
+  "category": "adapter_coupler",
+  "comparison_specification_hash": "d0f1caf0b89f379f7ab81d94ed8f02be236844400371004caa4f7328b5df289c",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "adapter",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "adapter",
+        "purpose": "Connects a Tineco stick vacuum to a flexible hose or accessory with a secure lock and tool-free removal."
+      },
+      "project_id": "a02f666a-f878-48d9-87d0-a7484c7f85d7",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_connection"
+        },
+        {
+          "authoritative_value": {
+            "value": false
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_no_special_tools"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_secure_lock"
+        },
+        {
+          "authoritative_value": {
+            "value": false
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "special_tool"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 45.097341537475586
+          },
+          "kind": "dimension",
+          "object_type": "adapter_body",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm",
+          "requirement_id": "dim_adapter_envelope_x",
+          "scope": "adapter",
+          "source": "volundr_proposal",
+          "subject": "adapter_body"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 61.72631645202637
+          },
+          "kind": "dimension",
+          "object_type": "adapter_body",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm",
+          "requirement_id": "dim_adapter_envelope_y",
+          "scope": "adapter",
+          "source": "volundr_proposal",
+          "subject": "adapter_body"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 101.97502899169922
+          },
+          "kind": "dimension",
+          "object_type": "adapter_body",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm",
+          "requirement_id": "dim_adapter_envelope_z",
+          "scope": "adapter",
+          "source": "volundr_proposal",
+          "subject": "adapter_body"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 19.654051780700684
+          },
+          "kind": "dimension",
+          "object_type": "thumb_tab",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm",
+          "requirement_id": "dim_thumb_tab_envelope_x",
+          "scope": "adapter",
+          "source": "volundr_proposal",
+          "subject": "thumb_tab"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 13.369010925292969
+          },
+          "kind": "dimension",
+          "object_type": "thumb_tab",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm",
+          "requirement_id": "dim_thumb_tab_envelope_y",
+          "scope": "adapter",
+          "source": "volundr_proposal",
+          "subject": "thumb_tab"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 37.549046993255615
+          },
+          "kind": "dimension",
+          "object_type": "thumb_tab",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm",
+          "requirement_id": "dim_thumb_tab_envelope_z",
+          "scope": "adapter",
+          "source": "volundr_proposal",
+          "subject": "thumb_tab"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "relationship",
+          "object_type": "adapter",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory.",
+          "requirement_id": "req_connection",
+          "scope": "adapter",
+          "source": "initial_user",
+          "subject": "adapter"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": false
+          },
+          "kind": "access",
+          "object_type": "special_tool",
+          "operator": "absent",
+          "origin": "user_explicit",
+          "raw_evidence": "remain removable without special tools",
+          "requirement_id": "req_no_special_tools",
+          "scope": "adapter",
+          "source": "initial_user",
+          "subject": "adapter"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 2
+          },
+          "kind": "feature",
+          "object_type": "printed_output",
+          "operator": "exact",
+          "origin": "model_design_choice",
+          "raw_evidence": "Provide exactly 2 printed output(s).",
+          "requirement_id": "req_printed_output_count",
+          "scope": "adapter",
+          "source": "volundr_proposal",
+          "subject": "print_job"
+        },
+        {
+          "authority": "flexible",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "retention",
+          "object_type": "thumb_tab",
+          "operator": "present",
+          "origin": "model_design_choice",
+          "raw_evidence": "retention: hinged or locking thumb tab descriptive",
+          "requirement_id": "req_retention_thumb_tab",
+          "scope": "adapter",
+          "source": "volundr_proposal",
+          "subject": "adapter"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "retention",
+          "object_type": "adapter",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "It should lock securely",
+          "requirement_id": "req_secure_lock",
+          "scope": "adapter",
+          "source": "initial_user",
+          "subject": "adapter"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": false
+          },
+          "kind": "feature",
+          "object_type": "special_tool",
+          "operator": "absent",
+          "origin": "user_explicit",
+          "raw_evidence": "without special tools",
+          "requirement_id": "special_tool",
+          "scope": "adapter",
+          "source": "initial_user"
+        }
+      ],
+      "revision_id": "3ccbdcdd-97c0-4df4-958a-96d31a122097:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "3ccbdcdd-97c0-4df4-958a-96d31a122097"
+    },
+    "contract_hash": "43dfb40c3f713e328329200689e36f8db69532f0917c768e133fc1ded2fe4332",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "source_contract_violation",
+  "first_blocker_stage": "source_contract",
+  "first_incorrect_owner": "geometry",
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": "source_contract",
+  "project_runtime_id": "a02f666a-f878-48d9-87d0-a7484c7f85d7",
+  "prompt": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+  "prompt_sha256": "54acb442a6d25b9baa634752c3419e2c26f1a5781d3f9d9e927939db0354c3c2",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "2c0e8525-96ba-484d-b140-d85154e5a91c",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "20c66237-4f79-46ca-a9e6-2b9bc91a3e4f",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "32190ffdc40d80638de5801a8376ef03f3098741604a95793a8767fc627e96b7",
+      "request_hash": "d63744bc29b0d6b894dcd7822ba19d1cb3d1845ab8e6f3235a6facde17343642",
+      "request_started_at": "2026-08-08T11:41:32.829429+00:00",
+      "response_length": 8583,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "84e9c9e9-9c51-4401-834b-2f626ebb2c80",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "0d3537f3-c44e-4aee-af51-c6f3d752f89b",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "58cf97fd57998b9732fc80b28a399f35fece6a5f2a92f45086dfa3b5a34de55e",
+      "request_hash": "d779af823459189b493afed1427c85eac5d24ec1d016856625497817cc3d4bc3",
+      "request_started_at": "2026-08-08T11:41:38.237580+00:00",
+      "response_length": 2891,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "868f3612-4193-4fc0-9937-9b0014e2b315",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "71524ced-c6cd-487d-b785-bae0910ff09c",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "ab3efcd207f22f01a67f5245637d479d6b8120555d3cf38e9f3527b2185b5519",
+      "request_hash": "14352cc852dbecdeb395cd400e6f917204d031817cc44e0420a9d1e1c458c917",
+      "request_started_at": "2026-08-08T11:41:43.240032+00:00",
+      "response_length": 2868,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "unavailable",
+    "eligible_interpretation": false,
+    "mapping_status": "explicit_reference_output_mapping_required",
+    "metrics": {
+      "aggregate": {
+        "bounding_box_error_by_axis_mm": {
+          "x": null,
+          "y": null,
+          "z": null
+        },
+        "solid_count_agreement": null,
+        "surface_area_difference_mm2": null,
+        "surface_area_difference_ratio": null,
+        "volume_difference_mm3": null,
+        "volume_difference_ratio": null
+      },
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "per_part": {},
+      "project_part_count_agreement": false
+    },
+    "raw_generated": {
+      "adapter": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 65.69,
+            "size_y": 45.497,
+            "size_z": 101.975
+          },
+          "center_of_mass_mm": [
+            1.4062278131827513,
+            1.5542063776267038e-14,
+            62.31784518963748
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 31445.955337117863,
+          "volume_mm3": 116053.12851886333
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 29,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      }
+    },
+    "raw_reference": {
+      "authority": null,
+      "canonical_part_count": 2,
+      "canonical_part_ids": [
+        "adapter_body",
+        "thumb_tab"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 45.097341537475586,
+              "size_y": 61.72631645202637,
+              "size_z": 101.97502899169922
+            },
+            "center_of_mass_mm": null,
+            "component_count": 1,
+            "solid_count": null,
+            "surface_area_mm2": 31895.205826200807,
+            "volume_mm3": null
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 157237,
+            "vertex_count": 78614,
+            "watertight": false,
+            "winding_consistent": true
+          },
+          "quality_classification": "nonwatertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 19.654051780700684,
+              "size_y": 13.369010925292969,
+              "size_z": 37.549046993255615
+            },
+            "center_of_mass_mm": [
+              0.027254279604946283,
+              -48.604850764104974,
+              -12.37344517902356
+            ],
+            "component_count": 2,
+            "solid_count": 2,
+            "surface_area_mm2": 1911.9087517295334,
+            "volume_mm3": 3448.4233215219524
+          },
+          "mesh": {
+            "component_count": 2,
+            "face_count": 210634,
+            "vertex_count": 105317,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-001/derived-reference.json",
+      "quality_classification": null
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "5e24f2ac7143597aa2de7c3332919a8f35a96e06b813c8a0c41888fdb981c681",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Appliance connection fits standard Tineco stick vacuum latch/friction dimensions as specified by comparative envelope.",
+        "id": "assumption_tineco_fit",
+        "importance": "critical",
+        "kind": "fit",
+        "object_type": "adapter_body",
+        "operator": "approximately",
+        "protected": true,
+        "raw_evidence": "Tineco stick vacuum descriptive",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "adapter_body",
+        "target": "tineco_vacuum",
+        "tolerance": null,
+        "unit": "mm",
+        "value": 45.1
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "e85f08d8-3305-4adc-91b7-4fa227976e4b",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "a02f666a-f878-48d9-87d0-a7484c7f85d7",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227315",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "special_tool",
+        "operator": "absent",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "without special tools",
+        "record_id": "e899a735-acaa-4e20-8e56-4caf0140b4eb",
+        "requirement_id": "special_tool",
+        "source": "initial_user",
+        "status": "active",
+        "subject": null,
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "special_tool",
+        "tolerance": null,
+        "type": "feature_absence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:41:38.227318",
+        "value": false,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227318",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "adapter_body",
+        "operator": "approximately",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm",
+        "record_id": "fa79b6e7-216d-4c9d-be62-20d6c57204fd",
+        "requirement_id": "dim_adapter_envelope_x",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "adapter_body",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_x",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:41:38.227319",
+        "value": 45.097341537475586,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227320",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "adapter_body",
+        "operator": "approximately",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm",
+        "record_id": "35e348a0-822e-4730-bfa6-5fe152891b9b",
+        "requirement_id": "dim_adapter_envelope_y",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "adapter_body",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_y",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:41:38.227320",
+        "value": 61.72631645202637,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227321",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "adapter_body",
+        "operator": "approximately",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm",
+        "record_id": "e0f7f75e-4478-49d1-a826-53728354b81c",
+        "requirement_id": "dim_adapter_envelope_z",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "adapter_body",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_z",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:41:38.227321",
+        "value": 101.97502899169922,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227322",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "thumb_tab",
+        "operator": "approximately",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm",
+        "record_id": "483ba772-b38b-400c-aaad-5ef4caadc8fb",
+        "requirement_id": "dim_thumb_tab_envelope_x",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "thumb_tab",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_x",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:41:38.227323",
+        "value": 19.654051780700684,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227323",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "thumb_tab",
+        "operator": "approximately",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm",
+        "record_id": "24e0c672-ed9e-4afe-ab69-f8b02e141fbe",
+        "requirement_id": "dim_thumb_tab_envelope_y",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "thumb_tab",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_y",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:41:38.227324",
+        "value": 13.369010925292969,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227325",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "thumb_tab",
+        "operator": "approximately",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm",
+        "record_id": "eca2515c-2ac1-4c3d-98aa-1eedb4d456b8",
+        "requirement_id": "dim_thumb_tab_envelope_z",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "thumb_tab",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "envelope_z",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:41:38.227325",
+        "value": 37.549046993255615,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227326",
+        "explicit": true,
+        "kind": "relationship",
+        "object_type": "adapter",
+        "operator": "present",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory.",
+        "record_id": "ce558cc1-4cab-46cd-ba92-77533d2b8c03",
+        "requirement_id": "req_connection",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "adapter",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "tineco_vacuum_and_hose",
+        "tolerance": null,
+        "type": "relationship",
+        "unit": null,
+        "updated_at": "2026-08-08T11:41:38.227326",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227327",
+        "explicit": true,
+        "kind": "access",
+        "object_type": "special_tool",
+        "operator": "absent",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "remain removable without special tools",
+        "record_id": "ddaefcbc-c20e-4006-a16f-d2e55bcfe593",
+        "requirement_id": "req_no_special_tools",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "adapter",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "special_tool",
+        "tolerance": null,
+        "type": "feature_absence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:41:38.227328",
+        "value": false,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227328",
+        "explicit": false,
+        "kind": "feature",
+        "object_type": "printed_output",
+        "operator": "exact",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Provide exactly 2 printed output(s).",
+        "record_id": "9da735c2-bdae-4232-b74a-f23230c4bded",
+        "requirement_id": "req_printed_output_count",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "print_job",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "printed_output",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:41:38.227329",
+        "value": 2,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227329",
+        "explicit": false,
+        "kind": "retention",
+        "object_type": "thumb_tab",
+        "operator": "present",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "retention: hinged or locking thumb tab descriptive",
+        "record_id": "39b9069a-cdfb-42bc-a6e5-88500f436115",
+        "requirement_id": "req_retention_thumb_tab",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "adapter",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "thumb_tab",
+        "tolerance": null,
+        "type": "retention",
+        "unit": null,
+        "updated_at": "2026-08-08T11:41:38.227330",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:41:38.227331",
+        "explicit": true,
+        "kind": "retention",
+        "object_type": "adapter",
+        "operator": "present",
+        "originating_message": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "It should lock securely",
+        "record_id": "fbe29fa2-2e68-4fea-a586-af15f2177103",
+        "requirement_id": "req_secure_lock",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "adapter",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "lock",
+        "tolerance": null,
+        "type": "retention",
+        "unit": null,
+        "updated_at": "2026-08-08T11:41:38.227331",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:41:51.138396+00:00"
+  },
+  "revision_id": "ee23d1d2-08fc-4bfa-80d7-9fa47071ef75",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 4,
+    "total_authoritative_requirements": 12,
+    "unsupported_verifier": 8,
+    "unverifiable": 8
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 18.326353299999028,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 29,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "output_id": "adapter",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 2,
+    "job_ids": [
+      "3ccbdcdd-97c0-4df4-958a-96d31a122097:attempt:2:worker",
+      "3ccbdcdd-97c0-4df4-958a-96d31a122097:recovery-recheck:2:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "2cead2088c1960717d3a7cb3b5cd636c15135213d0e430127de5e1f6dbb3259a",
+          "step": "67b7ac639c4c96d7e58f2f85ab48081bdc6c05483fc2b0725fd84db6c8795f1d",
+          "stl": "3146d805d5ec6523d3e74fb63984417e43a53631d23da8eadac4783f42576b91"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 65.69,
+              "size_y": 45.497,
+              "size_z": 101.975
+            },
+            "center_of_mass_mm": [
+              1.4062278131827513,
+              1.5542063776267038e-14,
+              62.31784518963748
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 31445.955337117863,
+            "volume_mm3": 116053.12851886333
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 29,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "adapter",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/a02f666a-f878-48d9-87d0-a7484c7f85d7/revisions/ee23d1d2-08fc-4bfa-80d7-9fa47071ef75/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "3ccbdcdd-97c0-4df4-958a-96d31a122097"
+}

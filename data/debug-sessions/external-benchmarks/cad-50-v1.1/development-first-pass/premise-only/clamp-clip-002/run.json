@@ -1,0 +1,189 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "clamp-clip-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "clamp_clip",
+  "comparison_specification_hash": "aca2dd47b2993c74f1e31917a552c5ee1daf64176e1a9cbb1320ea97f1361025",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "6600dffd-18ac-4db4-9d1c-6ed4f8e57e71",
+  "prompt": "Design a small clip that routes and retains a cable along a vacuum hose without damaging the hose or cable.",
+  "prompt_sha256": "c7698cae913a2f2eefa5316c7e016c0929a81fae3e7b0108faaf9deafe6108cf",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "d7a652ae-47e7-40bf-91ea-e5e326fb68a5",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "db57f28a-a4f2-4edd-831c-2106e13faff7",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "108c39a21f0f469cc064ee81385d43fd5d02a0998e7b37da933eec17d378bfd0",
+      "request_hash": "b370acf33b5bd8925a3a4c9129b0bd721e0324cd2c543944d98b092467b4b2ee",
+      "request_started_at": "2026-08-08T11:38:24.146853+00:00",
+      "response_length": 3842,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "fa68693a2eec67b10bff87f6196d118223423b2733f444bda80508fd32bf2c69",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Vacuum hose outer diameter",
+        "id": "hose_diameter_assumption",
+        "importance": "critical",
+        "kind": "dimension",
+        "label": "Vacuum hose outer diameter",
+        "object_type": "vacuum_hose",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "clip",
+        "target": "vacuum_hose",
+        "tolerance": null,
+        "unit": "mm",
+        "value": "needs_clarification"
+      },
+      {
+        "description": "Cable outer diameter",
+        "id": "cable_diameter_assumption",
+        "importance": "critical",
+        "kind": "dimension",
+        "label": "Cable outer diameter",
+        "object_type": "cable",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "clip",
+        "target": "cable",
+        "tolerance": null,
+        "unit": "mm",
+        "value": "needs_clarification"
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What is the outer diameter of the vacuum hose that the clip will attach to?",
+        "question_id": "f4b4d195-c774-4334-b80c-c140c159d515",
+        "reason": null,
+        "requirement_id": "q1_hose_diameter"
+      },
+      {
+        "display_order": 1,
+        "question": "What is the outer diameter of the cable being routed along the hose?",
+        "question_id": "1a79c5ac-f909-4af7-a628-e79ed9d5be54",
+        "reason": null,
+        "requirement_id": "q2_cable_diameter"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "9e3f705b-325b-410d-ab21-96d9d40d43f0",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "vacuum_hose_outer_diameter",
+        "id": "vacuum_hose_outer_diameter",
+        "importance": "critical",
+        "reason": "vacuum_hose_outer_diameter",
+        "source": "user"
+      },
+      {
+        "description": "cable_outer_diameter",
+        "id": "cable_outer_diameter",
+        "importance": "critical",
+        "reason": "cable_outer_diameter",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "6600dffd-18ac-4db4-9d1c-6ed4f8e57e71",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:38:26.577758+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 2.454131441991194,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "eae94f71-a087-4a1f-b2a3-139a47c942ed"
+}

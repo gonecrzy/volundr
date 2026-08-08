@@ -1,0 +1,934 @@
+{
+  "artifacts": {
+    "hashes": {
+      "electronics_enclosure:brep": "cf75c698b75332eaabdb1851dff420cb2e55d5d7327166874d7baa34511c30ea",
+      "electronics_enclosure:step": "4def0f7dedc059768fe1d4f6cc052b2e322fbb2eded94f0b8769ce284f620260",
+      "electronics_enclosure:stl": "9e7a161cd9862314a6b48e23fd32b3bb9a11100832e0c8319c16fa9dd56ede2c"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "electronics-enclosure-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 2,
+    "repair_calls": 0,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "5914871eb3bd6abd357fb78caf8e038b07bbae11617778f406fa1154ea45856d",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "880b4900-9668-4c66-bb19-ccc2e4abefcf:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "bad237d6-edb3-47af-8fde-96e42e5392b4",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "4dce65ea-9e5b-454b-a467-5eb73640ed6d",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "bad237d6-edb3-47af-8fde-96e42e5392b4",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "4dce65ea-9e5b-454b-a467-5eb73640ed6d",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "43bb25e6819203f9ae484a0cd9013ef2c90ce396068f254d1be60a4c40dbf8f7",
+              "request_hash": "dd8b42c4449e822f62bdd962f718f8f60d9a3130a145615030a96dd644a539d7",
+              "request_started_at": "2026-08-08T11:44:24.843129+00:00",
+              "response_length": 2133,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "43bb25e6819203f9ae484a0cd9013ef2c90ce396068f254d1be60a4c40dbf8f7",
+        "repair_level": "initial",
+        "result_hash": "50d19761b5242195d95af4fdfb6a6d0ce13ac77f215c19724601696dd78c6fa4",
+        "revision_id": "88dfae56-8752-470c-9f0f-1c046cd34169",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "case_bottom_envelope_x",
+            "case_bottom_envelope_y",
+            "case_bottom_envelope_z",
+            "case_top_envelope_x",
+            "case_top_envelope_y",
+            "case_top_envelope_z",
+            "req_instrument_usability",
+            "req_two_part_case"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "5914871eb3bd6abd357fb78caf8e038b07bbae11617778f406fa1154ea45856d",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 2,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "electronics_enclosure"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "5914871eb3bd6abd357fb78caf8e038b07bbae11617778f406fa1154ea45856d",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "880b4900-9668-4c66-bb19-ccc2e4abefcf:recovery-recheck:1",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "initial",
+        "result_hash": "50d19761b5242195d95af4fdfb6a6d0ce13ac77f215c19724601696dd78c6fa4",
+        "revision_id": "88dfae56-8752-470c-9f0f-1c046cd34169",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "case_bottom_envelope_x",
+            "case_bottom_envelope_y",
+            "case_bottom_envelope_z",
+            "case_top_envelope_x",
+            "case_top_envelope_y",
+            "case_top_envelope_z",
+            "req_instrument_usability",
+            "req_two_part_case"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "5914871eb3bd6abd357fb78caf8e038b07bbae11617778f406fa1154ea45856d",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 2,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "electronics_enclosure"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 2
+  },
+  "category": "electronics_enclosures",
+  "comparison_specification_hash": "b6ba02b63c1e97eb8a8ec8f808034bdc8107233b438fc00cca005309d401c2d9",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "electronics_enclosure",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "electronics_enclosure",
+        "purpose": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable."
+      },
+      "project_id": "d0ba4081-5939-4fe9-a79d-e707e8fea91f",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": "encloses instrument while keeping it usable"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_instrument_usability"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_two_part_case"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 84.0
+          },
+          "kind": "dimension",
+          "object_type": "case_bottom",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.",
+          "requirement_id": "case_bottom_envelope_x",
+          "scope": "electronics_enclosure",
+          "source": "volundr_proposal",
+          "subject": "case_bottom"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 84.52261352539062
+          },
+          "kind": "dimension",
+          "object_type": "case_bottom",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.",
+          "requirement_id": "case_bottom_envelope_y",
+          "scope": "electronics_enclosure",
+          "source": "volundr_proposal",
+          "subject": "case_bottom"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 45.58539581298828
+          },
+          "kind": "dimension",
+          "object_type": "case_bottom",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.",
+          "requirement_id": "case_bottom_envelope_z",
+          "scope": "electronics_enclosure",
+          "source": "volundr_proposal",
+          "subject": "case_bottom"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 83.98477935791016
+          },
+          "kind": "dimension",
+          "object_type": "case_top",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.",
+          "requirement_id": "case_top_envelope_x",
+          "scope": "electronics_enclosure",
+          "source": "volundr_proposal",
+          "subject": "case_top"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 77.09119033813477
+          },
+          "kind": "dimension",
+          "object_type": "case_top",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.",
+          "requirement_id": "case_top_envelope_y",
+          "scope": "electronics_enclosure",
+          "source": "volundr_proposal",
+          "subject": "case_top"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 13.0
+          },
+          "kind": "dimension",
+          "object_type": "case_top",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.",
+          "requirement_id": "case_top_envelope_z",
+          "scope": "electronics_enclosure",
+          "source": "volundr_proposal",
+          "subject": "case_top"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": "encloses instrument while keeping it usable"
+          },
+          "kind": "qualitative",
+          "object_type": "protective_case",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "encloses the instrument while keeping it usable",
+          "requirement_id": "req_instrument_usability",
+          "scope": "electronics_enclosure",
+          "source": "initial_user",
+          "subject": "protective_case"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "protective_case",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover",
+          "requirement_id": "req_two_part_case",
+          "scope": "electronics_enclosure",
+          "source": "initial_user",
+          "subject": "protective_case"
+        }
+      ],
+      "revision_id": "880b4900-9668-4c66-bb19-ccc2e4abefcf:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "880b4900-9668-4c66-bb19-ccc2e4abefcf"
+    },
+    "contract_hash": "6c23ed9e98f53b6201fa736bf38cb81d834ce087e9f941aa2ee8ecf30c2bef4b",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "semantic_requirement_unverifiable",
+  "first_blocker_stage": "semantic_verification",
+  "first_incorrect_owner": "application",
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": "semantic_measurement",
+  "project_runtime_id": "d0ba4081-5939-4fe9-a79d-e707e8fea91f",
+  "prompt": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+  "prompt_sha256": "6f1e83e1978ff5da4d5991b7f196b5e805c90f996c1e4250f0cfef822e1626eb",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "58c4aab9-3af6-408a-932c-c8fe8fa9508a",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "19764e70-4edf-456b-8a24-852c3ab268dd",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "78525fa18f3f9decd525d37c93d97321b2176c480153359b553f2cfcbac8c209",
+      "request_hash": "0d5b32cf286868395bf6decfc1aa680e896c626066e18c7d4320e797725cb364",
+      "request_started_at": "2026-08-08T11:44:19.842126+00:00",
+      "response_length": 7662,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "bad237d6-edb3-47af-8fde-96e42e5392b4",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "4dce65ea-9e5b-454b-a467-5eb73640ed6d",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "43bb25e6819203f9ae484a0cd9013ef2c90ce396068f254d1be60a4c40dbf8f7",
+      "request_hash": "dd8b42c4449e822f62bdd962f718f8f60d9a3130a145615030a96dd644a539d7",
+      "request_started_at": "2026-08-08T11:44:24.843129+00:00",
+      "response_length": 2133,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "unavailable",
+    "eligible_interpretation": false,
+    "mapping_status": "explicit_reference_output_mapping_required",
+    "metrics": {
+      "aggregate": {
+        "bounding_box_error_by_axis_mm": {
+          "x": null,
+          "y": null,
+          "z": null
+        },
+        "solid_count_agreement": null,
+        "surface_area_difference_mm2": null,
+        "surface_area_difference_ratio": null,
+        "volume_difference_mm3": null,
+        "volume_difference_ratio": null
+      },
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "per_part": {},
+      "project_part_count_agreement": false
+    },
+    "raw_generated": {
+      "electronics_enclosure": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 84.0,
+            "size_y": 84.5226,
+            "size_z": 79.2927
+          },
+          "center_of_mass_mm": [
+            -1.0959836804735878e-15,
+            1.1234599142187328e-15,
+            35.16941512940335
+          ],
+          "component_count": 2,
+          "solid_count": 2,
+          "surface_area_mm2": 64061.646547679986,
+          "volume_mm3": 62743.25214767997
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 22,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 2,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      }
+    },
+    "raw_reference": {
+      "authority": null,
+      "canonical_part_count": 2,
+      "canonical_part_ids": [
+        "case_bottom",
+        "case_top"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 84.0,
+              "size_y": 84.52261352539062,
+              "size_z": 45.58539581298828
+            },
+            "center_of_mass_mm": [
+              125.00000007122433,
+              96.2387513605925,
+              11.066006333693684
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 31092.44560122986,
+            "volume_mm3": 26236.841726360686
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 56,
+            "vertex_count": 30,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 83.98477935791016,
+              "size_y": 77.09119033813477,
+              "size_z": 13.0
+            },
+            "center_of_mass_mm": [
+              101.1536323909707,
+              94.3437762450001,
+              3.800433375883451
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 17297.59289954863,
+            "volume_mm3": 22861.616837687685
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 2400,
+            "vertex_count": 1194,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-001/derived-reference.json",
+      "quality_classification": null
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "c4662ce461163696b8c9c05cab316b2c22eb641a9d13c68236a262891f4c8ac7",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Case bottom overall envelope",
+        "id": "assumption_case_bottom_envelope",
+        "importance": "important",
+        "kind": "dimension",
+        "label": "Case bottom overall envelope",
+        "object_type": "case_bottom",
+        "operator": "approximately",
+        "protected": true,
+        "raw_evidence": "Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.",
+        "requires_approval": false,
+        "source": "printer_profile",
+        "subject": "case_bottom",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          84.0,
+          84.52261352539062,
+          45.58539581298828
+        ]
+      },
+      {
+        "description": "Case top overall envelope",
+        "id": "assumption_case_top_envelope",
+        "importance": "important",
+        "kind": "dimension",
+        "label": "Case top overall envelope",
+        "object_type": "case_top",
+        "operator": "approximately",
+        "protected": true,
+        "raw_evidence": "Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.",
+        "requires_approval": false,
+        "source": "printer_profile",
+        "subject": "case_top",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          83.98477935791016,
+          77.09119033813477,
+          13.0
+        ]
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "c5584cf5-e52d-4f27-a6e0-0dc89d58a53c",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "d0ba4081-5939-4fe9-a79d-e707e8fea91f",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:44:24.790947",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "case_bottom",
+        "operator": "approximately",
+        "originating_message": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.",
+        "record_id": "39aec53e-dd5b-432e-af86-20202b2b6606",
+        "requirement_id": "case_bottom_envelope_x",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "case_bottom",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:44:24.790949",
+        "value": 84.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:44:24.790950",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "case_bottom",
+        "operator": "approximately",
+        "originating_message": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.",
+        "record_id": "2a2ef281-4535-475c-9e8a-767dac757202",
+        "requirement_id": "case_bottom_envelope_y",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "case_bottom",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:44:24.790951",
+        "value": 84.52261352539062,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:44:24.790952",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "case_bottom",
+        "operator": "approximately",
+        "originating_message": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.",
+        "record_id": "0e568cf2-2313-4901-a08a-08ed24bd27bb",
+        "requirement_id": "case_bottom_envelope_z",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "case_bottom",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:44:24.790952",
+        "value": 45.58539581298828,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:44:24.790953",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "case_top",
+        "operator": "approximately",
+        "originating_message": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.",
+        "record_id": "4106dd17-9ee7-4eb8-a936-fde443329404",
+        "requirement_id": "case_top_envelope_x",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "case_top",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:44:24.790954",
+        "value": 83.98477935791016,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:44:24.790954",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "case_top",
+        "operator": "approximately",
+        "originating_message": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.",
+        "record_id": "2dc4e039-9577-4f6e-8cb3-0579b5fc5b92",
+        "requirement_id": "case_top_envelope_y",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "case_top",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:44:24.790955",
+        "value": 77.09119033813477,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:44:24.790956",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "case_top",
+        "operator": "approximately",
+        "originating_message": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.",
+        "record_id": "a4dae319-0597-49cb-bead-8f74a7773e55",
+        "requirement_id": "case_top_envelope_z",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "case_top",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:44:24.790956",
+        "value": 13.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:44:24.790957",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "protective_case",
+        "operator": "present",
+        "originating_message": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover",
+        "record_id": "0dcdfc52-6f3a-4d06-8c5b-a69bed08f4cf",
+        "requirement_id": "req_two_part_case",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "protective_case",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "lower_housing_and_top_cover",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:44:24.790957",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:44:24.790958",
+        "explicit": true,
+        "kind": "qualitative",
+        "object_type": "protective_case",
+        "operator": "qualitative",
+        "originating_message": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "encloses the instrument while keeping it usable",
+        "record_id": "0fce4d35-cee8-4d27-94d8-f0a2d61d1f2f",
+        "requirement_id": "req_instrument_usability",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "protective_case",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "LCR-T4 ESR meter",
+        "tolerance": null,
+        "type": "qualitative_behavior",
+        "unit": null,
+        "updated_at": "2026-08-08T11:44:24.790959",
+        "value": "encloses instrument while keeping it usable",
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:44:30.119965+00:00"
+  },
+  "revision_id": "88dfae56-8752-470c-9f0f-1c046cd34169",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 0,
+    "total_authoritative_requirements": 8,
+    "unsupported_verifier": 8,
+    "unverifiable": 8
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 10.298476975003723,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 22,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 2,
+          "valid": true
+        },
+        "output_id": "electronics_enclosure",
+        "solid_count": 2,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 2,
+    "job_ids": [
+      "880b4900-9668-4c66-bb19-ccc2e4abefcf:attempt:1:worker",
+      "880b4900-9668-4c66-bb19-ccc2e4abefcf:recovery-recheck:1:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "cf75c698b75332eaabdb1851dff420cb2e55d5d7327166874d7baa34511c30ea",
+          "step": "4def0f7dedc059768fe1d4f6cc052b2e322fbb2eded94f0b8769ce284f620260",
+          "stl": "9e7a161cd9862314a6b48e23fd32b3bb9a11100832e0c8319c16fa9dd56ede2c"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 84.0,
+              "size_y": 84.5226,
+              "size_z": 79.2927
+            },
+            "center_of_mass_mm": [
+              -1.0959836804735878e-15,
+              1.1234599142187328e-15,
+              35.16941512940335
+            ],
+            "component_count": 2,
+            "solid_count": 2,
+            "surface_area_mm2": 64061.646547679986,
+            "volume_mm3": 62743.25214767997
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 22,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 2,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "electronics_enclosure",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 2,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/d0ba4081-5939-4fe9-a79d-e707e8fea91f/revisions/88dfae56-8752-470c-9f0f-1c046cd34169/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "880b4900-9668-4c66-bb19-ccc2e4abefcf"
+}

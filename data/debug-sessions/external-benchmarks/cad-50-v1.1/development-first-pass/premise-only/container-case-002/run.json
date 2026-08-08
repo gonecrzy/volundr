@@ -1,0 +1,164 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "container-case-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "container_cases",
+  "comparison_specification_hash": "c8ffc626ef0f5e5524fece275f5e3c39a42ddf027107656e737ad5cfbc4bc115",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "8f585795-f270-4380-8620-077486f03795",
+  "prompt": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.",
+  "prompt_sha256": "69013604e4eb7bfbcd12e4bf6d9e7225e625477bcab16762bc660082c510a942",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "3f36dc88-2663-407b-8ebf-71639ab56759",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "13bb185f-1d20-4c4b-8734-aa4c373eb23c",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "6b776dde2d3d56c1c1b01d6c7a6f190aa7ec98018d8c55eee8366c5c6bdc1674",
+      "request_hash": "a1dfab6fad7ca00ee152a2b42b2354d40a8e93e03662491e1ea7946ada72ea02",
+      "request_started_at": "2026-08-08T11:38:53.909643+00:00",
+      "response_length": 3780,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "8e6b5a696921839036ae87f486ca69ba3af80f5b0da54d3a941aae3850614e89",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "General functional wall thickness",
+        "id": "assumption_wall_thickness",
+        "importance": "important",
+        "kind": "dimension",
+        "label": "General functional wall thickness",
+        "object_type": "carry_case",
+        "operator": "exact",
+        "protected": true,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "carry_case",
+        "target": "wall",
+        "tolerance": null,
+        "unit": "mm",
+        "value": 3.0
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact diameter and length of the cylindrical battery the carry case is intended to hold?",
+        "question_id": "c1281ebb-aa54-41a9-b337-78852576ad27",
+        "reason": "Missing mating dimensions for the cylindrical battery cell are required to size the internal cavity accurately.",
+        "requirement_id": "q_battery_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "089fb865-3173-4e42-91e9-300488c223c1",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Cylindrical battery diameter",
+        "id": "cylindrical_battery_diameter",
+        "importance": "critical",
+        "reason": "Cylindrical battery diameter",
+        "source": "user"
+      },
+      {
+        "description": "Cylindrical battery length",
+        "id": "cylindrical_battery_length",
+        "importance": "critical",
+        "reason": "Cylindrical battery length",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "8f585795-f270-4380-8620-077486f03795",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:38:56.142667+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 2.2573836570081767,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "7e529195-d9b1-4334-a515-7257a74dd1bd"
+}

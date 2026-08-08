@@ -1,0 +1,25 @@
+{
+  "benchmark_project_id": "jig-guide-002",
+  "category": "jig_guides",
+  "failure_class": null,
+  "first_blocker_stage": "replacement_excluded",
+  "first_incorrect_owner": null,
+  "mode": "comparison_specification",
+  "prompt_sha256": "dbea600de98091debda959258e2b7683daadeb3b4c5efb161f8bc2861625995f",
+  "provider_calls": 0,
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "status": "replacement_required"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "state": "excluded_replacement_required",
+  "terminal_stage": "replacement_excluded",
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions": 0,
+  "worker_executions_reconciled": true
+}

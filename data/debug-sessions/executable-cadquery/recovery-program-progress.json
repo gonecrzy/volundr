@@ -9,7 +9,7 @@
   "origin_experimental_head": "5805f257ed714e67899aa6cf7ae2719888b378ed Qualify external CAD comparison specifications",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete for review and the live development survey has not started",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete; the 30-project development first-pass survey is complete on frozen code checkpoint 8dd0d8d with 60 preserved cells, 54 live workflows, and 6 replacement exclusions; no validation or holdout work has started",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -122,6 +122,8 @@
     ,"external_real_world_benchmark_mounting_bracket_001_product_requirement_path_clarification_valid"
     ,"external_real_world_cad_50_corpus_frozen_without_provider_or_worker_calls"
     ,"external_real_world_cad_50_comparison_specs_qualified_without_provider_or_worker_calls"
+    ,"external_real_world_cad_50_v1_1_development_first_pass_completed_on_frozen_checkpoint"
+    ,"external_real_world_cad_50_v1_1_development_first_pass_evidence_reconciled_offline_without_new_provider_or_worker_calls"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -266,6 +268,82 @@
     "worker_executions": 0,
     "benchmark_runs": 0,
     "next_action": "Review v1.1 qualification; do not start the live development survey until approved."
+  },
+  "external_real_world_cad_50_development_survey_status": {
+    "status": "complete_first_pass_survey",
+    "benchmark_id": "external-cad-50-v1.1",
+    "code_checkpoint_used_for_all_live_cells": "8dd0d8d16d2875b2e66e88830aec707961fa3394",
+    "survey_order": "all premise_only cells by category/benchmark_id, then all comparison_specification cells by category/benchmark_id",
+    "development_project_count": 30,
+    "live_project_count": 27,
+    "cell_count": 60,
+    "live_workflow_count": 54,
+    "replacement_exclusion_count": 6,
+    "replacement_required_projects": ["functional-assembly-002", "jig-guide-002", "stand-support-002"],
+    "validation_runs": 0,
+    "holdout_runs": 0,
+    "holdout_details_loaded": false,
+    "provider_calls": {
+      "transport_attempts": 107,
+      "requirement_extraction_calls": 64,
+      "requirement_schema_retries": 20,
+      "cad_generation_operations": 43,
+      "cad_repair_operations": 23,
+      "fallback_transport_calls": 1,
+      "primary_429_calls": 1
+    },
+    "worker_executions": 61,
+    "by_mode": {
+      "premise_only": {
+        "projects_attempted": 27,
+        "clarification_required": 21,
+        "generation_ready": 6,
+        "candidate_ready": 0,
+        "worker_executions": 17,
+        "first_blockers": {
+          "clarification_required": 21,
+          "semantic_verification": 1,
+          "source_execution": 2,
+          "topology": 3
+        }
+      },
+      "comparison_specification": {
+        "projects_attempted": 27,
+        "clarification_required": 6,
+        "generation_ready": 21,
+        "candidate_ready": 0,
+        "worker_executions": 44,
+        "first_blockers": {
+          "clarification_required": 6,
+          "semantic_verification": 15,
+          "source_contract": 3,
+          "topology": 3
+        }
+      }
+    },
+    "comparison_qualification": {
+      "comparison_ready_projects": ["adapter-coupler-002", "clamp-clip-001"],
+      "eligible_similarity_interpretation": "only these two projects and only when generated geometry exists",
+      "underconstrained_project_count": 25,
+      "underconstrained_status": "specification_underconstrained; raw geometry retained without interpreted similarity",
+      "replacement_required_project_count": 3
+    },
+    "rate_limit_observation": {
+      "concurrency": 1,
+      "same_slot_policy_preserved": true,
+      "fallback_policy": "fallback only after HTTP 429",
+      "fallback_after_primary_429_observed": true,
+      "cross_slot_start_gap_is_not_the_same_slot_limiter": true
+    },
+    "source_label_anomaly_counts": {
+      "missing_or_clarification_labeled_user": 0,
+      "model_assumption_labeled_user_required": 0,
+      "user_explicit_lost_authority": 0
+    },
+    "reference_only_isolation": true,
+    "historical_harness_error_attempt": "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass-harness-error-1/; preserved separately and not authoritative",
+    "evidence_root": "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/",
+    "next_action": "Review generic first-blocker clusters before any recovery change; do not run validation or holdout projects."
   },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
@@ -586,6 +664,13 @@
     ,"external_real_world_cad_50_comparison_spec_provider_calls": 0
     ,"external_real_world_cad_50_comparison_spec_worker_executions": 0
     ,"external_real_world_cad_50_comparison_spec_benchmark_runs": 0
+    ,"external_real_world_cad_50_v1_1_development_first_pass_transport_attempts": 107
+    ,"external_real_world_cad_50_v1_1_development_first_pass_requirement_extraction_calls": 64
+    ,"external_real_world_cad_50_v1_1_development_first_pass_requirement_schema_retries": 20
+    ,"external_real_world_cad_50_v1_1_development_first_pass_cad_generation_operations": 43
+    ,"external_real_world_cad_50_v1_1_development_first_pass_cad_repair_operations": 23
+    ,"external_real_world_cad_50_v1_1_development_first_pass_fallback_calls": 1
+    ,"external_real_world_cad_50_v1_1_development_first_pass_worker_executions": 61
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -684,5 +769,7 @@
     ,"product_path_checkpoint_verification": "backend 1562 passed, 1 skipped, 1 warning with repository-root PYTHONPATH; frontend build/typecheck passed; live harness 8 passed; provider_calls=0; worker_executions=0"
     ,"external_real_world_cad_50_corpus_freeze": "data/debug-sessions/external-benchmarks/cad-50-v1/corpus-freeze-report.json; 50 projects in 10 categories; 45 inner ZIP CRC/byte-preservation checks plus existing five pilot references; 3MF mesh-derived analysis; balanced 30/10/10 split; holdout policy frozen; provider_calls=0; worker_executions=0; benchmark_runs=0"
     ,"external_real_world_cad_50_comparison_qualification": "benchmarks/external/cad-50-v1.1/qualification-report.json; development audit=30; comparison_ready_without_changes=0; enriched_to_comparison_ready=2; still_underconstrained=25; replacement_required=3; validation_specs=10; holdout_specs sealed by hash only; provider_calls=0; worker_executions=0; benchmark_runs=0"
+    ,"external_real_world_cad_50_v1_1_development_first_pass": "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/; frozen code=8dd0d8d; 60 cells; 54 live workflows; 6 replacement exclusions; transport_attempts=107; requirement_extraction_calls=64; schema_retries=20; CAD generation operations=43; CAD repair operations=23; fallback=1 after primary HTTP 429; worker_executions=61 after offline runtime-DB reconciliation; validation/holdout=0; no interpreted similarity for 25 underconstrained projects"
+    ,"external_real_world_cad_50_v1_1_development_first_pass_reconciliation": "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/reconciliation.json; evidence-only worker/timestamp reconciliation; provider_calls=0; worker_executions=0; workflow outcomes unchanged"
   }
 }

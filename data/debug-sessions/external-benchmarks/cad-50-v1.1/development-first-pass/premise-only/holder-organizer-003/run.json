@@ -1,0 +1,157 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "holder-organizer-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "holders_organizers",
+  "comparison_specification_hash": "8477fa2a3ccda1f90b4fd2f49ca075c0243c8ff289b5b7ac955cbd1ff66e6123",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "00c23fa6-4617-4f0b-92cc-80221be7d6a9",
+  "prompt": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.",
+  "prompt_sha256": "86e4af8177848d5055151b2b7d50a6c4b64705eb8727030bc640790a8eef6111",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "7c238f3d-dc92-4d0f-9663-7d379e86ae2a",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "9164a57b-1a55-4a69-a8f8-3afcea7d66e5",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "48c5a03d52c9fd375084700bd0f841374e3771ba00df814da968fceeae831ef9",
+      "request_hash": "813be9cb457d6305348bd37679609c25b174c846ea3cec106340211ef63e33aa",
+      "request_started_at": "2026-08-08T11:40:01.214094+00:00",
+      "response_length": 3786,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "147db19a6fb90cb03146d81730ec9ae889444158bd5072b18368840fba858233",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Wall mount orientation",
+        "id": "assumption_wall_mount_type",
+        "importance": "important",
+        "kind": "orientation",
+        "label": "Wall mount orientation",
+        "object_type": "mount",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": "wall mount",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "mount",
+        "target": "wall",
+        "tolerance": null,
+        "unit": null,
+        "value": "vertical planar wall mount"
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What specific geometry or feature on the Stihl BGA 57 blower (e.g., hanging loop, nozzle, handle base) should the mount engage with, and what are its dimensions?",
+        "question_id": "df282aa9-986b-4f1f-97fe-f113f5f081fc",
+        "reason": null,
+        "requirement_id": "clarify_blower_mounting_interface"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "2715e302-b73a-4c2a-a968-ec8ff5c52af3",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Stihl BGA 57 blower mating interface geometry and dimensions",
+        "id": "stihl_bga_57_blower_mating_interface_geometry_and_dimensions",
+        "importance": "critical",
+        "reason": "Stihl BGA 57 blower mating interface geometry and dimensions",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "00c23fa6-4617-4f0b-92cc-80221be7d6a9",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:40:03.715968+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 5.112909525996656,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "534a2b26-9c6f-4d5a-8a5b-02169eaa682a"
+}

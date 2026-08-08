@@ -1,0 +1,1615 @@
+{
+  "benchmark_project_id": "stand-support-001",
+  "comparison_specification": {
+    "artifacts": {
+      "hashes": {
+        "stand:brep": "4a739c9a1eaeea4cf2e6d561e9b4a3847915d591d8355b28bf8e11a3a6dc24c1",
+        "stand:step": "aaf4e6c9f6d8b55b3b335c1ea36aec6a97072d6c39f611b562050b40caf2e379",
+        "stand:stl": "265945e9eed90394f3bb0d68e6b3abc3521abb3d0afceed867b205ae22a3400b"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "stand-support-001",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 2,
+      "repair_calls": 0,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "34aec9971fceecf2fe1543f8cd8b65a50f6d70dc50902f143cb463ef6fcfcc5b",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "b2833e74-3bca-4225-a0cf-f1e786978246:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "292d7cdb-c850-447f-ae9e-b880a0883175",
+            "attempt_number": 1,
+            "failure_class": null,
+            "level": "initial",
+            "logical_operation_id": "38906990-3d5e-4d42-a6c6-48e0cf797c13",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "292d7cdb-c850-447f-ae9e-b880a0883175",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "38906990-3d5e-4d42-a6c6-48e0cf797c13",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "2440315c255f0134f7c724a87e81ef7e2ff881a46317848609dd1262675b2895",
+                "request_hash": "8f1da55f3aaa23aa359d0c40467e90e35343a56ce2889c051a4c2ac65fbbf191",
+                "request_started_at": "2026-08-08T11:48:13.428919+00:00",
+                "response_length": 2765,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "2440315c255f0134f7c724a87e81ef7e2ff881a46317848609dd1262675b2895",
+          "repair_level": "initial",
+          "result_hash": "e1f456a0637811cbecaea0f5b1bab1a9ebf5619d5cfb310717acfd55137d2741",
+          "revision_id": "5f6d08c6-2a1c-4746-9e2c-544ddb536f91",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_align_magsafe",
+              "req_interface_magsafe",
+              "req_support_phone"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_magsafe_mount_x",
+              "envelope_magsafe_mount_y",
+              "envelope_magsafe_mount_z",
+              "envelope_stand_back_x",
+              "envelope_stand_back_y",
+              "envelope_stand_back_z",
+              "envelope_stand_base_x",
+              "envelope_stand_base_y",
+              "envelope_stand_base_z",
+              "envelope_stand_peg_x",
+              "envelope_stand_peg_y",
+              "envelope_stand_peg_z",
+              "req_printed_outputs_count"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "34aec9971fceecf2fe1543f8cd8b65a50f6d70dc50902f143cb463ef6fcfcc5b",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "stand"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "34aec9971fceecf2fe1543f8cd8b65a50f6d70dc50902f143cb463ef6fcfcc5b",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": null,
+          "normalized_error": null,
+          "observed_stage": null,
+          "operation_id": "b2833e74-3bca-4225-a0cf-f1e786978246:recovery-recheck:1",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L0",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": null,
+            "attempt_number": null,
+            "failure_class": null,
+            "level": null,
+            "logical_operation_id": null,
+            "status": null,
+            "transport_attempts": []
+          },
+          "raw_response_hash": null,
+          "repair_level": "initial",
+          "result_hash": "e1f456a0637811cbecaea0f5b1bab1a9ebf5619d5cfb310717acfd55137d2741",
+          "revision_id": "5f6d08c6-2a1c-4746-9e2c-544ddb536f91",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_align_magsafe",
+              "req_interface_magsafe",
+              "req_support_phone"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_magsafe_mount_x",
+              "envelope_magsafe_mount_y",
+              "envelope_magsafe_mount_z",
+              "envelope_stand_back_x",
+              "envelope_stand_back_y",
+              "envelope_stand_back_z",
+              "envelope_stand_base_x",
+              "envelope_stand_base_y",
+              "envelope_stand_base_z",
+              "envelope_stand_peg_x",
+              "envelope_stand_peg_y",
+              "envelope_stand_peg_z",
+              "req_printed_outputs_count"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "34aec9971fceecf2fe1543f8cd8b65a50f6d70dc50902f143cb463ef6fcfcc5b",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "stand"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 2
+    },
+    "category": "stand_supports",
+    "comparison_specification_hash": "7756f3551a5575c7dfbe9877ea41a421b77fdd47cfca722732adb7a8e8dc1993",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "stand",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "stand",
+          "purpose": "Design a multi-part stand for an iPhone with a MagSafe charger supporting it at a useful viewing angle."
+        },
+        "project_id": "bcf4652f-31c1-498d-bdc8-0c1a2f6cbe93",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": 76.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_magsafe_mount_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 33.23599624633789
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_magsafe_mount_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 106.61492919921875
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_magsafe_mount_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 86.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_stand_back_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 29.500555992126465
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_stand_back_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 127.02894592285156
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_stand_back_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 99.99846267700195
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_stand_base_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 90.0029296875
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_stand_base_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 20.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_stand_base_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 9.599276542663574
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_stand_peg_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 5.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_stand_peg_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 9.59963846206665
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_stand_peg_z"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_align_magsafe"
+          },
+          {
+            "authoritative_value": {
+              "value": "descriptive"
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_interface_magsafe"
+          },
+          {
+            "authoritative_value": {
+              "value": 4
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_printed_outputs_count"
+          },
+          {
+            "authoritative_value": {
+              "value": "useful viewing angle"
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_support_phone"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 76.0
+            },
+            "kind": "dimension",
+            "object_type": "magsafe_mount",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.",
+            "requirement_id": "envelope_magsafe_mount_x",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "magsafe_mount"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 33.23599624633789
+            },
+            "kind": "dimension",
+            "object_type": "magsafe_mount",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.",
+            "requirement_id": "envelope_magsafe_mount_y",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "magsafe_mount"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 106.61492919921875
+            },
+            "kind": "dimension",
+            "object_type": "magsafe_mount",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.",
+            "requirement_id": "envelope_magsafe_mount_z",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "magsafe_mount"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 86.0
+            },
+            "kind": "dimension",
+            "object_type": "stand_back",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.",
+            "requirement_id": "envelope_stand_back_x",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand_back"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 29.500555992126465
+            },
+            "kind": "dimension",
+            "object_type": "stand_back",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.",
+            "requirement_id": "envelope_stand_back_y",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand_back"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 127.02894592285156
+            },
+            "kind": "dimension",
+            "object_type": "stand_back",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.",
+            "requirement_id": "envelope_stand_back_z",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand_back"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 99.99846267700195
+            },
+            "kind": "dimension",
+            "object_type": "stand_base",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.",
+            "requirement_id": "envelope_stand_base_x",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand_base"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 90.0029296875
+            },
+            "kind": "dimension",
+            "object_type": "stand_base",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.",
+            "requirement_id": "envelope_stand_base_y",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand_base"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 20.0
+            },
+            "kind": "dimension",
+            "object_type": "stand_base",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.",
+            "requirement_id": "envelope_stand_base_z",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand_base"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 9.599276542663574
+            },
+            "kind": "dimension",
+            "object_type": "stand_peg",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.",
+            "requirement_id": "envelope_stand_peg_x",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand_peg"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 5.0
+            },
+            "kind": "dimension",
+            "object_type": "stand_peg",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.",
+            "requirement_id": "envelope_stand_peg_y",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand_peg"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 9.59963846206665
+            },
+            "kind": "dimension",
+            "object_type": "stand_peg",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.",
+            "requirement_id": "envelope_stand_peg_z",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand_peg"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "orientation",
+            "object_type": "MagSafe charger",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "keep the charger aligned",
+            "requirement_id": "req_align_magsafe",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "magsafe_mount"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": "descriptive"
+            },
+            "kind": "relationship",
+            "object_type": "interface",
+            "operator": "qualitative",
+            "origin": "user_explicit",
+            "raw_evidence": "interface: iPhone MagSafe charger descriptive",
+            "requirement_id": "req_interface_magsafe",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "magsafe_mount"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 4
+            },
+            "kind": "count",
+            "object_type": "printed_output",
+            "operator": "exact",
+            "origin": "user_explicit",
+            "raw_evidence": "Provide exactly 4 printed output(s).",
+            "requirement_id": "req_printed_outputs_count",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": "useful viewing angle"
+            },
+            "kind": "support",
+            "object_type": "iPhone",
+            "operator": "qualitative",
+            "origin": "user_explicit",
+            "raw_evidence": "It should support the phone at a useful viewing angle",
+            "requirement_id": "req_support_phone",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand"
+          }
+        ],
+        "revision_id": "b2833e74-3bca-4225-a0cf-f1e786978246:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "b2833e74-3bca-4225-a0cf-f1e786978246"
+      },
+      "contract_hash": "03de3f6ad213569657109d6840a919db76c549e29a6ffe2e78b9296d3511f490",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "semantic_requirement_unverifiable",
+    "first_blocker_stage": "semantic_verification",
+    "first_incorrect_owner": "application",
+    "mode": "comparison_specification",
+    "normal_recovery_resolved": false,
+    "observed_stage": "semantic_measurement",
+    "project_runtime_id": "bcf4652f-31c1-498d-bdc8-0c1a2f6cbe93",
+    "prompt": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+    "prompt_sha256": "23b1d63182f396816fbdb5e398fc679f43dec760dd8a9333adaaeacb75d39ad0",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "38c11e51-ce9f-41e2-9504-febf852ef4e0",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "7920a0c3-149e-41c7-a34c-b011b9d4e022",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "ec5108769da32226a808dc2c4326be0544b7823c0e255b2ed0f561dcf7a35d4b",
+        "request_hash": "75094253e37fc613c673d978c34ec26f98a9dca568ec5634a136f3d8fc0aa5ea",
+        "request_started_at": "2026-08-08T11:48:05.833615+00:00",
+        "response_length": 11479,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "292d7cdb-c850-447f-ae9e-b880a0883175",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "38906990-3d5e-4d42-a6c6-48e0cf797c13",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "2440315c255f0134f7c724a87e81ef7e2ff881a46317848609dd1262675b2895",
+        "request_hash": "8f1da55f3aaa23aa359d0c40467e90e35343a56ce2889c051a4c2ac65fbbf191",
+        "request_started_at": "2026-08-08T11:48:13.428919+00:00",
+        "response_length": 2765,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "unavailable",
+      "eligible_interpretation": false,
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "metrics": {
+        "aggregate": {
+          "bounding_box_error_by_axis_mm": {
+            "x": null,
+            "y": null,
+            "z": null
+          },
+          "solid_count_agreement": null,
+          "surface_area_difference_mm2": null,
+          "surface_area_difference_ratio": null,
+          "volume_difference_mm3": null,
+          "volume_difference_ratio": null
+        },
+        "mapping_status": "explicit_reference_output_mapping_required",
+        "per_part": {},
+        "project_part_count_agreement": false
+      },
+      "raw_generated": {
+        "stand": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 99.998462677001,
+              "size_y": 90.0029296875,
+              "size_z": 132.0289459228458
+            },
+            "center_of_mass_mm": [
+              6.237772950463555e-14,
+              2.1883337453790217e-12,
+              68.1456352280325
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 51541.67024683113,
+            "volume_mm3": 477263.96359345986
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 45,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        }
+      },
+      "raw_reference": {
+        "authority": null,
+        "canonical_part_count": 4,
+        "canonical_part_ids": [
+          "stand_back",
+          "stand_base",
+          "magsafe_mount",
+          "stand_peg"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 86.0,
+                "size_y": 29.500555992126465,
+                "size_z": 127.02894592285156
+              },
+              "center_of_mass_mm": [
+                -9.671173236097124e-05,
+                -33.78125537768013,
+                59.02630299511732
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 16166.301584549235,
+              "volume_mm3": 30522.667804494897
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 2178,
+              "vertex_count": 1089,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 99.99846267700195,
+                "size_y": 90.0029296875,
+                "size_z": 20.0
+              },
+              "center_of_mass_mm": [
+                0.0001377760567478338,
+                2.742738790342918,
+                9.86371611352089
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 21578.948983411447,
+              "volume_mm3": 142273.15495935266
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 2952,
+              "vertex_count": 1476,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 76.0,
+                "size_y": 33.23599624633789,
+                "size_z": 106.61492919921875
+              },
+              "center_of_mass_mm": [
+                1.0073784874494077e-08,
+                -36.989778335245184,
+                75.17849831835304
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 13918.121068353841,
+              "volume_mm3": 31236.840845898623
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 2528,
+              "vertex_count": 1264,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 9.599276542663574,
+                "size_y": 5.0,
+                "size_z": 9.59963846206665
+              },
+              "center_of_mass_mm": [
+                19.000000010470988,
+                -39.99999999999999,
+                11.059817282219303
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 295.52439967705004,
+              "volume_mm3": 361.83880319844206
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 1082,
+              "vertex_count": 543,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/stand-support-001/derived-reference.json",
+        "quality_classification": null
+      },
+      "status": "specification_underconstrained"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "80ddd5206b6895b2be127f9e0fa4b6d474868c73bb704fa09d6eaa50447d1e21",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Multi-part stand layout comprises a base, back support, magsafe mount, and peg connector.",
+          "id": "assumption_parts_layout",
+          "importance": "important",
+          "kind": "relationship",
+          "object_type": "assembly",
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": "Design a multi-part stand for an iPhone with a MagSafe charger.",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "stand",
+          "target": "components",
+          "unit": null,
+          "value": "multi_part"
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "a15184d3-efbb-4231-94bc-391cfcc497cb",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "bcf4652f-31c1-498d-bdc8-0c1a2f6cbe93",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418067",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "magsafe_mount",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.",
+          "record_id": "f4dc5631-eb18-4069-bafa-335b2bfcb63d",
+          "requirement_id": "envelope_magsafe_mount_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "magsafe_mount",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418069",
+          "value": 76.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418070",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "magsafe_mount",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.",
+          "record_id": "c4fe86d6-d3de-44bd-8b78-b567b4f361c9",
+          "requirement_id": "envelope_magsafe_mount_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "magsafe_mount",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418071",
+          "value": 33.23599624633789,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418072",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "magsafe_mount",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.",
+          "record_id": "3d9cd3d3-4b38-495a-8164-daf6e2ec8676",
+          "requirement_id": "envelope_magsafe_mount_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "magsafe_mount",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418072",
+          "value": 106.61492919921875,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418073",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "stand_back",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.",
+          "record_id": "c9a8ac11-ec1b-4487-b1c7-0936f20737e8",
+          "requirement_id": "envelope_stand_back_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand_back",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418073",
+          "value": 86.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418074",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "stand_back",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.",
+          "record_id": "8cd18f1c-756f-4fb7-98e6-2074489d0846",
+          "requirement_id": "envelope_stand_back_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand_back",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418074",
+          "value": 29.500555992126465,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418075",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "stand_back",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.",
+          "record_id": "412fe583-3e37-495c-bb9a-16532d947354",
+          "requirement_id": "envelope_stand_back_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand_back",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418076",
+          "value": 127.02894592285156,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418076",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "stand_base",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.",
+          "record_id": "5d6b42d4-0ba4-40a2-97cc-28cd74ed1387",
+          "requirement_id": "envelope_stand_base_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand_base",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418077",
+          "value": 99.99846267700195,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418077",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "stand_base",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.",
+          "record_id": "5c9d1fbe-7d84-4771-bddf-952ac6a71d2b",
+          "requirement_id": "envelope_stand_base_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand_base",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418078",
+          "value": 90.0029296875,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418079",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "stand_base",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.",
+          "record_id": "34ae50f4-0d11-4189-87da-9907e63a0931",
+          "requirement_id": "envelope_stand_base_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand_base",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418079",
+          "value": 20.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418080",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "stand_peg",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.",
+          "record_id": "60d2dbe0-909a-4f6f-bce1-3764cc76ff27",
+          "requirement_id": "envelope_stand_peg_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand_peg",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418080",
+          "value": 9.599276542663574,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418081",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "stand_peg",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.",
+          "record_id": "c9eaef94-88b1-40a9-8e18-5340983ef155",
+          "requirement_id": "envelope_stand_peg_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand_peg",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418082",
+          "value": 5.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418082",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "stand_peg",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.",
+          "record_id": "e05b4ecc-c8ff-4ee6-af25-8237c3891bbf",
+          "requirement_id": "envelope_stand_peg_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand_peg",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:13.418083",
+          "value": 9.59963846206665,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418083",
+          "explicit": true,
+          "kind": "support",
+          "object_type": "iPhone",
+          "operator": "qualitative",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "It should support the phone at a useful viewing angle",
+          "record_id": "beea3752-9ffa-4590-86d5-333cc6542bd0",
+          "requirement_id": "req_support_phone",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "iPhone",
+          "tolerance": null,
+          "type": "support",
+          "unit": null,
+          "updated_at": "2026-08-08T11:48:13.418084",
+          "value": "useful viewing angle",
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418085",
+          "explicit": true,
+          "kind": "orientation",
+          "object_type": "MagSafe charger",
+          "operator": "present",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "keep the charger aligned",
+          "record_id": "d2cd246e-5dd2-4a1a-91cf-2d21843b8dac",
+          "requirement_id": "req_align_magsafe",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "magsafe_mount",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "MagSafe charger",
+          "tolerance": null,
+          "type": "orientation",
+          "unit": null,
+          "updated_at": "2026-08-08T11:48:13.418085",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418086",
+          "explicit": true,
+          "kind": "count",
+          "object_type": "printed_output",
+          "operator": "exact",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Provide exactly 4 printed output(s).",
+          "record_id": "3d74c55b-9cd8-4754-8d67-204e8afb529c",
+          "requirement_id": "req_printed_outputs_count",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:48:13.418086",
+          "value": 4,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:13.418087",
+          "explicit": true,
+          "kind": "relationship",
+          "object_type": "interface",
+          "operator": "qualitative",
+          "originating_message": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "interface: iPhone MagSafe charger descriptive",
+          "record_id": "da4524fc-bec3-4780-8b50-73012d2b4f11",
+          "requirement_id": "req_interface_magsafe",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "magsafe_mount",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "iPhone MagSafe charger",
+          "tolerance": null,
+          "type": "relationship",
+          "unit": null,
+          "updated_at": "2026-08-08T11:48:13.418088",
+          "value": "descriptive",
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:48:20.059477+00:00"
+    },
+    "revision_id": "5f6d08c6-2a1c-4746-9e2c-544ddb536f91",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 3,
+      "total_authoritative_requirements": 16,
+      "unsupported_verifier": 13,
+      "unverifiable": 13
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 14.243711734001408,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 45,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "output_id": "stand",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "4a739c9a1eaeea4cf2e6d561e9b4a3847915d591d8355b28bf8e11a3a6dc24c1",
+            "step": "aaf4e6c9f6d8b55b3b335c1ea36aec6a97072d6c39f611b562050b40caf2e379",
+            "stl": "265945e9eed90394f3bb0d68e6b3abc3521abb3d0afceed867b205ae22a3400b"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 99.998462677001,
+                "size_y": 90.0029296875,
+                "size_z": 132.0289459228458
+              },
+              "center_of_mass_mm": [
+                6.237772950463555e-14,
+                2.1883337453790217e-12,
+                68.1456352280325
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 51541.67024683113,
+              "volume_mm3": 477263.96359345986
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 45,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "stand",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "b2833e74-3bca-4225-a0cf-f1e786978246"
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "artifacts": {
+      "hashes": {},
+      "package_available": false
+    },
+    "benchmark_project_id": "stand-support-001",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 0,
+      "repair_calls": 0,
+      "repair_history": [],
+      "total_transport_attempts": 1
+    },
+    "category": "stand_supports",
+    "comparison_specification_hash": "7756f3551a5575c7dfbe9877ea41a421b77fdd47cfca722732adb7a8e8dc1993",
+    "executable_contract": {
+      "contract": null,
+      "contract_hash": null,
+      "contract_source": null,
+      "created": false
+    },
+    "failure_class": null,
+    "first_blocker_stage": "clarification_required",
+    "first_incorrect_owner": null,
+    "mode": "premise_only",
+    "normal_recovery_resolved": false,
+    "observed_stage": null,
+    "project_runtime_id": "9bbff3dd-a0e7-4b8d-a9b0-06f01e88dedb",
+    "prompt": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.",
+    "prompt_sha256": "06cc1b38d43678c490d227a7d9b8d7d6339135b60b9e09249f74b3290dcdaf1c",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "a9f21bd7-e59f-415f-b2f1-cc84a97e4ba1",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "65928781-81c3-4fac-864d-6eb427155080",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "51a58b81c9fea0d32b05aeff7ad07985915b2e6c02f39732e7ce451bfe62191b",
+        "request_hash": "e7a3d8df801bd787872178cb854323d4a0fb48dbe815874bcc692d0a69f82f73",
+        "request_started_at": "2026-08-08T11:41:03.261327+00:00",
+        "response_length": 4890,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "mapping_status": "not_generated",
+      "metrics": {},
+      "raw_generated": null,
+      "raw_reference": null,
+      "status": "unavailable"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "80ddd5206b6895b2be127f9e0fa4b6d474868c73bb704fa09d6eaa50447d1e21",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Assume a default ergonomic viewing angle of approximately 60 degrees for the phone.",
+          "id": "assumption_viewing_angle",
+          "importance": "important",
+          "kind": "orientation",
+          "operator": "approximately",
+          "raw_evidence": null,
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "stand",
+          "target": "phone",
+          "unit": "degrees",
+          "value": 60
+        }
+      ],
+      "clarification_question_count": 2,
+      "clarification_questions": [
+        {
+          "display_order": 0,
+          "question": "Which specific iPhone model or exact width/height dimensions should the stand accommodate?",
+          "question_id": "d3536148-0ded-46f3-bdd7-dbd0784f4582",
+          "reason": "Missing mating dimensions and device form factor for precise phone cradle sizing.",
+          "requirement_id": "q_iphone_model"
+        },
+        {
+          "display_order": 1,
+          "question": "What are the exact diameter and thickness dimensions of the MagSafe charger being used, or is it the official Apple MagSafe puck (~56mm diameter, ~5mm thickness)?",
+          "question_id": "b0d6e635-b44e-4001-9940-c08991fd687d",
+          "reason": "Missing mating dimensions for the MagSafe charger pocket and alignment feature.",
+          "requirement_id": "q_magsafe_dimensions"
+        }
+      ],
+      "clarification_required": true,
+      "design_specification_id": "372cdda3-9e29-4fbf-9165-3bc70d3c8963",
+      "generation_ready": false,
+      "missing_requirements": [
+        {
+          "description": "Specific iPhone model or outer dimensions for cradle fit.",
+          "id": "missing_iphone_dimensions",
+          "importance": "critical",
+          "reason": "Required to size the phone support and viewing slot accurately.",
+          "source": "user"
+        },
+        {
+          "description": "MagSafe puck outer diameter and thickness.",
+          "id": "missing_magsafe_dimensions",
+          "importance": "critical",
+          "reason": "Required to securely seat and align the charger.",
+          "source": "user"
+        }
+      ],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "9bbff3dd-a0e7-4b8d-a9b0-06f01e88dedb",
+      "requirements": [],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:41:06.439194+00:00"
+    },
+    "revision_id": null,
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": null,
+      "review_required": 0,
+      "total_authoritative_requirements": 0,
+      "unsupported_verifier": 0,
+      "unverifiable": 0
+    },
+    "state": "awaiting_clarification",
+    "terminal_stage": "clarification_required",
+    "timing_seconds": 5.867212636003387,
+    "topology": {
+      "outputs": [],
+      "valid": null
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": []
+    },
+    "workflow_id": "f14bee32-9258-4a69-af9d-7302e80e6519"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

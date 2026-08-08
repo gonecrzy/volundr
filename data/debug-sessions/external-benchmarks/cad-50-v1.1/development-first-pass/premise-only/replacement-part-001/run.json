@@ -1,0 +1,152 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "replacement-part-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "replacement_parts",
+  "comparison_specification_hash": "ded07437067df54a4a1472827e410bca709875c7193eca5203f4eb922e1d385f",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "8f40609c-4882-49ae-8537-491a6cce1ab5",
+  "prompt": "Design a replacement seesaw switch for a Tineco appliance. It should fit the original control opening and provide the same press-and-rocker function.",
+  "prompt_sha256": "ac227f837d40f783aad2480c429ac9fa9bada67a2da2724ee758fa7dd52f03df",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "b90ab960-4d99-4490-8588-a304d786e206",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "7aed84f3-aa1f-494e-b0ff-c05b01389283",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "5709b7838d8aac9e4ce883c0c61beda116904f5c0e39dd7e9fa21fafd9448b2a",
+      "request_hash": "e404e23eafb1d797139f439b1aaacb882cb4bdd167fcce39e3628566acc3503b",
+      "request_started_at": "2026-08-08T11:40:48.251343+00:00",
+      "response_length": 3000,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "246800d4a757b1308bb9d364d2bfe97e60d30500f8ed1b20e5cde968cf46e73b",
+  "requirement_extraction": {
+    "assumptions": [],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact length, width, and depth dimensions of the original control opening on the Tineco appliance?",
+        "question_id": "1e2addf3-e3e4-4d99-b1a5-2b02bb94dcce",
+        "reason": null,
+        "requirement_id": "q_mating_dimensions"
+      },
+      {
+        "display_order": 1,
+        "question": "What is the specific pivot or mounting mechanism (e.g., side trunnions, center rocking ridge, snap-fit tabs) required by the appliance's switch housing?",
+        "question_id": "bf474c10-67d8-4cea-81cd-0fa312017b38",
+        "reason": null,
+        "requirement_id": "q_pivot_mechanism"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "22e6f69c-ec8f-49fb-9b6a-927ca19f3138",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Exact dimensions of the control opening",
+        "id": "exact_dimensions_of_the_control_opening",
+        "importance": "critical",
+        "reason": "Exact dimensions of the control opening",
+        "source": "user"
+      },
+      {
+        "description": "Switch pivot and mounting interface details",
+        "id": "switch_pivot_and_mounting_interface_details",
+        "importance": "critical",
+        "reason": "Switch pivot and mounting interface details",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "8f40609c-4882-49ae-8537-491a6cce1ab5",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:40:50.220506+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 3.8498267510003643,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "39c059c8-7bfc-4cd5-8a74-0f489ce3530c"
+}

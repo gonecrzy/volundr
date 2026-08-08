@@ -1,0 +1,180 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "replacement-part-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 2
+  },
+  "category": "replacement_parts",
+  "comparison_specification_hash": "ded07437067df54a4a1472827e410bca709875c7193eca5203f4eb922e1d385f",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "e70027ee-f2b5-4ab3-ae1d-5f4b074edbce",
+  "prompt": "Design a replacement seesaw switch for a Tineco appliance. It should fit the original control opening and provide the same press-and-rocker function.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output tineco_seesaw_switch should have an overall envelope of approximately 21.700000762939453 mm x 12.699999809265137 mm x 34.49100875854492 mm.\n- appliance: Tineco appliance descriptive",
+  "prompt_sha256": "1d1ef67071c4e7c1ffda10cd6a371c8e7bc0d07623f28730096896aed9bff9e7",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "da97273a-c7a8-4c68-9b72-9f89a82cddc8",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "f512e141-9076-4ecf-b0a6-d50feebb52d2",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "ccaf8eff3d769b4528740217b46d926f44a3ba31073233e3c5a9a161ec320368",
+      "request_hash": "b9584b019c05111620bd51ec3a609d9e93bf9273b597b41fd3e11b55a9821ae1",
+      "request_started_at": "2026-08-08T11:47:39.430639+00:00",
+      "response_length": 5242,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "64836c68-8574-4ce2-ae71-04c7434bccc6",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "f9968a33-8cf4-4208-a737-bc050b46edc3",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "13e8ca8789c75faa19ec018488bc11c635323c41a0c72b82dc1df2c83e953609",
+      "request_hash": "254d5528c516a38103328b4e7f6dcc50393f46b984e6ba0374eeca9cbf09982f",
+      "request_started_at": "2026-08-08T11:47:44.433383+00:00",
+      "response_length": 5631,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "246800d4a757b1308bb9d364d2bfe97e60d30500f8ed1b20e5cde968cf46e73b",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Envelope dimensions provided in the prompt represent the bounding box of the original switch fitting the Tineco appliance control opening.",
+        "id": "assumption_envelope",
+        "importance": "critical",
+        "kind": "dimension",
+        "object_type": "tineco_seesaw_switch",
+        "operator": "approximately",
+        "protected": true,
+        "raw_evidence": "Output tineco_seesaw_switch should have an overall envelope of approximately 21.700000762939453 mm x 12.699999809265137 mm x 34.49100875854492 mm.",
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "tineco_seesaw_switch",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          21.7,
+          12.7,
+          34.49
+        ]
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact snap-fit tab positions, retention mechanism details, and internal electrical contact or pivot geometry required to mate with the specific Tineco appliance model housing?",
+        "question_id": "f37f79b3-c1ca-41e2-a40a-fe62e85d5ea2",
+        "reason": null,
+        "requirement_id": "q_snap_fit_details"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "30e4e363-4bbe-4987-bc58-a1aacab47d50",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Exact internal mounting, pivot, and electrical contact interface dimensions for the specific Tineco appliance model.",
+        "id": "exact_internal_mounting_pivot_and_electrical_contact_interface_dimensions_for_the_specific_tineco_appliance_model",
+        "importance": "critical",
+        "reason": "Exact internal mounting, pivot, and electrical contact interface dimensions for the specific Tineco appliance model.",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 2,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 1,
+    "schema_retries": 2,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "e70027ee-f2b5-4ab3-ae1d-5f4b074edbce",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:47:47.645336+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 8.245788209998864,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "30376157-5911-464b-8919-8be4536d52a7"
+}

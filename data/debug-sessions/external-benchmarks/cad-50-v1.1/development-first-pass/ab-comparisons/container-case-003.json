@@ -1,0 +1,1012 @@
+{
+  "benchmark_project_id": "container-case-003",
+  "comparison_specification": {
+    "artifacts": {
+      "hashes": {
+        "multi_battery_holder_box:brep": "a039f89d27d7856ef114b6f2cf73b4648b00ce7649dfd1bc2ecb519d49972418",
+        "multi_battery_holder_box:step": "837896d741d8a42e2bd31c6b053815bd50c9cc82f587bc515b9c2a4cee6e6f2b",
+        "multi_battery_holder_box:stl": "58acfb90c064d8f602f3537d7a0800688d79e89032c4967927649ae3ad7ca37d"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "container-case-003",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 1,
+      "repair_calls": 2,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "d2a7ac7af3870879d5cd87996fd9c6b07ed4bd36863fe117f9a522fcd72d21a9",
+          "extraction_succeeded": true,
+          "failure_boundary": "topology",
+          "failure_class": "invalid_shape",
+          "first_incorrect_owner": "geometry",
+          "normalized_error": "output shape is invalid",
+          "observed_stage": "topology",
+          "operation_id": "82c020df-09b9-445a-88ca-294400391e23:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "4b37299d-dc78-4ab6-90cd-5c6d4490d7cf",
+            "attempt_number": 1,
+            "failure_class": null,
+            "level": "initial",
+            "logical_operation_id": "f54e43b1-5b64-4d8c-99eb-84b8d35029fa",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "4b37299d-dc78-4ab6-90cd-5c6d4490d7cf",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "f54e43b1-5b64-4d8c-99eb-84b8d35029fa",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "e700e908e898884ea0f8ed105026ae51ef6c7ca9a2b3b24931ed761f0fe9008c",
+                "request_hash": "8645cc6399c4a0414b9ce77419a8d8f7cce3e80a2761679241dd4ff2a6c74b7b",
+                "request_started_at": "2026-08-08T11:44:06.031769+00:00",
+                "response_length": 4149,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "e700e908e898884ea0f8ed105026ae51ef6c7ca9a2b3b24931ed761f0fe9008c",
+          "repair_level": "initial",
+          "result_hash": "6d77fbae0cfd5419d6f90e427f8e840f32cfc0bf630dcd8e580604443f9f9b53",
+          "revision_id": "83e3d103-8fa2-479c-99bf-674e6a254c6a",
+          "semantic_result": {},
+          "source_contract_valid": true,
+          "source_hash": "d2a7ac7af3870879d5cd87996fd9c6b07ed4bd36863fe117f9a522fcd72d21a9",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 3,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "solid_count_mismatch",
+            "schema_version": "topology-evidence-v2",
+            "valid": false
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "multi_battery_holder_box"
+            ],
+            "phase": "failed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 2,
+          "extracted_source_hash": "e682e1ab03b3ed773cbe07a8a70c1dff295a4f24594e22340b064bdb365bd91e",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "82c020df-09b9-445a-88ca-294400391e23:attempt:2",
+          "progress": {
+            "measurable_progress": true,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [
+              "topology_became_valid",
+              "solid_count_reached_expected"
+            ],
+            "progress_result": "progressed",
+            "protected_fact_regression": false,
+            "repair_level": "L2",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": "80b9b520-48ff-442d-a748-6ba4d1dc1eb2",
+            "attempt_number": 2,
+            "failure_class": null,
+            "level": "L2",
+            "logical_operation_id": "190546e7-9f01-46b0-b59c-f3cb87101abe",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "80b9b520-48ff-442d-a748-6ba4d1dc1eb2",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "190546e7-9f01-46b0-b59c-f3cb87101abe",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "fc39e4900740cf31f8a6ddb285f27e3283e4d41f4c6300f94883304b1509d3eb",
+                "request_hash": "f25869c5c48ba771276e298a5322bd71bd9ea1c58f92d84bf0dad314c3263966",
+                "request_started_at": "2026-08-08T11:44:12.386412+00:00",
+                "response_length": 3872,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "fc39e4900740cf31f8a6ddb285f27e3283e4d41f4c6300f94883304b1509d3eb",
+          "repair_level": "L2",
+          "result_hash": "b06e4daaa9eadeb9e4f610f5ef33b80ca44a6a43aed769d5340938028530165e",
+          "revision_id": "935372a9-4682-4b50-9bdb-2ae293f116b9",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_identification_removal"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_depth",
+              "envelope_height",
+              "envelope_width",
+              "req_separation_protection"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "e682e1ab03b3ed773cbe07a8a70c1dff295a4f24594e22340b064bdb365bd91e",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "multi_battery_holder_box"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 2,
+          "extracted_source_hash": "e682e1ab03b3ed773cbe07a8a70c1dff295a4f24594e22340b064bdb365bd91e",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": null,
+          "normalized_error": null,
+          "observed_stage": null,
+          "operation_id": "82c020df-09b9-445a-88ca-294400391e23:recovery-recheck:2",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L2",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": null,
+            "attempt_number": null,
+            "failure_class": null,
+            "level": null,
+            "logical_operation_id": null,
+            "status": null,
+            "transport_attempts": []
+          },
+          "raw_response_hash": null,
+          "repair_level": "L2",
+          "result_hash": "b06e4daaa9eadeb9e4f610f5ef33b80ca44a6a43aed769d5340938028530165e",
+          "revision_id": "935372a9-4682-4b50-9bdb-2ae293f116b9",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_identification_removal"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_depth",
+              "envelope_height",
+              "envelope_width",
+              "req_separation_protection"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "e682e1ab03b3ed773cbe07a8a70c1dff295a4f24594e22340b064bdb365bd91e",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "multi_battery_holder_box"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 3
+    },
+    "category": "container_cases",
+    "comparison_specification_hash": "1c838c835644fa095d709480887aedcff86d611b84b69e10d41fbba5b536f13f",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "multi_battery_holder_box",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "multi_battery_holder_box",
+          "purpose": "Design a compact organizer box for multiple common battery sizes, keeping cells separated, protected, and easy to identify and remove."
+        },
+        "project_id": "03731295-0825-402d-9d1d-ad6eb3a99235",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_identification_removal"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_separation_protection"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 50.8
+            },
+            "kind": "dimension",
+            "object_type": "multi_battery_holder_box",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm",
+            "requirement_id": "envelope_depth",
+            "scope": "multi_battery_holder_box",
+            "source": "volundr_proposal",
+            "subject": "multi_battery_holder_box"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 165.1
+            },
+            "kind": "dimension",
+            "object_type": "multi_battery_holder_box",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm",
+            "requirement_id": "envelope_height",
+            "scope": "multi_battery_holder_box",
+            "source": "volundr_proposal",
+            "subject": "multi_battery_holder_box"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 152.4
+            },
+            "kind": "dimension",
+            "object_type": "multi_battery_holder_box",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm",
+            "requirement_id": "envelope_width",
+            "scope": "multi_battery_holder_box",
+            "source": "volundr_proposal",
+            "subject": "multi_battery_holder_box"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "access",
+            "object_type": "multi_battery_holder_box",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "making them easy to identify and remove",
+            "requirement_id": "req_identification_removal",
+            "scope": "multi_battery_holder_box",
+            "source": "initial_user",
+            "subject": "multi_battery_holder_box"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "multi_battery_holder_box",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "It should keep cells separated and protected",
+            "requirement_id": "req_separation_protection",
+            "scope": "multi_battery_holder_box",
+            "source": "initial_user",
+            "subject": "multi_battery_holder_box"
+          }
+        ],
+        "revision_id": "82c020df-09b9-445a-88ca-294400391e23:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "82c020df-09b9-445a-88ca-294400391e23"
+      },
+      "contract_hash": "14b77eb2ef589de2887d15ca328afe9c5a7e0a3714ba7bf2753397dfedf3d6d6",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "invalid_shape",
+    "first_blocker_stage": "topology",
+    "first_incorrect_owner": "geometry",
+    "mode": "comparison_specification",
+    "normal_recovery_resolved": false,
+    "observed_stage": "topology",
+    "project_runtime_id": "03731295-0825-402d-9d1d-ad6eb3a99235",
+    "prompt": "Design a compact organizer box for multiple common battery sizes. It should keep cells separated and protected while making them easy to identify and remove.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output multi_battery_holder_box should have an overall envelope of approximately 152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm.\n- battery_families: ['AAA', 'AA', 'CR123a', '18350', '18650', '21700', '26650/26800'] descriptive",
+    "prompt_sha256": "6e86814c4c9f9f96de472918981b1242fd2a93d4de693759e26ba82d8e3b1695",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "9fe70dfd-0c9d-432f-b08d-83e09864ceb8",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "f98dcec6-2014-478a-be74-6a320b0b60ae",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "73138e706d7fc13f876dc7ea23128a0301ae024141136207f69372c39238082a",
+        "request_hash": "df01db71a150de170d45ce26f85407ad3d71de725ffadba06f6eb87714cc03b4",
+        "request_started_at": "2026-08-08T11:44:01.029701+00:00",
+        "response_length": 5691,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "4b37299d-dc78-4ab6-90cd-5c6d4490d7cf",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "f54e43b1-5b64-4d8c-99eb-84b8d35029fa",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "e700e908e898884ea0f8ed105026ae51ef6c7ca9a2b3b24931ed761f0fe9008c",
+        "request_hash": "8645cc6399c4a0414b9ce77419a8d8f7cce3e80a2761679241dd4ff2a6c74b7b",
+        "request_started_at": "2026-08-08T11:44:06.031769+00:00",
+        "response_length": 4149,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "80b9b520-48ff-442d-a748-6ba4d1dc1eb2",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "190546e7-9f01-46b0-b59c-f3cb87101abe",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "fc39e4900740cf31f8a6ddb285f27e3283e4d41f4c6300f94883304b1509d3eb",
+        "request_hash": "f25869c5c48ba771276e298a5322bd71bd9ea1c58f92d84bf0dad314c3263966",
+        "request_started_at": "2026-08-08T11:44:12.386412+00:00",
+        "response_length": 3872,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "measured",
+      "eligible_interpretation": false,
+      "mapping_status": null,
+      "metrics": {
+        "bounding_box_error_by_axis_mm": {
+          "x": 9.155273431815658e-06,
+          "y": 7.629394502828291e-07,
+          "z": 9.155273431815658e-06
+        },
+        "solid_count_agreement": true,
+        "surface_area_difference_mm2": 15.883568176417612,
+        "surface_area_difference_ratio": 8.50350295251799e-05,
+        "volume_difference_mm3": 509028.1750391262,
+        "volume_difference_ratio": 0.667863906004543
+      },
+      "raw_generated": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 152.4,
+            "size_y": 50.8,
+            "size_z": 165.1
+          },
+          "center_of_mass_mm": [
+            -5.973871808454853e-13,
+            0.7668366624238947,
+            75.52614849564601
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 186804.4137199099,
+          "volume_mm3": 253145.33136333476
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 19,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      },
+      "raw_reference": {
+        "authority": "mesh_derived",
+        "canonical_part_count": 1,
+        "canonical_part_ids": [
+          "multi_battery_holder_box"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 152.40000915527344,
+                "size_y": 50.79999923706055,
+                "size_z": 165.09999084472656
+              },
+              "center_of_mass_mm": [
+                76.46238250612306,
+                22.774053956793413,
+                89.33862861844999
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 186788.5301517335,
+              "volume_mm3": 762173.506402461
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 166194,
+              "vertex_count": 83099,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/container-case-003/derived-reference.json",
+        "quality_classification": "watertight_mesh_reference"
+      },
+      "status": "specification_underconstrained"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "5e71007baf5919b164cd929c73496d3e759da7f03de523595d1d0c1a2273b97c",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Overall envelope provided by comparison specification is adopted as the primary container sizing.",
+          "id": "assumption_overall_envelope",
+          "kind": "dimension",
+          "object_type": "multi_battery_holder_box",
+          "operator": "approximately",
+          "protected": true,
+          "raw_evidence": "Output multi_battery_holder_box should have an overall envelope of approximately 152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm.",
+          "requires_approval": false,
+          "source": "product_default",
+          "subject": "multi_battery_holder_box",
+          "target": null,
+          "unit": "mm",
+          "value": [
+            152.4,
+            50.8,
+            165.1
+          ]
+        },
+        {
+          "description": "Battery families to be accommodated: AAA, AA, CR123a, 18350, 18650, 21700, 26650/26800.",
+          "id": "assumption_battery_families",
+          "kind": "capacity",
+          "object_type": "battery_families",
+          "operator": "present",
+          "protected": true,
+          "raw_evidence": "battery_families: ['AAA', 'AA', 'CR123a', '18350', '18650', '21700', '26650/26800'] descriptive",
+          "requires_approval": false,
+          "source": "product_default",
+          "subject": "multi_battery_holder_box",
+          "target": "battery_families",
+          "unit": null,
+          "value": [
+            "AAA",
+            "AA",
+            "CR123a",
+            "18350",
+            "18650",
+            "21700",
+            "26650/26800"
+          ]
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "de77d805-2bd4-44ec-99a3-08496e3e7342",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "03731295-0825-402d-9d1d-ad6eb3a99235",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:04.750744",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "multi_battery_holder_box",
+          "operator": "approximately",
+          "originating_message": "Design a compact organizer box for multiple common battery sizes. It should keep cells separated and protected while making them easy to identify and remove.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output multi_battery_holder_box should have an overall envelope of approximately 152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm.\n- battery_families: ['AAA', 'AA', 'CR123a', '18350', '18650', '21700', '26650/26800'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm",
+          "record_id": "fddf53cf-4dc4-47dd-9401-86926a72e60a",
+          "requirement_id": "envelope_width",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "multi_battery_holder_box",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:44:04.750746",
+          "value": 152.4,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:04.750747",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "multi_battery_holder_box",
+          "operator": "approximately",
+          "originating_message": "Design a compact organizer box for multiple common battery sizes. It should keep cells separated and protected while making them easy to identify and remove.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output multi_battery_holder_box should have an overall envelope of approximately 152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm.\n- battery_families: ['AAA', 'AA', 'CR123a', '18350', '18650', '21700', '26650/26800'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm",
+          "record_id": "2cb7c2de-6d1b-4933-bf5d-9ffcf86bc775",
+          "requirement_id": "envelope_depth",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "multi_battery_holder_box",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:44:04.750748",
+          "value": 50.8,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:04.750748",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "multi_battery_holder_box",
+          "operator": "approximately",
+          "originating_message": "Design a compact organizer box for multiple common battery sizes. It should keep cells separated and protected while making them easy to identify and remove.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output multi_battery_holder_box should have an overall envelope of approximately 152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm.\n- battery_families: ['AAA', 'AA', 'CR123a', '18350', '18650', '21700', '26650/26800'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm",
+          "record_id": "381d3f1e-bec7-4bd9-9d53-680b7f419e85",
+          "requirement_id": "envelope_height",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "multi_battery_holder_box",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:44:04.750749",
+          "value": 165.1,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:04.750750",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "multi_battery_holder_box",
+          "operator": "present",
+          "originating_message": "Design a compact organizer box for multiple common battery sizes. It should keep cells separated and protected while making them easy to identify and remove.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output multi_battery_holder_box should have an overall envelope of approximately 152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm.\n- battery_families: ['AAA', 'AA', 'CR123a', '18350', '18650', '21700', '26650/26800'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "It should keep cells separated and protected",
+          "record_id": "e7d36dbe-b96d-4b3e-8c20-f4ee2556ad07",
+          "requirement_id": "req_separation_protection",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "multi_battery_holder_box",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "cells",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:44:04.750750",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:04.750751",
+          "explicit": true,
+          "kind": "access",
+          "object_type": "multi_battery_holder_box",
+          "operator": "present",
+          "originating_message": "Design a compact organizer box for multiple common battery sizes. It should keep cells separated and protected while making them easy to identify and remove.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output multi_battery_holder_box should have an overall envelope of approximately 152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm.\n- battery_families: ['AAA', 'AA', 'CR123a', '18350', '18650', '21700', '26650/26800'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "making them easy to identify and remove",
+          "record_id": "b4f5e026-c7f4-4587-8f10-0fa1db0739af",
+          "requirement_id": "req_identification_removal",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "multi_battery_holder_box",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "cells",
+          "tolerance": null,
+          "type": "access",
+          "unit": null,
+          "updated_at": "2026-08-08T11:44:04.750751",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:44:19.769255+00:00"
+    },
+    "revision_id": "935372a9-4682-4b50-9bdb-2ae293f116b9",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 1,
+      "total_authoritative_requirements": 5,
+      "unsupported_verifier": 4,
+      "unverifiable": 4
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 18.758116451004753,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 19,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "output_id": "multi_battery_holder_box",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "a039f89d27d7856ef114b6f2cf73b4648b00ce7649dfd1bc2ecb519d49972418",
+            "step": "837896d741d8a42e2bd31c6b053815bd50c9cc82f587bc515b9c2a4cee6e6f2b",
+            "stl": "58acfb90c064d8f602f3537d7a0800688d79e89032c4967927649ae3ad7ca37d"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 152.4,
+                "size_y": 50.8,
+                "size_z": 165.1
+              },
+              "center_of_mass_mm": [
+                -5.973871808454853e-13,
+                0.7668366624238947,
+                75.52614849564601
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 186804.4137199099,
+              "volume_mm3": 253145.33136333476
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 19,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "multi_battery_holder_box",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "82c020df-09b9-445a-88ca-294400391e23"
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "artifacts": {
+      "hashes": {},
+      "package_available": false
+    },
+    "benchmark_project_id": "container-case-003",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 0,
+      "repair_calls": 0,
+      "repair_history": [],
+      "total_transport_attempts": 1
+    },
+    "category": "container_cases",
+    "comparison_specification_hash": "1c838c835644fa095d709480887aedcff86d611b84b69e10d41fbba5b536f13f",
+    "executable_contract": {
+      "contract": null,
+      "contract_hash": null,
+      "contract_source": null,
+      "created": false
+    },
+    "failure_class": null,
+    "first_blocker_stage": "clarification_required",
+    "first_incorrect_owner": null,
+    "mode": "premise_only",
+    "normal_recovery_resolved": false,
+    "observed_stage": null,
+    "project_runtime_id": "b33582eb-4706-45df-8317-4da36d47a1ce",
+    "prompt": "Design a compact organizer box for multiple common battery sizes. It should keep cells separated and protected while making them easy to identify and remove.",
+    "prompt_sha256": "76fee8532a586533707d243e44de3d9beef3285d5174b68adf9e39abc4e37994",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "5c6611b6-63bf-4cf2-ac3f-ea97c700c42d",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "07788515-ff87-427e-9a83-bfb62747acb2",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "c629f5c4d10b76aebf4021316653fa8133e2e6f152dc15daa34e0629c94ca059",
+        "request_hash": "03068dcaf4dd4fbef31284d541b781455f5ac810a110370560fd132252d8932b",
+        "request_started_at": "2026-08-08T11:38:58.912748+00:00",
+        "response_length": 3205,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "mapping_status": "not_generated",
+      "metrics": {},
+      "raw_generated": null,
+      "raw_reference": null,
+      "status": "unavailable"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "5e71007baf5919b164cd929c73496d3e759da7f03de523595d1d0c1a2273b97c",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Common battery sizes default set",
+          "id": "assumption_battery_types",
+          "importance": "important",
+          "kind": "qualitative",
+          "label": "Common battery sizes default set",
+          "object_type": "battery",
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": "multiple common battery sizes",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "organizer box",
+          "target": "battery",
+          "tolerance": null,
+          "unit": null,
+          "value": "AA, AAA, 18650"
+        }
+      ],
+      "clarification_question_count": 1,
+      "clarification_questions": [
+        {
+          "display_order": 0,
+          "question": "Which specific battery types (e.g., AA, AAA, 18650, 9V) and quantities should the organizer box accommodate?",
+          "question_id": "a455f531-821e-41f3-924b-5ea4d4d14bf0",
+          "reason": null,
+          "requirement_id": "q_battery_types_quantities"
+        }
+      ],
+      "clarification_required": true,
+      "design_specification_id": "346e22a5-7434-4bd3-82c5-73de89b02e68",
+      "generation_ready": false,
+      "missing_requirements": [
+        {
+          "description": "Specific battery types and quantities",
+          "id": "specific_battery_types_and_quantities",
+          "importance": "critical",
+          "reason": "Specific battery types and quantities",
+          "source": "user"
+        }
+      ],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "b33582eb-4706-45df-8317-4da36d47a1ce",
+      "requirements": [],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:39:00.969062+00:00"
+    },
+    "revision_id": null,
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": null,
+      "review_required": 0,
+      "total_authoritative_requirements": 0,
+      "unsupported_verifier": 0,
+      "unverifiable": 0
+    },
+    "state": "awaiting_clarification",
+    "terminal_stage": "clarification_required",
+    "timing_seconds": 4.823657107990584,
+    "topology": {
+      "outputs": [],
+      "valid": null
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": []
+    },
+    "workflow_id": "6dae4212-e905-4864-a75f-206b0f87a06b"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

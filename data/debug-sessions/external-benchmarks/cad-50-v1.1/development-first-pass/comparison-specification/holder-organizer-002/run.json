@@ -1,0 +1,1117 @@
+{
+  "artifacts": {
+    "hashes": {
+      "single_battery_holder:brep": "e3033ea60902012d5349705931147e6bffa86922643af198eca05471cfeb0bc3",
+      "single_battery_holder:step": "fc0319ffc433cd23011382d953d1453fdc3a212a904c329ca07273fdfb0fc9ab",
+      "single_battery_holder:stl": "2dc7121810dcc1eba2d7156765c080bbf03e6483ef8902f2ff07c37ebcb11503"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "holder-organizer-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 1,
+    "repair_calls": 2,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "3cda0443da97d1d6587aadfdfc158c48f3f5c4d6f05862cf2d4e6dd66fd87ba0",
+        "extraction_succeeded": true,
+        "failure_boundary": "topology",
+        "failure_class": "invalid_shape",
+        "first_incorrect_owner": "geometry",
+        "normalized_error": "output shape is invalid",
+        "observed_stage": "topology",
+        "operation_id": "6fd15f7a-a9f8-4423-8747-d4b5282cd4db:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "590e4e56-7f4c-4c3c-b5b7-6c4df1798548",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "7cad6bf0-f0ee-48bc-a536-dc1ff658098a",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "590e4e56-7f4c-4c3c-b5b7-6c4df1798548",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "7cad6bf0-f0ee-48bc-a536-dc1ff658098a",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "007e263b090e76d57cfb9ed2b31c39118e01d06ebc413841149caf4476a396cd",
+              "request_hash": "eb080e965b374a6824bc4af9285557f61f7d3087a8b69f804bf707e51ffb5246",
+              "request_started_at": "2026-08-08T11:45:52.503833+00:00",
+              "response_length": 3653,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "007e263b090e76d57cfb9ed2b31c39118e01d06ebc413841149caf4476a396cd",
+        "repair_level": "initial",
+        "result_hash": "c327a2a22619b81953c8480b5ff9eb755f0caff496756d1484fe364615e10dbe",
+        "revision_id": "4be6ff80-5f2f-4dda-b5f3-f6ba49640d10",
+        "semantic_result": {},
+        "source_contract_valid": true,
+        "source_hash": "3cda0443da97d1d6587aadfdfc158c48f3f5c4d6f05862cf2d4e6dd66fd87ba0",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 2,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "solid_count_mismatch",
+          "schema_version": "topology-evidence-v2",
+          "valid": false
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "single_battery_holder"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 2,
+        "extracted_source_hash": "ed3d60823d54355140a450bb105794f32ac9e5fa792b5091c2ca7808a04c4fd7",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "6fd15f7a-a9f8-4423-8747-d4b5282cd4db:attempt:2",
+        "progress": {
+          "measurable_progress": true,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [
+            "topology_became_valid",
+            "solid_count_reached_expected"
+          ],
+          "progress_result": "progressed",
+          "protected_fact_regression": false,
+          "repair_level": "L2",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": "4c76a51f-ce72-46a1-af2c-d9d341edb973",
+          "attempt_number": 2,
+          "failure_class": null,
+          "level": "L2",
+          "logical_operation_id": "6256529b-8185-4fd6-b56c-d84602d2ca75",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "4c76a51f-ce72-46a1-af2c-d9d341edb973",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "6256529b-8185-4fd6-b56c-d84602d2ca75",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "174e13bb29cc2b50d5d6d2cb8875880ed082553cf741749273cf8762d6180729",
+              "request_hash": "fed000bd9c4bea3c77d0006d1c38ccf07dbeb90cd05b7db3c13978c84c0abf95",
+              "request_started_at": "2026-08-08T11:45:59.325967+00:00",
+              "response_length": 3280,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "174e13bb29cc2b50d5d6d2cb8875880ed082553cf741749273cf8762d6180729",
+        "repair_level": "L2",
+        "result_hash": "6921c0dfbcb8a7c755146d5adff7e9584e7ce938b4f667be430a3c6cb02752de",
+        "revision_id": "dc434e81-d37b-4c7b-9644-b7c5f4f7b030",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_battery_accessibility",
+            "req_secure_retention",
+            "req_wall_mounted"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "req_battery_family",
+            "req_mounting_fastener_spec",
+            "req_mounting_fasteners",
+            "req_printed_output_count",
+            "single_battery_holder_envelope_height",
+            "single_battery_holder_envelope_length",
+            "single_battery_holder_envelope_width"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "ed3d60823d54355140a450bb105794f32ac9e5fa792b5091c2ca7808a04c4fd7",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "single_battery_holder"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 2,
+        "extracted_source_hash": "ed3d60823d54355140a450bb105794f32ac9e5fa792b5091c2ca7808a04c4fd7",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "6fd15f7a-a9f8-4423-8747-d4b5282cd4db:recovery-recheck:2",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L2",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "L2",
+        "result_hash": "6921c0dfbcb8a7c755146d5adff7e9584e7ce938b4f667be430a3c6cb02752de",
+        "revision_id": "dc434e81-d37b-4c7b-9644-b7c5f4f7b030",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_battery_accessibility",
+            "req_secure_retention",
+            "req_wall_mounted"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "req_battery_family",
+            "req_mounting_fastener_spec",
+            "req_mounting_fasteners",
+            "req_printed_output_count",
+            "single_battery_holder_envelope_height",
+            "single_battery_holder_envelope_length",
+            "single_battery_holder_envelope_width"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "ed3d60823d54355140a450bb105794f32ac9e5fa792b5091c2ca7808a04c4fd7",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "single_battery_holder"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 3
+  },
+  "category": "holders_organizers",
+  "comparison_specification_hash": "acf483392a8f7ad1a8907a1e711caeb7d58915ea1bee6caa1f90c9ad9cadabdf",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "single_battery_holder",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "single_battery_holder",
+        "purpose": "Design a wall-mounted holder for a Stihl AP-series battery pack that retains the battery securely, maintains accessibility, and mounts using flush countersunk wood screws."
+      },
+      "project_id": "2336cfb5-07eb-4e9c-8aaa-dd2ae7b1672b",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": "accessible"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_battery_accessibility"
+        },
+        {
+          "authoritative_value": {
+            "value": "Stihl AP series"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_battery_family"
+        },
+        {
+          "authoritative_value": {
+            "value": "4 mm countersunk wood screws"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_mounting_fastener_spec"
+        },
+        {
+          "authoritative_value": {
+            "value": "flush countersunk wood screws"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_mounting_fasteners"
+        },
+        {
+          "authoritative_value": {
+            "value": 1
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_printed_output_count"
+        },
+        {
+          "authoritative_value": {
+            "value": "secure"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_secure_retention"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_wall_mounted"
+        },
+        {
+          "authoritative_value": {
+            "value": 87.07185049373241
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "single_battery_holder_envelope_height"
+        },
+        {
+          "authoritative_value": {
+            "value": 122.00000020000002
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "single_battery_holder_envelope_length"
+        },
+        {
+          "authoritative_value": {
+            "value": 70.0000002
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "single_battery_holder_envelope_width"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": "accessible"
+          },
+          "kind": "access",
+          "object_type": "battery_pack",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "keep the battery accessible",
+          "requirement_id": "req_battery_accessibility",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "holder"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": "Stihl AP series"
+          },
+          "kind": "qualitative",
+          "object_type": "battery_family",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "battery_family: Stihl AP series descriptive",
+          "requirement_id": "req_battery_family",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "battery_family"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": "4 mm countersunk wood screws"
+          },
+          "kind": "qualitative",
+          "object_type": "mounting_fastener",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "mounting_fastener: 4 mm countersunk wood screws descriptive",
+          "requirement_id": "req_mounting_fastener_spec",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "mounting_fastener"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": "flush countersunk wood screws"
+          },
+          "kind": "feature",
+          "object_type": "mounting_fastener",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "use flush countersunk wood screws for mounting",
+          "requirement_id": "req_mounting_fasteners",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "holder"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 1
+          },
+          "kind": "capacity",
+          "object_type": "single_battery_holder",
+          "operator": "exact",
+          "origin": "user_explicit",
+          "raw_evidence": "Provide exactly 1 printed output(s).",
+          "requirement_id": "req_printed_output_count",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "printed_output"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": "secure"
+          },
+          "kind": "retention",
+          "object_type": "battery_pack",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "It should retain the battery securely",
+          "requirement_id": "req_secure_retention",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "holder"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "orientation",
+          "object_type": "holder",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "Design a wall-mounted holder for a Stihl AP-series battery pack.",
+          "requirement_id": "req_wall_mounted",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "holder"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 87.07185049373241
+          },
+          "kind": "dimension",
+          "object_type": "single_battery_holder",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.",
+          "requirement_id": "single_battery_holder_envelope_height",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "single_battery_holder"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 122.00000020000002
+          },
+          "kind": "dimension",
+          "object_type": "single_battery_holder",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.",
+          "requirement_id": "single_battery_holder_envelope_length",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "single_battery_holder"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 70.0000002
+          },
+          "kind": "dimension",
+          "object_type": "single_battery_holder",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.",
+          "requirement_id": "single_battery_holder_envelope_width",
+          "scope": "single_battery_holder",
+          "source": "initial_user",
+          "subject": "single_battery_holder"
+        }
+      ],
+      "revision_id": "6fd15f7a-a9f8-4423-8747-d4b5282cd4db:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "6fd15f7a-a9f8-4423-8747-d4b5282cd4db"
+    },
+    "contract_hash": "b85569736ff2589d6f6e087481c5163f74ca846eebee4cca8f5dc238514cb935",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "invalid_shape",
+  "first_blocker_stage": "topology",
+  "first_incorrect_owner": "geometry",
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": "topology",
+  "project_runtime_id": "2336cfb5-07eb-4e9c-8aaa-dd2ae7b1672b",
+  "prompt": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+  "prompt_sha256": "7eb000997c4c760e841c0c5b7693c1834bc2f02343123944c7a60cbd26867c4a",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "7f1d6a51-e9bd-4c2b-a029-d06fb7219e6c",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "a3b93bdb-19c3-4f4f-ad59-e782f07a3254",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "40537fcd0aff2bd808ecc923d2032daebd40566708f3d80f51e8fcf002a6976e",
+      "request_hash": "76261e16dd709a471b169cadb6725aa1a7aaf20c9009092f256a81b72b78d8aa",
+      "request_started_at": "2026-08-08T11:45:47.503132+00:00",
+      "response_length": 7537,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "590e4e56-7f4c-4c3c-b5b7-6c4df1798548",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "7cad6bf0-f0ee-48bc-a536-dc1ff658098a",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "007e263b090e76d57cfb9ed2b31c39118e01d06ebc413841149caf4476a396cd",
+      "request_hash": "eb080e965b374a6824bc4af9285557f61f7d3087a8b69f804bf707e51ffb5246",
+      "request_started_at": "2026-08-08T11:45:52.503833+00:00",
+      "response_length": 3653,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "4c76a51f-ce72-46a1-af2c-d9d341edb973",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "6256529b-8185-4fd6-b56c-d84602d2ca75",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "174e13bb29cc2b50d5d6d2cb8875880ed082553cf741749273cf8762d6180729",
+      "request_hash": "fed000bd9c4bea3c77d0006d1c38ccf07dbeb90cd05b7db3c13978c84c0abf95",
+      "request_started_at": "2026-08-08T11:45:59.325967+00:00",
+      "response_length": 3280,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "measured",
+    "eligible_interpretation": false,
+    "mapping_status": null,
+    "metrics": {
+      "bounding_box_error_by_axis_mm": {
+        "x": 1.4210854715202004e-14,
+        "y": 0.0,
+        "z": 4.121147867408581e-13
+      },
+      "solid_count_agreement": true,
+      "surface_area_difference_mm2": 11544.198966927492,
+      "surface_area_difference_ratio": 0.2036270233304056,
+      "volume_difference_mm3": 150681.5653880526,
+      "volume_difference_ratio": 1.9365746334675193
+    },
+    "raw_generated": {
+      "authority": "analytic_brep",
+      "file_type": "step",
+      "geometry": {
+        "bounding_box_mm": {
+          "size_x": 122.0000002,
+          "size_y": 70.0000002,
+          "size_z": 87.071850493732
+        },
+        "center_of_mass_mm": [
+          -8.433378386267734,
+          1.7777510260251783e-15,
+          36.90374600151364
+        ],
+        "component_count": 1,
+        "solid_count": 1,
+        "surface_area_mm2": 68237.06211503653,
+        "volume_mm3": 228489.85781531158
+      },
+      "mesh": {},
+      "quality_classification": "analytic_brep_authoritative",
+      "schema_version": "external-cad-reference-derived-v1",
+      "topology": {
+        "face_count": 19,
+        "schema_version": "topology-evidence-v2",
+        "shell_count": 1,
+        "valid": true
+      },
+      "units": "unverified_model_units"
+    },
+    "raw_reference": {
+      "authority": "analytic_brep",
+      "canonical_part_count": 1,
+      "canonical_part_ids": [
+        "single_battery_holder"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 122.00000020000002,
+              "size_y": 70.0000002,
+              "size_z": 87.07185049373241
+            },
+            "center_of_mass_mm": [
+              0.0009139602505805462,
+              4.307213077636142,
+              33.68943142732169
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 56692.86314810904,
+            "volume_mm3": 77808.29242725897
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 191,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/holder-organizer-002/derived-reference.json",
+      "quality_classification": "analytic_brep_authoritative"
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "8178426c9d256f88fa177e962709582868a04f770fe3c5b0d3fddbf729ac9cbf",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Wall-mounted configuration uses a vertical planar wall mount with standard screw spacing and orientation.",
+        "id": "assumption_wall_mount_orientation",
+        "requires_approval": false,
+        "source": "ai_assumption"
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "e9e254d8-4b9a-4823-8130-950bb5d5432f",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "2336cfb5-07eb-4e9c-8aaa-dd2ae7b1672b",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090626",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "single_battery_holder",
+        "operator": "approximately",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.",
+        "record_id": "5788b2b7-ec8c-4fc9-a833-3a8875aa6cbc",
+        "requirement_id": "single_battery_holder_envelope_length",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "single_battery_holder",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:45:52.090629",
+        "value": 122.00000020000002,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090631",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "single_battery_holder",
+        "operator": "approximately",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.",
+        "record_id": "0b683488-a419-4cf2-b3a6-725e3c1c218a",
+        "requirement_id": "single_battery_holder_envelope_width",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "single_battery_holder",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:45:52.090632",
+        "value": 70.0000002,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090634",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "single_battery_holder",
+        "operator": "approximately",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.",
+        "record_id": "f3723e34-245f-4b2e-89fd-0da468072556",
+        "requirement_id": "single_battery_holder_envelope_height",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "single_battery_holder",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:45:52.090635",
+        "value": 87.07185049373241,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090637",
+        "explicit": true,
+        "kind": "orientation",
+        "object_type": "holder",
+        "operator": "present",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Design a wall-mounted holder for a Stihl AP-series battery pack.",
+        "record_id": "554d24f3-5463-48fa-9f0a-1e55a35ebf98",
+        "requirement_id": "req_wall_mounted",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "holder",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "wall",
+        "tolerance": null,
+        "type": "orientation",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:52.090638",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090640",
+        "explicit": true,
+        "kind": "retention",
+        "object_type": "battery_pack",
+        "operator": "qualitative",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "It should retain the battery securely",
+        "record_id": "2d0e5ae5-9185-4ce5-9410-7227bd332843",
+        "requirement_id": "req_secure_retention",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "holder",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "battery_pack",
+        "tolerance": null,
+        "type": "retention",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:52.090641",
+        "value": "secure",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090643",
+        "explicit": true,
+        "kind": "access",
+        "object_type": "battery_pack",
+        "operator": "qualitative",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "keep the battery accessible",
+        "record_id": "f423cb0f-d2fe-41fc-a8c4-ed214c885912",
+        "requirement_id": "req_battery_accessibility",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "holder",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "battery_pack",
+        "tolerance": null,
+        "type": "access",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:52.090644",
+        "value": "accessible",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090646",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "mounting_fastener",
+        "operator": "present",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "use flush countersunk wood screws for mounting",
+        "record_id": "5ee98da2-81b8-4fe6-92e7-25ff188308d9",
+        "requirement_id": "req_mounting_fasteners",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "holder",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "wood screws",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:52.090647",
+        "value": "flush countersunk wood screws",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090649",
+        "explicit": true,
+        "kind": "capacity",
+        "object_type": "single_battery_holder",
+        "operator": "exact",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Provide exactly 1 printed output(s).",
+        "record_id": "8833048a-d739-4f67-8119-c9043c9685b8",
+        "requirement_id": "req_printed_output_count",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "printed_output",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "capacity",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:52.090651",
+        "value": 1,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090652",
+        "explicit": true,
+        "kind": "qualitative",
+        "object_type": "battery_family",
+        "operator": "qualitative",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "battery_family: Stihl AP series descriptive",
+        "record_id": "6b6bbdcd-6659-4e79-bdfb-06814eddf009",
+        "requirement_id": "req_battery_family",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "battery_family",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "qualitative_behavior",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:52.090654",
+        "value": "Stihl AP series",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:45:52.090655",
+        "explicit": true,
+        "kind": "qualitative",
+        "object_type": "mounting_fastener",
+        "operator": "qualitative",
+        "originating_message": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "mounting_fastener: 4 mm countersunk wood screws descriptive",
+        "record_id": "81a2149e-a12d-4653-9056-9ec0dbb6aecc",
+        "requirement_id": "req_mounting_fastener_spec",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "mounting_fastener",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "qualitative_behavior",
+        "unit": null,
+        "updated_at": "2026-08-08T11:45:52.090657",
+        "value": "4 mm countersunk wood screws",
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:46:06.696410+00:00"
+  },
+  "revision_id": "dc434e81-d37b-4c7b-9644-b7c5f4f7b030",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 3,
+    "total_authoritative_requirements": 10,
+    "unsupported_verifier": 7,
+    "unverifiable": 7
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 19.21477880301245,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 19,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "output_id": "single_battery_holder",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 3,
+    "job_ids": [
+      "6fd15f7a-a9f8-4423-8747-d4b5282cd4db:attempt:1:worker",
+      "6fd15f7a-a9f8-4423-8747-d4b5282cd4db:attempt:2:worker",
+      "6fd15f7a-a9f8-4423-8747-d4b5282cd4db:recovery-recheck:2:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "e3033ea60902012d5349705931147e6bffa86922643af198eca05471cfeb0bc3",
+          "step": "fc0319ffc433cd23011382d953d1453fdc3a212a904c329ca07273fdfb0fc9ab",
+          "stl": "2dc7121810dcc1eba2d7156765c080bbf03e6483ef8902f2ff07c37ebcb11503"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 122.0000002,
+              "size_y": 70.0000002,
+              "size_z": 87.071850493732
+            },
+            "center_of_mass_mm": [
+              -8.433378386267734,
+              1.7777510260251783e-15,
+              36.90374600151364
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 68237.06211503653,
+            "volume_mm3": 228489.85781531158
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 19,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "single_battery_holder",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/2336cfb5-07eb-4e9c-8aaa-dd2ae7b1672b/revisions/dc434e81-d37b-4c7b-9644-b7c5f4f7b030/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "6fd15f7a-a9f8-4423-8747-d4b5282cd4db"
+}

@@ -1,0 +1,41 @@
+{
+  "benchmark_project_id": "stand-support-002",
+  "comparison_specification": {
+    "benchmark_project_id": "stand-support-002",
+    "category": "stand_supports",
+    "failure_class": null,
+    "first_blocker_stage": "replacement_excluded",
+    "first_incorrect_owner": null,
+    "mode": "comparison_specification",
+    "prompt_sha256": "0b5ccdaaeb9d20deeb9c686888743414c5708a0a7cb61e4fa8ab14caea77c04c",
+    "provider_calls": 0,
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "status": "replacement_required"
+    },
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "state": "excluded_replacement_required",
+    "terminal_stage": "replacement_excluded",
+    "worker_executions": 0
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "benchmark_project_id": "stand-support-002",
+    "category": "stand_supports",
+    "failure_class": null,
+    "first_blocker_stage": "replacement_excluded",
+    "first_incorrect_owner": null,
+    "mode": "premise_only",
+    "prompt_sha256": "92b9ca3c48c8050a2e2ee8745f1604155d4b505f2de121d75e610c119c859463",
+    "provider_calls": 0,
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "status": "replacement_required"
+    },
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "state": "excluded_replacement_required",
+    "terminal_stage": "replacement_excluded",
+    "worker_executions": 0
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

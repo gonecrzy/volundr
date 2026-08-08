@@ -1,0 +1,1043 @@
+{
+  "benchmark_project_id": "electronics-enclosure-002",
+  "comparison_specification": {
+    "artifacts": {
+      "hashes": {
+        "lcr_meter_housing:brep": "6eaba2f9a53c0141df3d7766d1b4c66781d1ce7c817680d78d4f87419a63718f",
+        "lcr_meter_housing:step": "bdb70334d86d55cb9d292a35250b73b2ab994e633c2e9cc032a0524433864cd4",
+        "lcr_meter_housing:stl": "0c3dc11d9652f8d7ae6907c9b2687732e4bfd820f7e568aaf8672915224ce254"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "electronics-enclosure-002",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 2,
+      "repair_calls": 0,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "57ffdb686ae7aa4efb93d382cb9ade7d073765792e8f54213de24d5cf7cb58f5",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "84567882-791f-4851-ada2-5ada2fc6f872:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "fec170a7-74a5-41eb-9a00-67c9fd2edeea",
+            "attempt_number": 1,
+            "failure_class": null,
+            "level": "initial",
+            "logical_operation_id": "edf28e69-8358-4c0d-9d65-d4c9ab02d169",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "fec170a7-74a5-41eb-9a00-67c9fd2edeea",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "edf28e69-8358-4c0d-9d65-d4c9ab02d169",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "e4a438cf9d82418f9c7084c248a2265c3a7164ec005791293338efb40593f204",
+                "request_hash": "31ecf09c5295d105d9dbbcd0ee2772a7d523d3665f66ccc78dfc086503a12354",
+                "request_started_at": "2026-08-08T11:44:35.195505+00:00",
+                "response_length": 3296,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "e4a438cf9d82418f9c7084c248a2265c3a7164ec005791293338efb40593f204",
+          "repair_level": "initial",
+          "result_hash": "9965c311c06613628f59cfab8f3c73dbc29d43f95c8ceb652c5856e9ace9fe83",
+          "revision_id": "98de22f5-feab-4785-87ab-d1e546d4bb43",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_access_controls",
+              "req_access_display"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_height",
+              "envelope_length",
+              "envelope_width",
+              "req_fit_instrument",
+              "req_protect_handling"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "57ffdb686ae7aa4efb93d382cb9ade7d073765792e8f54213de24d5cf7cb58f5",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "lcr_meter_housing"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "57ffdb686ae7aa4efb93d382cb9ade7d073765792e8f54213de24d5cf7cb58f5",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": null,
+          "normalized_error": null,
+          "observed_stage": null,
+          "operation_id": "84567882-791f-4851-ada2-5ada2fc6f872:recovery-recheck:1",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L0",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": null,
+            "attempt_number": null,
+            "failure_class": null,
+            "level": null,
+            "logical_operation_id": null,
+            "status": null,
+            "transport_attempts": []
+          },
+          "raw_response_hash": null,
+          "repair_level": "initial",
+          "result_hash": "9965c311c06613628f59cfab8f3c73dbc29d43f95c8ceb652c5856e9ace9fe83",
+          "revision_id": "98de22f5-feab-4785-87ab-d1e546d4bb43",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_access_controls",
+              "req_access_display"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_height",
+              "envelope_length",
+              "envelope_width",
+              "req_fit_instrument",
+              "req_protect_handling"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "57ffdb686ae7aa4efb93d382cb9ade7d073765792e8f54213de24d5cf7cb58f5",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "lcr_meter_housing"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 2
+    },
+    "category": "electronics_enclosures",
+    "comparison_specification_hash": "ca252b59d505853880d15adcecb4e19c74a115730230df874c6052cf1f16e7da",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "lcr_meter_housing",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "lcr_meter_housing",
+          "purpose": "Compact protective housing for an ARCELI LCR-T4 meter with accessible controls and display."
+        },
+        "project_id": "8975b7e5-719c-4df7-90e4-eac2da8b9a55",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": 18.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_height"
+          },
+          {
+            "authoritative_value": {
+              "value": 112.5
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_length"
+          },
+          {
+            "authoritative_value": {
+              "value": 66.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_width"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_access_controls"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_access_display"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_fit_instrument"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_protect_handling"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 18.0
+            },
+            "kind": "dimension",
+            "object_type": "lcr_meter_housing",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.",
+            "requirement_id": "envelope_height",
+            "scope": "lcr_meter_housing",
+            "source": "initial_user",
+            "subject": "lcr_meter_housing"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 112.5
+            },
+            "kind": "dimension",
+            "object_type": "lcr_meter_housing",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.",
+            "requirement_id": "envelope_length",
+            "scope": "lcr_meter_housing",
+            "source": "initial_user",
+            "subject": "lcr_meter_housing"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 66.0
+            },
+            "kind": "dimension",
+            "object_type": "lcr_meter_housing",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.",
+            "requirement_id": "envelope_width",
+            "scope": "lcr_meter_housing",
+            "source": "initial_user",
+            "subject": "lcr_meter_housing"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "access",
+            "object_type": "housing",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "leave the controls and display accessible",
+            "requirement_id": "req_access_controls",
+            "scope": "lcr_meter_housing",
+            "source": "initial_user",
+            "subject": "housing"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "access",
+            "object_type": "housing",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "leave the controls and display accessible",
+            "requirement_id": "req_access_display",
+            "scope": "lcr_meter_housing",
+            "source": "initial_user",
+            "subject": "housing"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "capacity",
+            "object_type": "housing",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "It should fit the instrument",
+            "requirement_id": "req_fit_instrument",
+            "scope": "lcr_meter_housing",
+            "source": "initial_user",
+            "subject": "housing"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "qualitative",
+            "object_type": "housing",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "protect it during handling",
+            "requirement_id": "req_protect_handling",
+            "scope": "lcr_meter_housing",
+            "source": "initial_user",
+            "subject": "housing"
+          }
+        ],
+        "revision_id": "84567882-791f-4851-ada2-5ada2fc6f872:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "84567882-791f-4851-ada2-5ada2fc6f872"
+      },
+      "contract_hash": "641083dc81007973af784d42d5c9fef0f7e3932bd4a7a925bf161e7ed7893db7",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "semantic_requirement_unverifiable",
+    "first_blocker_stage": "semantic_verification",
+    "first_incorrect_owner": "application",
+    "mode": "comparison_specification",
+    "normal_recovery_resolved": false,
+    "observed_stage": "semantic_measurement",
+    "project_runtime_id": "8975b7e5-719c-4df7-90e4-eac2da8b9a55",
+    "prompt": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.\n- device: ARCELI LCR-T4 meter descriptive",
+    "prompt_sha256": "5dee092a9e0ba8c111e18b20b36d854149a8b97b2bd284eafc13c1b1b04d35e1",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "c2299b38-4560-4e4d-a6a2-b25bad401c11",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "45277bd4-8783-41b6-8f39-aab060dffac7",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "bf9fe0363ed3128740df45c94581b40ae69f1b36c124bf62bf34ff217602ac87",
+        "request_hash": "82e2be8a8dbdd17f7fc50018d6f1cebecc073f1c6f9c092104db34e2d23d0143",
+        "request_started_at": "2026-08-08T11:44:30.193818+00:00",
+        "response_length": 5959,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "fec170a7-74a5-41eb-9a00-67c9fd2edeea",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "edf28e69-8358-4c0d-9d65-d4c9ab02d169",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "e4a438cf9d82418f9c7084c248a2265c3a7164ec005791293338efb40593f204",
+        "request_hash": "31ecf09c5295d105d9dbbcd0ee2772a7d523d3665f66ccc78dfc086503a12354",
+        "request_started_at": "2026-08-08T11:44:35.195505+00:00",
+        "response_length": 3296,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "measured",
+      "eligible_interpretation": false,
+      "mapping_status": null,
+      "metrics": {
+        "bounding_box_error_by_axis_mm": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "solid_count_agreement": true,
+        "surface_area_difference_mm2": 1720.4262400007137,
+        "surface_area_difference_ratio": 0.06179744678619712,
+        "volume_difference_mm3": 7984.371524669597,
+        "volume_difference_ratio": 0.1973895733992261
+      },
+      "raw_generated": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 112.5,
+            "size_y": 66.0,
+            "size_z": 18.0
+          },
+          "center_of_mass_mm": [
+            -0.32674743355552666,
+            -9.463560504667086e-16,
+            4.340268546510486
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 26119.336233567734,
+          "volume_mm3": 32465.44245066625
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 22,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      },
+      "raw_reference": {
+        "authority": "mesh_derived",
+        "canonical_part_count": 1,
+        "canonical_part_ids": [
+          "lcr_meter_housing"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "3mf",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 112.5,
+                "size_y": 66.0,
+                "size_z": 18.0
+              },
+              "center_of_mass_mm": [
+                59.49890273463818,
+                29.86569140047674,
+                2.323307631794944
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 27839.762473568448,
+              "volume_mm3": 40449.81397533585
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 4890,
+              "vertex_count": 2447,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-002/derived-reference.json",
+        "quality_classification": "watertight_mesh_reference"
+      },
+      "status": "specification_underconstrained"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "d271587831b513c985f8ecc32397f07eaf8225acbd0e95333bb5552ffc7f6acc",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Housing requires a removable fit clearance for easy insertion and removal of the ARCELI LCR-T4 meter.",
+          "id": "assumption_removable_fit",
+          "importance": "important",
+          "kind": "fit",
+          "label": "Removable fit clearance",
+          "object_type": "housing",
+          "operator": "range",
+          "protected": true,
+          "raw_evidence": "protect it during handling, and leave the controls and display accessible",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "housing",
+          "target": "meter",
+          "tolerance": null,
+          "unit": "mm",
+          "value": [
+            0.3,
+            0.5
+          ]
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "95a98a8a-bbaa-4fdc-907f-b4b2403c0750",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "8975b7e5-719c-4df7-90e4-eac2da8b9a55",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:33.898865",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "lcr_meter_housing",
+          "operator": "approximately",
+          "originating_message": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.\n- device: ARCELI LCR-T4 meter descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.",
+          "record_id": "50d97e6b-7525-4f49-bf7e-f0a7117878fd",
+          "requirement_id": "envelope_length",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "lcr_meter_housing",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:44:33.898867",
+          "value": 112.5,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:33.898868",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "lcr_meter_housing",
+          "operator": "approximately",
+          "originating_message": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.\n- device: ARCELI LCR-T4 meter descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.",
+          "record_id": "735eadc1-664b-41b8-9e62-35ed5fb2f465",
+          "requirement_id": "envelope_width",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "lcr_meter_housing",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:44:33.898869",
+          "value": 66.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:33.898870",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "lcr_meter_housing",
+          "operator": "approximately",
+          "originating_message": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.\n- device: ARCELI LCR-T4 meter descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.",
+          "record_id": "54e083f1-f08d-4be8-877e-ff47628a9717",
+          "requirement_id": "envelope_height",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "lcr_meter_housing",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:44:33.898870",
+          "value": 18.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:33.898871",
+          "explicit": true,
+          "kind": "capacity",
+          "object_type": "housing",
+          "operator": "present",
+          "originating_message": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.\n- device: ARCELI LCR-T4 meter descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "It should fit the instrument",
+          "record_id": "1abc7c10-970a-49a9-a790-fb92303c2f86",
+          "requirement_id": "req_fit_instrument",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "housing",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "ARCELI LCR-T4 meter",
+          "tolerance": null,
+          "type": "capacity",
+          "unit": null,
+          "updated_at": "2026-08-08T11:44:33.898871",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:33.898872",
+          "explicit": true,
+          "kind": "qualitative",
+          "object_type": "housing",
+          "operator": "present",
+          "originating_message": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.\n- device: ARCELI LCR-T4 meter descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "protect it during handling",
+          "record_id": "1960ad3d-882d-4f0a-a70c-e6836c0e7165",
+          "requirement_id": "req_protect_handling",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "housing",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "qualitative_behavior",
+          "unit": null,
+          "updated_at": "2026-08-08T11:44:33.898872",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:33.898873",
+          "explicit": true,
+          "kind": "access",
+          "object_type": "housing",
+          "operator": "present",
+          "originating_message": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.\n- device: ARCELI LCR-T4 meter descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "leave the controls and display accessible",
+          "record_id": "316d6e7d-08bc-42ae-934a-49983a48ad83",
+          "requirement_id": "req_access_controls",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "housing",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "controls",
+          "tolerance": null,
+          "type": "access",
+          "unit": null,
+          "updated_at": "2026-08-08T11:44:33.898874",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:44:33.898874",
+          "explicit": true,
+          "kind": "access",
+          "object_type": "housing",
+          "operator": "present",
+          "originating_message": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.\n- device: ARCELI LCR-T4 meter descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "leave the controls and display accessible",
+          "record_id": "b610caea-a905-450f-bbbb-42b444f9517b",
+          "requirement_id": "req_access_display",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "housing",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "display",
+          "tolerance": null,
+          "type": "access",
+          "unit": null,
+          "updated_at": "2026-08-08T11:44:33.898875",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:44:42.760291+00:00"
+    },
+    "revision_id": "98de22f5-feab-4785-87ab-d1e546d4bb43",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 2,
+      "total_authoritative_requirements": 7,
+      "unsupported_verifier": 5,
+      "unverifiable": 5
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 12.586648774988134,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 22,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "output_id": "lcr_meter_housing",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "6eaba2f9a53c0141df3d7766d1b4c66781d1ce7c817680d78d4f87419a63718f",
+            "step": "bdb70334d86d55cb9d292a35250b73b2ab994e633c2e9cc032a0524433864cd4",
+            "stl": "0c3dc11d9652f8d7ae6907c9b2687732e4bfd820f7e568aaf8672915224ce254"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 112.5,
+                "size_y": 66.0,
+                "size_z": 18.0
+              },
+              "center_of_mass_mm": [
+                -0.32674743355552666,
+                -9.463560504667086e-16,
+                4.340268546510486
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 26119.336233567734,
+              "volume_mm3": 32465.44245066625
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 22,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "lcr_meter_housing",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "84567882-791f-4851-ada2-5ada2fc6f872"
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "artifacts": {
+      "hashes": {},
+      "package_available": false
+    },
+    "benchmark_project_id": "electronics-enclosure-002",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 0,
+      "repair_calls": 0,
+      "repair_history": [],
+      "total_transport_attempts": 2
+    },
+    "category": "electronics_enclosures",
+    "comparison_specification_hash": "ca252b59d505853880d15adcecb4e19c74a115730230df874c6052cf1f16e7da",
+    "executable_contract": {
+      "contract": null,
+      "contract_hash": null,
+      "contract_source": null,
+      "created": false
+    },
+    "failure_class": null,
+    "first_blocker_stage": "clarification_required",
+    "first_incorrect_owner": null,
+    "mode": "premise_only",
+    "normal_recovery_resolved": false,
+    "observed_stage": null,
+    "project_runtime_id": "06594de6-b9e9-4b19-8cba-81a643525d28",
+    "prompt": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.",
+    "prompt_sha256": "6c6740ed04ad8c74ad9a6a343fe502ea28c51c1d69b8e6f2b10630d46184a774",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "0b16e2ac-635a-4ef0-8308-1bd050b42f83",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "899058a6-826f-40a9-9bea-b5d51c81dbb2",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "ad91012645f13c987bf3e5a37b0ab6d6cd1ab8918e879138fcd4c5aa68a190bf",
+        "request_hash": "1f410b2d1e7c9ed5b755567ee1273254334198b1728d3cb7451f5a72ada10bb5",
+        "request_started_at": "2026-08-08T11:39:08.920369+00:00",
+        "response_length": 4045,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "f4743832-48c9-4b89-8c27-362064bd5fa6",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "10249202-cd35-4f6b-8d2a-d8550ee948cd",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "69eee29596abb348012c02285a0bd40006c966a8500e60e89e24cf474e98d89c",
+        "request_hash": "30d26f58ad3b6aa5e70e7af74b7eaf7ed31159910bb64a6541ded94bd77d66f8",
+        "request_started_at": "2026-08-08T11:39:13.923270+00:00",
+        "response_length": 4107,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "mapping_status": "not_generated",
+      "metrics": {},
+      "raw_generated": null,
+      "raw_reference": null,
+      "status": "unavailable"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "d271587831b513c985f8ecc32397f07eaf8225acbd0e95333bb5552ffc7f6acc",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "General close-fit clearance applied per side for protective instrument enclosure.",
+          "id": "assumption_clearance",
+          "importance": "important",
+          "kind": "clearance",
+          "object_type": "housing",
+          "operator": "range",
+          "protected": false,
+          "raw_evidence": null,
+          "requires_approval": false,
+          "source": "product_default",
+          "subject": "housing",
+          "target": "ARCELI LCR-T4 meter",
+          "tolerance": null,
+          "unit": "mm",
+          "value": [
+            0.15,
+            0.25
+          ]
+        }
+      ],
+      "clarification_question_count": 1,
+      "clarification_questions": [
+        {
+          "display_order": 0,
+          "question": "What are the exact external dimensions (length, width, height) of the ARCELI LCR-T4 meter, including the display and control placement relative to the edges?",
+          "question_id": "3c7109d2-2bd5-4813-8d8e-4ed9ae819a5f",
+          "reason": "Exact physical dimensions of the target device are required to model a properly fitting protective housing while keeping controls and display accessible.",
+          "requirement_id": "q_missing_mating_dimensions"
+        }
+      ],
+      "clarification_required": true,
+      "design_specification_id": "c26e0834-df09-4c69-aced-f019293db122",
+      "generation_ready": false,
+      "missing_requirements": [
+        {
+          "description": "ARCELI LCR-T4 meter exact physical dimensions and component locations",
+          "id": "arceli_lcr_t4_meter_exact_physical_dimensions_and_component_locations",
+          "importance": "critical",
+          "reason": "ARCELI LCR-T4 meter exact physical dimensions and component locations",
+          "source": "user"
+        }
+      ],
+      "provider_calls": 2,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 1,
+      "schema_retries": 2,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "06594de6-b9e9-4b19-8cba-81a643525d28",
+      "requirements": [],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:39:16.277432+00:00"
+    },
+    "revision_id": null,
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": null,
+      "review_required": 0,
+      "total_authoritative_requirements": 0,
+      "unsupported_verifier": 0,
+      "unverifiable": 0
+    },
+    "state": "awaiting_clarification",
+    "terminal_stage": "clarification_required",
+    "timing_seconds": 9.49616538999544,
+    "topology": {
+      "outputs": [],
+      "valid": null
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": []
+    },
+    "workflow_id": "91d33723-741e-469d-9ae9-7fca9111c899"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

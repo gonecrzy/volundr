@@ -1,0 +1,25 @@
+{
+  "benchmark_project_id": "functional-assembly-002",
+  "category": "functional_assemblies",
+  "failure_class": null,
+  "first_blocker_stage": "replacement_excluded",
+  "first_incorrect_owner": null,
+  "mode": "comparison_specification",
+  "prompt_sha256": "facc25077ce5641bf4edaaaac71213151d8150fc4d38ed140ee1c316ecf7f91a",
+  "provider_calls": 0,
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "status": "replacement_required"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "state": "excluded_replacement_required",
+  "terminal_stage": "replacement_excluded",
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions": 0,
+  "worker_executions_reconciled": true
+}

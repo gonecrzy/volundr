@@ -1,0 +1,170 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "jig-guide-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "jig_guides",
+  "comparison_specification_hash": "61cc817a275bde8cdd5f17a31244cbee23705426bd72cc8339d99fdd960fce6e",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "4c313ac1-e3f1-4643-84af-fdb17b0d0e21",
+  "prompt": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.",
+  "prompt_sha256": "7508cf1cddc0c3228059782282a2d6ee920882a0c171f072811057ec21c4c614",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "b4cbb9a9-0e36-4aa3-b6a6-3c6f6393a60c",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "dabd4208-aced-4146-b066-392db2b302c8",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "9501b4ad8850e01c84afe8937bf48cfe0d58c1db448e788effce1f5f85dcfe67",
+      "request_hash": "22eaccccc5cb4f56204d231fb1ec9c2222d13ffa6624b3d24d9217c2c809bd8d",
+      "request_started_at": "2026-08-08T11:40:06.217190+00:00",
+      "response_length": 5078,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "f8d42b56222452775e5e5fa68f2ad741f3c1771d3d568117064f40da1600d83c",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Standard functional wall thickness of 3.0mm applied for rigid jig structure.",
+        "id": "assumption_jig_material_and_thickness",
+        "importance": "important",
+        "kind": "qualitative",
+        "object_type": "routing jig",
+        "operator": "qualitative",
+        "protected": true,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "routing jig",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": 3.0
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact dimensions, collar size, and base geometry of the specific Domino-style router to ensure an accurate sliding or guiding fit?",
+        "question_id": "837d7c3f-c1e1-4869-817b-8d0df6c25282",
+        "reason": "Missing mating dimensions and essential tool-guidance interface geometry.",
+        "requirement_id": "q_router_dimensions"
+      },
+      {
+        "display_order": 1,
+        "question": "What are the dimensions of the workpieces being positioned and joined, and what range of stock thicknesses must the repeatable stops accommodate?",
+        "question_id": "79a1b4a5-9239-45cd-88c7-858faffa022d",
+        "reason": "Missing mating dimensions and workpiece range context for stops and positioning.",
+        "requirement_id": "q_workpiece_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "ec7124de-69a8-46c8-b01a-77492d3baa86",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Exact mating geometry and collar/base dimensions of the Domino-style router",
+        "id": "exact_mating_geometry_and_collar_base_dimensions_of_the_domino_style_router",
+        "importance": "critical",
+        "reason": "Exact mating geometry and collar/base dimensions of the Domino-style router",
+        "source": "user"
+      },
+      {
+        "description": "Workpiece dimensions and stock thickness range for repeatable stops",
+        "id": "workpiece_dimensions_and_stock_thickness_range_for_repeatable_stops",
+        "importance": "critical",
+        "reason": "Workpiece dimensions and stock thickness range for repeatable stops",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "4c313ac1-e3f1-4643-84af-fdb17b0d0e21",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:40:09.339868+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 5.6215129969932605,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "890efbe5-804a-47b1-a14e-ec3074ff2acb"
+}

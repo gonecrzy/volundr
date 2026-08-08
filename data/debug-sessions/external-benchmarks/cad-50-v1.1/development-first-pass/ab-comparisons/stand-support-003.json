@@ -1,0 +1,1693 @@
+{
+  "benchmark_project_id": "stand-support-003",
+  "comparison_specification": {
+    "artifacts": {
+      "hashes": {
+        "stand:brep": "02362bdc5328a2df119f0018a527c54650f5225375a98a2c3368778182239bb9",
+        "stand:step": "730e16f0d65a2ff825a302d50a3c462548a36ad823b7ef51bb5dfe3f49af1dfd",
+        "stand:stl": "93b86efc773fec7d24cdbc5f5f54ef4cc3db389dba45f4e9361c673fa36f86b3"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "stand-support-003",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 2,
+      "repair_calls": 0,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "1cc16f142e2893a4bf759c79636825bf8f4e5e442b91124f704f6dcb17d98a1d",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "88533e54-70e4-4c45-b640-fb42e48b27fe:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "a8fb42f9-950d-4f5e-9228-4d7c7477ba98",
+            "attempt_number": 1,
+            "failure_class": null,
+            "level": "initial",
+            "logical_operation_id": "f86985e2-3cf0-4ecb-9e08-49d27889b9a3",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "a8fb42f9-950d-4f5e-9228-4d7c7477ba98",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "f86985e2-3cf0-4ecb-9e08-49d27889b9a3",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "3b66f266b3bd2b06c9c3f3e2c7a54958f909da993afc4a1102433efb6c282bcb",
+                "request_hash": "338bcff103a54140e25c929bcb3bbb24a39b0ea5ee588d06b1e6f81ed6d55842",
+                "request_started_at": "2026-08-08T11:48:25.170611+00:00",
+                "response_length": 2924,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "3b66f266b3bd2b06c9c3f3e2c7a54958f909da993afc4a1102433efb6c282bcb",
+          "repair_level": "initial",
+          "result_hash": "17a526799ca9f125880ec7e3b23a55aca50ec4d1cb19eaff5643600ab9a25673",
+          "revision_id": "5e15cc20-80e9-494b-b732-d898d2fc82e1",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "viewing_angle_support"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_depth",
+              "envelope_height",
+              "envelope_width",
+              "folio_case",
+              "folio_case_compatibility"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "1cc16f142e2893a4bf759c79636825bf8f4e5e442b91124f704f6dcb17d98a1d",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "stand"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "1cc16f142e2893a4bf759c79636825bf8f4e5e442b91124f704f6dcb17d98a1d",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": null,
+          "normalized_error": null,
+          "observed_stage": null,
+          "operation_id": "88533e54-70e4-4c45-b640-fb42e48b27fe:recovery-recheck:1",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L0",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": null,
+            "attempt_number": null,
+            "failure_class": null,
+            "level": null,
+            "logical_operation_id": null,
+            "status": null,
+            "transport_attempts": []
+          },
+          "raw_response_hash": null,
+          "repair_level": "initial",
+          "result_hash": "17a526799ca9f125880ec7e3b23a55aca50ec4d1cb19eaff5643600ab9a25673",
+          "revision_id": "5e15cc20-80e9-494b-b732-d898d2fc82e1",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "viewing_angle_support"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_depth",
+              "envelope_height",
+              "envelope_width",
+              "folio_case",
+              "folio_case_compatibility"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "1cc16f142e2893a4bf759c79636825bf8f4e5e442b91124f704f6dcb17d98a1d",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "stand"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 2
+    },
+    "category": "stand_supports",
+    "comparison_specification_hash": "31efba0936547ea00a46aba686242b04c89e0328fa0e1cde91e7c0efd78cd0a6",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "stand",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "stand",
+          "purpose": "Design a stable stand for a reMarkable 2 tablet."
+        },
+        "project_id": "567e6dbe-ef5f-4963-9d37-3b78e1fb4654",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": false
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "folio_case"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "folio_case_compatibility"
+          },
+          {
+            "authoritative_value": {
+              "value": "comfortable viewing angle"
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "viewing_angle_support"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 70.0
+            },
+            "kind": "dimension",
+            "object_type": "stand",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm",
+            "requirement_id": "envelope_depth",
+            "scope": "stand",
+            "source": "volundr_proposal",
+            "subject": "remarkable_stand"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 89.3500213623047
+            },
+            "kind": "dimension",
+            "object_type": "stand",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm",
+            "requirement_id": "envelope_height",
+            "scope": "stand",
+            "source": "volundr_proposal",
+            "subject": "remarkable_stand"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 66.98625373840332
+            },
+            "kind": "dimension",
+            "object_type": "stand",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm",
+            "requirement_id": "envelope_width",
+            "scope": "stand",
+            "source": "volundr_proposal",
+            "subject": "remarkable_stand"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": false
+            },
+            "kind": "feature",
+            "object_type": "folio_case",
+            "operator": "absent",
+            "origin": "user_explicit",
+            "raw_evidence": "without a folio case",
+            "requirement_id": "folio_case",
+            "scope": "stand",
+            "source": "initial_user"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "folio_case",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "usable with or without a folio case",
+            "requirement_id": "folio_case_compatibility",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": "comfortable viewing angle"
+            },
+            "kind": "orientation",
+            "object_type": "tablet",
+            "operator": "qualitative",
+            "origin": "user_explicit",
+            "raw_evidence": "support the tablet at a comfortable viewing angle",
+            "requirement_id": "viewing_angle_support",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand"
+          }
+        ],
+        "revision_id": "88533e54-70e4-4c45-b640-fb42e48b27fe:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "88533e54-70e4-4c45-b640-fb42e48b27fe"
+      },
+      "contract_hash": "4fbe58918f495777c60a51a15347bfb83d036a4907e7cce1c693b173f6d69662",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "semantic_requirement_unverifiable",
+    "first_blocker_stage": "semantic_verification",
+    "first_incorrect_owner": "application",
+    "mode": "comparison_specification",
+    "normal_recovery_resolved": false,
+    "observed_stage": "semantic_measurement",
+    "project_runtime_id": "567e6dbe-ef5f-4963-9d37-3b78e1fb4654",
+    "prompt": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output remarkable_stand should have an overall envelope of approximately 66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm.\n- device: reMarkable 2 tablet descriptive",
+    "prompt_sha256": "4cb667826a66ccf5f0f9d159baf5a13fca2dad1a0869936b44d6b3629f25f175",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "3bd037c8-a5ee-476f-a03c-3b501f193039",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "cc600ea1-f673-465e-9039-af371000a405",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "b4589c852367676c701dba3070eb9b1ec56e1bbbbfbf9422dfbda12ffd9969dd",
+        "request_hash": "ef722dd59cb96a35b8185c93b87ad02e931ba03eaeba37f5f501f40996aecbc2",
+        "request_started_at": "2026-08-08T11:48:20.168083+00:00",
+        "response_length": 4639,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "a8fb42f9-950d-4f5e-9228-4d7c7477ba98",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "f86985e2-3cf0-4ecb-9e08-49d27889b9a3",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "3b66f266b3bd2b06c9c3f3e2c7a54958f909da993afc4a1102433efb6c282bcb",
+        "request_hash": "338bcff103a54140e25c929bcb3bbb24a39b0ea5ee588d06b1e6f81ed6d55842",
+        "request_started_at": "2026-08-08T11:48:25.170611+00:00",
+        "response_length": 2924,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "measured",
+      "eligible_interpretation": false,
+      "mapping_status": null,
+      "metrics": {
+        "bounding_box_error_by_axis_mm": {
+          "x": 3.0137462615966797,
+          "y": 3.0,
+          "z": 0.3500213623047017
+        },
+        "solid_count_agreement": true,
+        "surface_area_difference_mm2": 13360.636564226123,
+        "surface_area_difference_ratio": 0.423318679177466,
+        "volume_difference_mm3": 245216.23330377348,
+        "volume_difference_ratio": 4.057999865026731
+      },
+      "raw_generated": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 70.0,
+            "size_y": 67.0,
+            "size_z": 89.0
+          },
+          "center_of_mass_mm": [
+            -1.565814106969595e-15,
+            -2.5021219356711524,
+            45.50316415649524
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 44922.287919150156,
+          "volume_mm3": 305644.08975027886
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 15,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      },
+      "raw_reference": {
+        "authority": "mesh_derived",
+        "canonical_part_count": 1,
+        "canonical_part_ids": [
+          "remarkable_stand"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 66.98625373840332,
+                "size_y": 70.0,
+                "size_z": 89.3500213623047
+              },
+              "center_of_mass_mm": [
+                -0.10585934513780185,
+                -0.0021388797366642116,
+                38.91767821722129
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 31561.651354924034,
+              "volume_mm3": 60427.85644650537
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 45390,
+              "vertex_count": 22693,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/stand-support-003/derived-reference.json",
+        "quality_classification": "watertight_mesh_reference"
+      },
+      "status": "specification_underconstrained"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "dc981f4cd91d54ca776ac213cc54a91dc7db02984e6c78f5aa0e28f66ede8786",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "reMarkable 2 tablet dimensions and viewing angle",
+          "id": "device_dimensions_assumption",
+          "importance": "critical",
+          "kind": "dimension",
+          "label": "reMarkable 2 tablet dimensions and viewing angle",
+          "object_type": "tablet",
+          "operator": "approximately",
+          "protected": false,
+          "raw_evidence": "reMarkable 2 tablet",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "stand",
+          "target": "reMarkable 2 tablet",
+          "tolerance": null,
+          "unit": "mm",
+          "value": {
+            "envelope": [
+              66.98625373840332,
+              70.0,
+              89.3500213623047
+            ]
+          }
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "ebb499c2-3238-43a8-8cfc-92cadeaa8dc5",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "567e6dbe-ef5f-4963-9d37-3b78e1fb4654",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:23.133737",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "folio_case",
+          "operator": "absent",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output remarkable_stand should have an overall envelope of approximately 66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm.\n- device: reMarkable 2 tablet descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "without a folio case",
+          "record_id": "8743ea19-20e2-4121-a437-a690bf43b4c7",
+          "requirement_id": "folio_case",
+          "source": "initial_user",
+          "status": "active",
+          "subject": null,
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "folio_case",
+          "tolerance": null,
+          "type": "feature_absence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:48:23.133739",
+          "value": false,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:23.133740",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "stand",
+          "operator": "approximately",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output remarkable_stand should have an overall envelope of approximately 66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm.\n- device: reMarkable 2 tablet descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm",
+          "record_id": "5e7362ef-c3a3-40a1-877d-d213a10f4222",
+          "requirement_id": "envelope_depth",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "remarkable_stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:23.133741",
+          "value": 70.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:23.133742",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "stand",
+          "operator": "approximately",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output remarkable_stand should have an overall envelope of approximately 66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm.\n- device: reMarkable 2 tablet descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm",
+          "record_id": "df29c560-2150-4fc5-b531-bb115d226b8f",
+          "requirement_id": "envelope_height",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "remarkable_stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:23.133742",
+          "value": 89.3500213623047,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:23.133743",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "stand",
+          "operator": "approximately",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output remarkable_stand should have an overall envelope of approximately 66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm.\n- device: reMarkable 2 tablet descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm",
+          "record_id": "c9cc90eb-e523-455b-8753-51e1b6c207a8",
+          "requirement_id": "envelope_width",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "remarkable_stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:48:23.133744",
+          "value": 66.98625373840332,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:23.133744",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "folio_case",
+          "operator": "present",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output remarkable_stand should have an overall envelope of approximately 66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm.\n- device: reMarkable 2 tablet descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "usable with or without a folio case",
+          "record_id": "1a805c23-ac97-4f7a-9518-19f73d46d645",
+          "requirement_id": "folio_case_compatibility",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "folio_case",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:48:23.133745",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:48:23.133745",
+          "explicit": true,
+          "kind": "orientation",
+          "object_type": "tablet",
+          "operator": "qualitative",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output remarkable_stand should have an overall envelope of approximately 66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm.\n- device: reMarkable 2 tablet descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "support the tablet at a comfortable viewing angle",
+          "record_id": "10075015-bc3e-4337-98ab-f4cce9f9df61",
+          "requirement_id": "viewing_angle_support",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "tablet",
+          "tolerance": null,
+          "type": "orientation",
+          "unit": null,
+          "updated_at": "2026-08-08T11:48:23.133746",
+          "value": "comfortable viewing angle",
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:48:32.404830+00:00"
+    },
+    "revision_id": "5e15cc20-80e9-494b-b732-d898d2fc82e1",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 1,
+      "total_authoritative_requirements": 6,
+      "unsupported_verifier": 5,
+      "unverifiable": 5
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 12.255286166997394,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 15,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "output_id": "stand",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "02362bdc5328a2df119f0018a527c54650f5225375a98a2c3368778182239bb9",
+            "step": "730e16f0d65a2ff825a302d50a3c462548a36ad823b7ef51bb5dfe3f49af1dfd",
+            "stl": "93b86efc773fec7d24cdbc5f5f54ef4cc3db389dba45f4e9361c673fa36f86b3"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 70.0,
+                "size_y": 67.0,
+                "size_z": 89.0
+              },
+              "center_of_mass_mm": [
+                -1.565814106969595e-15,
+                -2.5021219356711524,
+                45.50316415649524
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 44922.287919150156,
+              "volume_mm3": 305644.08975027886
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 15,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "stand",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "88533e54-70e4-4c45-b640-fb42e48b27fe"
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "artifacts": {
+      "hashes": {
+        "stand:brep": "1c2c632c9a801f4029f8be5f59303d3d2fda8a5627bfd0965d7b23b9bd8f7a74",
+        "stand:step": "34d89589901b289e822d6f3ec36a65acaf5e90c9f643f86eb8bc804fac1ac552",
+        "stand:stl": "22ac1a2e13ee6fb267cb1332a68b4c5294811b0f8c775ad5113ac43930eae2e9"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "stand-support-003",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 1,
+      "repair_calls": 2,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "0c0b18ccba50425ca51e62ec0c7e88fd9347c69dd20a74f714f2330d3cda1378",
+          "extraction_succeeded": true,
+          "failure_boundary": "topology",
+          "failure_class": "invalid_shape",
+          "first_incorrect_owner": "geometry",
+          "normalized_error": "output shape is invalid",
+          "observed_stage": "topology",
+          "operation_id": "d8219a44-4cfb-4922-8127-4730ab7d1619:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "577d6586-7ed1-4517-9825-faef3bbb3d16",
+            "attempt_number": 1,
+            "failure_class": null,
+            "level": "initial",
+            "logical_operation_id": "b21ec093-6a3a-44af-88e6-3e8d65621a19",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "577d6586-7ed1-4517-9825-faef3bbb3d16",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "b21ec093-6a3a-44af-88e6-3e8d65621a19",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "5be7cab73be1c5572d8124869b1c3e070773d9a67fa1dda16ac9a1213e18b4f5",
+                "request_hash": "80bbe0e9ad0e64935a219060b33e6b36aeef8ff848578e632ff80357143b17e0",
+                "request_started_at": "2026-08-08T11:41:13.268129+00:00",
+                "response_length": 3658,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "5be7cab73be1c5572d8124869b1c3e070773d9a67fa1dda16ac9a1213e18b4f5",
+          "repair_level": "initial",
+          "result_hash": "61dde64f755a5608b645b131acdb4d40b0ef51178b55d7f5019a3cdcdeae6ae9",
+          "revision_id": "c3f77d42-595d-44d2-bdc7-f1c494573e15",
+          "semantic_result": {},
+          "source_contract_valid": true,
+          "source_hash": "0c0b18ccba50425ca51e62ec0c7e88fd9347c69dd20a74f714f2330d3cda1378",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 2,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "solid_count_mismatch",
+            "schema_version": "topology-evidence-v2",
+            "valid": false
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "stand"
+            ],
+            "phase": "failed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 2,
+          "extracted_source_hash": "adde7a146cf95f38f0156d12ad1fbd4b5a01a52ad515a4b75eccca34d8f2ca87",
+          "extraction_succeeded": true,
+          "failure_boundary": "topology",
+          "failure_class": "invalid_shape",
+          "first_incorrect_owner": "geometry",
+          "normalized_error": "output shape is invalid",
+          "observed_stage": "topology",
+          "operation_id": "d8219a44-4cfb-4922-8127-4730ab7d1619:attempt:2",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L2",
+            "same_diagnostic_signature": true,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": "b668ef60-65fd-474c-972c-3cfd412d13d3",
+            "attempt_number": 2,
+            "failure_class": null,
+            "level": "L2",
+            "logical_operation_id": "df8f6f4c-7115-4a6e-8ac0-50e6b0650a5a",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "b668ef60-65fd-474c-972c-3cfd412d13d3",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "df8f6f4c-7115-4a6e-8ac0-50e6b0650a5a",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "5f69a00579beadd0f3971fe63dbaf862a69e888a0725abe5922c9312eb4ac93b",
+                "request_hash": "7fde4e6902acac0406f85a9477e8383664052aa99cd3ff0dfdad5cb1b9db0be5",
+                "request_started_at": "2026-08-08T11:41:19.932637+00:00",
+                "response_length": 3400,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "5f69a00579beadd0f3971fe63dbaf862a69e888a0725abe5922c9312eb4ac93b",
+          "repair_level": "L2",
+          "result_hash": "3f00b02cbbe3e1bfc573d55d15b7d5db9befd5baebe09135c72d377e05097a79",
+          "revision_id": "51bc1932-9611-4145-a4f1-69b06d8124b4",
+          "semantic_result": {},
+          "source_contract_valid": true,
+          "source_hash": "adde7a146cf95f38f0156d12ad1fbd4b5a01a52ad515a4b75eccca34d8f2ca87",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 2,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "solid_count_mismatch",
+            "schema_version": "topology-evidence-v2",
+            "valid": false
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "stand"
+            ],
+            "phase": "failed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 3,
+          "extracted_source_hash": "7a3a868a35967d39fa18fd5d2e9c2c8aa234b6ff9e7ee76bb7e22e6438728586",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "d8219a44-4cfb-4922-8127-4730ab7d1619:attempt:3",
+          "progress": {
+            "measurable_progress": true,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [
+              "topology_became_valid",
+              "solid_count_reached_expected"
+            ],
+            "progress_result": "progressed",
+            "protected_fact_regression": false,
+            "repair_level": "L2",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": "67ce7e1c-8b97-460f-bfb6-96b3214383c7",
+            "attempt_number": 3,
+            "failure_class": null,
+            "level": "L2",
+            "logical_operation_id": "f1ca0852-25bb-4f9a-a3c1-5b4dad81c021",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "67ce7e1c-8b97-460f-bfb6-96b3214383c7",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "f1ca0852-25bb-4f9a-a3c1-5b4dad81c021",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "f7f6da443258b28682b306ee2df495abaea0c298780c4298eea5e270e7ba6e80",
+                "request_hash": "c260aac5a31117b0513af42a93be749d9a299a51d25692f794953eb0469ce7af",
+                "request_started_at": "2026-08-08T11:41:26.113422+00:00",
+                "response_length": 3385,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "f7f6da443258b28682b306ee2df495abaea0c298780c4298eea5e270e7ba6e80",
+          "repair_level": "L2",
+          "result_hash": "85b20e9d65108ae317e2c25117e3311fb2b04cef4498e4465900239838ff074d",
+          "revision_id": "4ab325ea-325a-4450-9629-3dbd1dd9003f",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "viewing_angle_support"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "folio_case",
+              "folio_compatibility",
+              "stability",
+              "tablet_slot_width"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "7a3a868a35967d39fa18fd5d2e9c2c8aa234b6ff9e7ee76bb7e22e6438728586",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "stand"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 4
+    },
+    "category": "stand_supports",
+    "comparison_specification_hash": "31efba0936547ea00a46aba686242b04c89e0328fa0e1cde91e7c0efd78cd0a6",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "stand",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "stand",
+          "purpose": "Design a stable stand for a reMarkable 2 tablet supporting a comfortable viewing angle with or without a folio case."
+        },
+        "project_id": "d54189ff-1dd6-488f-8198-a0927ccfc4bb",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": false
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "folio_case"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "folio_compatibility"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "stability"
+          },
+          {
+            "authoritative_value": {
+              "value": 15.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "tablet_slot_width"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "viewing_angle_support"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": false
+            },
+            "kind": "feature",
+            "object_type": "folio_case",
+            "operator": "absent",
+            "origin": "user_explicit",
+            "raw_evidence": "without a folio case",
+            "requirement_id": "folio_case",
+            "scope": "stand",
+            "source": "initial_user"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "folio_case",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "with or without a folio case",
+            "requirement_id": "folio_compatibility",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "qualitative",
+            "object_type": "stand",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "stable stand",
+            "requirement_id": "stability",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 15.0
+            },
+            "kind": "fit",
+            "object_type": "slot",
+            "operator": "at_least",
+            "origin": "user_explicit",
+            "raw_evidence": "usable with or without a folio case",
+            "requirement_id": "tablet_slot_width",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "support",
+            "object_type": "tablet",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "support the tablet at a comfortable viewing angle",
+            "requirement_id": "viewing_angle_support",
+            "scope": "stand",
+            "source": "initial_user",
+            "subject": "stand"
+          }
+        ],
+        "revision_id": "d8219a44-4cfb-4922-8127-4730ab7d1619:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "d8219a44-4cfb-4922-8127-4730ab7d1619"
+      },
+      "contract_hash": "7ea20c453f4fa1cf212ce545a0f608cf2d1afc3583388d318f14d32e5e27b0a7",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "invalid_shape",
+    "first_blocker_stage": "topology",
+    "first_incorrect_owner": "geometry",
+    "mode": "premise_only",
+    "normal_recovery_resolved": false,
+    "observed_stage": "topology",
+    "project_runtime_id": "d54189ff-1dd6-488f-8198-a0927ccfc4bb",
+    "prompt": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.",
+    "prompt_sha256": "b33394730d7bca57edf4d03e63e40930d14ee3c0f4fe39795d8ef542da6ceddf",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "95adcb31-011c-4f93-a8e9-cf618f7a3d76",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "c6622b57-df73-40df-b3a8-517c9edf7ed8",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "5aa45b59fff24152739de9a4070ba369a95dbdc4289eb8ffa7269ae9af72162d",
+        "request_hash": "d64a3d9dbdfffabc6616368405ff3a36d3115801ac028f2c890a0e0969883ab9",
+        "request_started_at": "2026-08-08T11:41:08.264073+00:00",
+        "response_length": 4463,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "577d6586-7ed1-4517-9825-faef3bbb3d16",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "b21ec093-6a3a-44af-88e6-3e8d65621a19",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "5be7cab73be1c5572d8124869b1c3e070773d9a67fa1dda16ac9a1213e18b4f5",
+        "request_hash": "80bbe0e9ad0e64935a219060b33e6b36aeef8ff848578e632ff80357143b17e0",
+        "request_started_at": "2026-08-08T11:41:13.268129+00:00",
+        "response_length": 3658,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "b668ef60-65fd-474c-972c-3cfd412d13d3",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "df8f6f4c-7115-4a6e-8ac0-50e6b0650a5a",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "5f69a00579beadd0f3971fe63dbaf862a69e888a0725abe5922c9312eb4ac93b",
+        "request_hash": "7fde4e6902acac0406f85a9477e8383664052aa99cd3ff0dfdad5cb1b9db0be5",
+        "request_started_at": "2026-08-08T11:41:19.932637+00:00",
+        "response_length": 3400,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "67ce7e1c-8b97-460f-bfb6-96b3214383c7",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "f1ca0852-25bb-4f9a-a3c1-5b4dad81c021",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "f7f6da443258b28682b306ee2df495abaea0c298780c4298eea5e270e7ba6e80",
+        "request_hash": "c260aac5a31117b0513af42a93be749d9a299a51d25692f794953eb0469ce7af",
+        "request_started_at": "2026-08-08T11:41:26.113422+00:00",
+        "response_length": 3385,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "measured",
+      "eligible_interpretation": false,
+      "mapping_status": null,
+      "metrics": {
+        "bounding_box_error_by_axis_mm": {
+          "x": 53.01374626159668,
+          "y": 40.0,
+          "z": 49.3500213623047
+        },
+        "solid_count_agreement": true,
+        "surface_area_difference_mm2": 19713.692647939162,
+        "surface_area_difference_ratio": 0.6246090366518027,
+        "volume_difference_mm3": 411079.02361075795,
+        "volume_difference_ratio": 6.80280664886188
+      },
+      "raw_generated": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 120.0,
+            "size_y": 110.0,
+            "size_z": 40.0
+          },
+          "center_of_mass_mm": [
+            0.0,
+            -1.5534456293236316,
+            19.374971468361235
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 51275.344002863196,
+          "volume_mm3": 471506.8800572633
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 10,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      },
+      "raw_reference": {
+        "authority": "mesh_derived",
+        "canonical_part_count": 1,
+        "canonical_part_ids": [
+          "remarkable_stand"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 66.98625373840332,
+                "size_y": 70.0,
+                "size_z": 89.3500213623047
+              },
+              "center_of_mass_mm": [
+                -0.10585934513780185,
+                -0.0021388797366642116,
+                38.91767821722129
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 31561.651354924034,
+              "volume_mm3": 60427.85644650537
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 45390,
+              "vertex_count": 22693,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/stand-support-003/derived-reference.json",
+        "quality_classification": "watertight_mesh_reference"
+      },
+      "status": "specification_underconstrained"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "dc981f4cd91d54ca776ac213cc54a91dc7db02984e6c78f5aa0e28f66ede8786",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "reMarkable 2 device dimensions",
+          "id": "device_dimensions_reMarkable_2",
+          "importance": "critical",
+          "kind": "dimension",
+          "label": "reMarkable 2 device dimensions",
+          "object_type": "tablet",
+          "operator": "exact",
+          "protected": true,
+          "raw_evidence": "reMarkable 2 tablet",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "reMarkable 2",
+          "target": "dimensions",
+          "tolerance": null,
+          "unit": "mm",
+          "value": [
+            246.0,
+            187.0,
+            4.7
+          ]
+        },
+        {
+          "description": "reMarkable 2 folio case extra clearance",
+          "id": "folio_case_dimensions",
+          "importance": "important",
+          "kind": "dimension",
+          "label": "reMarkable 2 folio case extra clearance",
+          "object_type": "folio_case",
+          "operator": "at_least",
+          "protected": true,
+          "raw_evidence": "with or without a folio case",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "folio_case",
+          "target": "thickness_allowance",
+          "tolerance": null,
+          "unit": "mm",
+          "value": 15.0
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "7f522dd4-49f9-4864-8a9a-11d320a30f45",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "d54189ff-1dd6-488f-8198-a0927ccfc4bb",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:41:11.099870",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "folio_case",
+          "operator": "absent",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "without a folio case",
+          "record_id": "871ddeb0-722b-46e5-a70f-ce62e8750a1e",
+          "requirement_id": "folio_case",
+          "source": "initial_user",
+          "status": "active",
+          "subject": null,
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "folio_case",
+          "tolerance": null,
+          "type": "feature_absence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:41:11.099872",
+          "value": false,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:41:11.099873",
+          "explicit": true,
+          "kind": "fit",
+          "object_type": "slot",
+          "operator": "at_least",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "usable with or without a folio case",
+          "record_id": "19f7859d-3742-4a15-b924-ca98752beab2",
+          "requirement_id": "tablet_slot_width",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "slot",
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:41:11.099873",
+          "value": 15.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:41:11.099874",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "folio_case",
+          "operator": "present",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "with or without a folio case",
+          "record_id": "a1bcb10a-1106-47b3-8e1a-ce1cead39cea",
+          "requirement_id": "folio_compatibility",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "folio_case",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:41:11.099874",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:41:11.099875",
+          "explicit": true,
+          "kind": "qualitative",
+          "object_type": "stand",
+          "operator": "present",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "stable stand",
+          "record_id": "e3719356-6f30-4567-993a-56f821cfbccc",
+          "requirement_id": "stability",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "stability",
+          "tolerance": null,
+          "type": "qualitative_behavior",
+          "unit": null,
+          "updated_at": "2026-08-08T11:41:11.099883",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:41:11.099883",
+          "explicit": true,
+          "kind": "support",
+          "object_type": "tablet",
+          "operator": "present",
+          "originating_message": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "support the tablet at a comfortable viewing angle",
+          "record_id": "3c658d63-6c78-498a-8c0d-a9424aa0f4a4",
+          "requirement_id": "viewing_angle_support",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "stand",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "tablet",
+          "tolerance": null,
+          "type": "support",
+          "unit": null,
+          "updated_at": "2026-08-08T11:41:11.099884",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:41:32.779610+00:00"
+    },
+    "revision_id": "4ab325ea-325a-4450-9629-3dbd1dd9003f",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 1,
+      "total_authoritative_requirements": 5,
+      "unsupported_verifier": 4,
+      "unverifiable": 4
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 26.32081891001144,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 10,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "output_id": "stand",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "1c2c632c9a801f4029f8be5f59303d3d2fda8a5627bfd0965d7b23b9bd8f7a74",
+            "step": "34d89589901b289e822d6f3ec36a65acaf5e90c9f643f86eb8bc804fac1ac552",
+            "stl": "22ac1a2e13ee6fb267cb1332a68b4c5294811b0f8c775ad5113ac43930eae2e9"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 120.0,
+                "size_y": 110.0,
+                "size_z": 40.0
+              },
+              "center_of_mass_mm": [
+                0.0,
+                -1.5534456293236316,
+                19.374971468361235
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 51275.344002863196,
+              "volume_mm3": 471506.8800572633
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 10,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "stand",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "d8219a44-4cfb-4922-8127-4730ab7d1619"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

@@ -1,0 +1,948 @@
+{
+  "artifacts": {
+    "hashes": {
+      "ultrasonic_sensor_mount:brep": "a5abe08165f92167e555c1ec4e24eb34f1fe1b7df103b5521a3a08183c123462",
+      "ultrasonic_sensor_mount:step": "f42301b6e34ee9f1bd9096539807964a55b36744f71ddce51b3aa89bc3f7430e",
+      "ultrasonic_sensor_mount:stl": "c5d05469176aa331ae0b1261a2c2bee40a0f7e713c53c615465e4a931bf8a6f8"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "mounting-bracket-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 2,
+    "repair_calls": 0,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "0575e29f8e9c900b5e685940a3e24932d2571bdd70a2827cca4f3410864e4355",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "59851962-874e-42eb-8728-7d0e50d55209:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "169afe4e-0ec3-48fc-b70e-97cca205fe37",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "cad59bd6-bcb4-48bc-a87b-58901a46df24",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "169afe4e-0ec3-48fc-b70e-97cca205fe37",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "cad59bd6-bcb4-48bc-a87b-58901a46df24",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "7a489d2cd7b1354cf8d24d7e2d25bd3ae0ab70f2818c382ce6a87367c26f2417",
+              "request_hash": "e3c3cdb14a127c9a388ad20540ae17c2f548def45e20f12731b9be4e3fe5b814",
+              "request_started_at": "2026-08-08T11:47:30.911045+00:00",
+              "response_length": 3705,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "7a489d2cd7b1354cf8d24d7e2d25bd3ae0ab70f2818c382ce6a87367c26f2417",
+        "repair_level": "initial",
+        "result_hash": "5f2ea30dd2dbacb89de91895f6a85692bce383707f14b4daa149ca9121ad4b6b",
+        "revision_id": "58004bfe-f6bb-4e22-b56d-f9c476f5c4a3",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "extrusion_attachment",
+            "sensor_compatibility",
+            "toolless_removal"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "cable_tie_point",
+            "overall_envelope_x",
+            "overall_envelope_y",
+            "overall_envelope_z",
+            "requiring_special_removal_tool",
+            "standalone_usability"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "0575e29f8e9c900b5e685940a3e24932d2571bdd70a2827cca4f3410864e4355",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "ultrasonic_sensor_mount"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "0575e29f8e9c900b5e685940a3e24932d2571bdd70a2827cca4f3410864e4355",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "59851962-874e-42eb-8728-7d0e50d55209:recovery-recheck:1",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "initial",
+        "result_hash": "5f2ea30dd2dbacb89de91895f6a85692bce383707f14b4daa149ca9121ad4b6b",
+        "revision_id": "58004bfe-f6bb-4e22-b56d-f9c476f5c4a3",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "extrusion_attachment",
+            "sensor_compatibility",
+            "toolless_removal"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "cable_tie_point",
+            "overall_envelope_x",
+            "overall_envelope_y",
+            "overall_envelope_z",
+            "requiring_special_removal_tool",
+            "standalone_usability"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "0575e29f8e9c900b5e685940a3e24932d2571bdd70a2827cca4f3410864e4355",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "ultrasonic_sensor_mount"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 2
+  },
+  "category": "mounting_brackets",
+  "comparison_specification_hash": "5207bf8f107a31a5164052242b7c922a5779546b2d2b595984e63f1a61359839",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "ultrasonic_sensor_mount",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "ultrasonic_sensor_mount",
+        "purpose": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion."
+      },
+      "project_id": "047482d9-c383-401a-a2f6-abd6f407c21d",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "cable_tie_point"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "extrusion_attachment"
+        },
+        {
+          "authoritative_value": {
+            "value": false
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "requiring_special_removal_tool"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "sensor_compatibility"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "standalone_usability"
+        },
+        {
+          "authoritative_value": {
+            "value": false
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "toolless_removal"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "cable_tie_slot",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "connection point for a cable tie to manage the sensor wiring",
+          "requirement_id": "cable_tie_point",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "initial_user",
+          "subject": "mount"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "relationship",
+          "object_type": "aluminum_extrusion",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "attach to a small 8020-style aluminum extrusion",
+          "requirement_id": "extrusion_attachment",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "initial_user",
+          "subject": "mount"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 54.0
+          },
+          "kind": "dimension",
+          "object_type": "ultrasonic_sensor_mount",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm",
+          "requirement_id": "overall_envelope_x",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "volundr_proposal",
+          "subject": "ultrasonic_sensor_mount"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 78.3
+          },
+          "kind": "dimension",
+          "object_type": "ultrasonic_sensor_mount",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm",
+          "requirement_id": "overall_envelope_y",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "volundr_proposal",
+          "subject": "ultrasonic_sensor_mount"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 50.0
+          },
+          "kind": "dimension",
+          "object_type": "ultrasonic_sensor_mount",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm",
+          "requirement_id": "overall_envelope_z",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "volundr_proposal",
+          "subject": "ultrasonic_sensor_mount"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": false
+          },
+          "kind": "feature",
+          "object_type": "requiring_special_removal_tool",
+          "operator": "absent",
+          "origin": "user_explicit",
+          "raw_evidence": "without requiring a special removal tool",
+          "requirement_id": "requiring_special_removal_tool",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "initial_user"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "relationship",
+          "object_type": "sensor",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "HC-SR04 ultrasonic distance sensor",
+          "requirement_id": "sensor_compatibility",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "initial_user",
+          "subject": "mount"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "qualitative",
+          "object_type": "mount",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "usable on its own where practical",
+          "requirement_id": "standalone_usability",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "initial_user",
+          "subject": "mount"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": false
+          },
+          "kind": "retention",
+          "object_type": "sensor",
+          "operator": "absent",
+          "origin": "user_explicit",
+          "raw_evidence": "without requiring a special removal tool",
+          "requirement_id": "toolless_removal",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "initial_user",
+          "subject": "sensor"
+        }
+      ],
+      "revision_id": "59851962-874e-42eb-8728-7d0e50d55209:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "59851962-874e-42eb-8728-7d0e50d55209"
+    },
+    "contract_hash": "ce30bb46e332e105e62f9305eb596acd4aed44ca78aa5c4ad3a91c565000052c",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "semantic_requirement_unverifiable",
+  "first_blocker_stage": "semantic_verification",
+  "first_incorrect_owner": "application",
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": "semantic_measurement",
+  "project_runtime_id": "047482d9-c383-401a-a2f6-abd6f407c21d",
+  "prompt": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+  "prompt_sha256": "b6d09601277be35b7c5af00aeae6820978de2f8b3f4b1b4cfed8efd1ec60b4e8",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "421354cf-49b5-4e1c-ba17-dc397e124b59",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "1590031a-5bc1-48ff-9c4c-b5dac14011f1",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "d10983671f97d1c2572ff3b007f91d20816eb026ea0498b0cc54857c88a52e48",
+      "request_hash": "be30eec3ff02f5a7a8accf53b4911333adc644f8af4a2a513bb8a73457148aa5",
+      "request_started_at": "2026-08-08T11:47:25.909213+00:00",
+      "response_length": 6660,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "169afe4e-0ec3-48fc-b70e-97cca205fe37",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "cad59bd6-bcb4-48bc-a87b-58901a46df24",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "7a489d2cd7b1354cf8d24d7e2d25bd3ae0ab70f2818c382ce6a87367c26f2417",
+      "request_hash": "e3c3cdb14a127c9a388ad20540ae17c2f548def45e20f12731b9be4e3fe5b814",
+      "request_started_at": "2026-08-08T11:47:30.911045+00:00",
+      "response_length": 3705,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "measured",
+    "eligible_interpretation": false,
+    "mapping_status": null,
+    "metrics": {
+      "bounding_box_error_by_axis_mm": {
+        "x": 7.105427357601002e-15,
+        "y": 3.051757815342171e-06,
+        "z": 9.5367431640625e-07
+      },
+      "solid_count_agreement": true,
+      "surface_area_difference_mm2": 11489.493974506273,
+      "surface_area_difference_ratio": 0.6819645740926629,
+      "volume_difference_mm3": 121487.1194150793,
+      "volume_difference_ratio": 3.987766666804925
+    },
+    "raw_generated": {
+      "authority": "analytic_brep",
+      "file_type": "step",
+      "geometry": {
+        "bounding_box_mm": {
+          "size_x": 54.0,
+          "size_y": 78.3,
+          "size_z": 50.0
+        },
+        "center_of_mass_mm": [
+          -2.659521233015857e-14,
+          -4.109547662366311,
+          25.323494849736974
+        ],
+        "component_count": 1,
+        "solid_count": 1,
+        "surface_area_mm2": 28337.134469311684,
+        "volume_mm3": 151952.07124547742
+      },
+      "mesh": {},
+      "quality_classification": "analytic_brep_authoritative",
+      "schema_version": "external-cad-reference-derived-v1",
+      "topology": {
+        "face_count": 23,
+        "schema_version": "topology-evidence-v2",
+        "shell_count": 2,
+        "valid": true
+      },
+      "units": "unverified_model_units"
+    },
+    "raw_reference": {
+      "authority": null,
+      "canonical_part_count": 1,
+      "canonical_part_ids": [
+        "ultrasonic_sensor_mount"
+      ],
+      "canonical_parts": [
+        {
+          "authority": null,
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 54.00000000000001,
+              "size_y": 78.30000305175781,
+              "size_z": 50.000000953674316
+            },
+            "center_of_mass_mm": [
+              12.643271605017711,
+              31.072897998754872,
+              12.698893993068248
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 16847.64049480541,
+            "volume_mm3": 30464.951830398117
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 3268,
+            "vertex_count": 1616,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": null,
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-003/derived-reference.json",
+      "quality_classification": null
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "ee3ceaba662f8561636e21f7839104456592b68610bce6bf11e24af3df55d71c",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Extrusion Fastener",
+        "id": "assumption_extrusion_fastener",
+        "importance": "important",
+        "kind": "relationship",
+        "label": "Extrusion Fastener",
+        "object_type": "fastener",
+        "operator": "qualitative",
+        "protected": true,
+        "raw_evidence": "attach to a small 8020-style aluminum extrusion",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "mount",
+        "target": "8020 Series 10 extrusion",
+        "tolerance": null,
+        "unit": null,
+        "value": "standard drop-in T-nut and screw compatible with Series 10"
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "edc27294-e909-447e-a560-0e8d8757d601",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "047482d9-c383-401a-a2f6-abd6f407c21d",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:30.252615",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "requiring_special_removal_tool",
+        "operator": "absent",
+        "originating_message": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "without requiring a special removal tool",
+        "record_id": "0c9327fd-6622-4515-870c-31375fd03ab6",
+        "requirement_id": "requiring_special_removal_tool",
+        "source": "initial_user",
+        "status": "active",
+        "subject": null,
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "requiring_special_removal_tool",
+        "tolerance": null,
+        "type": "feature_absence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:30.252620",
+        "value": false,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:30.252623",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "ultrasonic_sensor_mount",
+        "operator": "approximately",
+        "originating_message": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm",
+        "record_id": "730a420f-c658-4972-841e-b03267034385",
+        "requirement_id": "overall_envelope_x",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "ultrasonic_sensor_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "width",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:47:30.252625",
+        "value": 54.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:30.252628",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "ultrasonic_sensor_mount",
+        "operator": "approximately",
+        "originating_message": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm",
+        "record_id": "34bd91f6-8ba2-41c3-9872-a016cc8a8bfe",
+        "requirement_id": "overall_envelope_y",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "ultrasonic_sensor_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "height",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:47:30.252630",
+        "value": 78.3,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:30.252632",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "ultrasonic_sensor_mount",
+        "operator": "approximately",
+        "originating_message": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm",
+        "record_id": "a288ee61-77e9-4168-8af7-6fc825ec1576",
+        "requirement_id": "overall_envelope_z",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "ultrasonic_sensor_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "depth",
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:47:30.252633",
+        "value": 50.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:30.252635",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "cable_tie_slot",
+        "operator": "present",
+        "originating_message": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "connection point for a cable tie to manage the sensor wiring",
+        "record_id": "f2b4c18a-326e-4b17-8b41-7a6a0ae53ef4",
+        "requirement_id": "cable_tie_point",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "cable tie",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:30.252636",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:30.252638",
+        "explicit": true,
+        "kind": "relationship",
+        "object_type": "aluminum_extrusion",
+        "operator": "present",
+        "originating_message": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "attach to a small 8020-style aluminum extrusion",
+        "record_id": "4ad40f00-ddf4-4be1-b481-c77b857dc2fc",
+        "requirement_id": "extrusion_attachment",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "8020 Series 10 aluminum extrusion",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:30.252639",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:30.252642",
+        "explicit": true,
+        "kind": "relationship",
+        "object_type": "sensor",
+        "operator": "present",
+        "originating_message": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "HC-SR04 ultrasonic distance sensor",
+        "record_id": "225c0b15-8475-4c3c-bcdf-ed7d8aaedbf0",
+        "requirement_id": "sensor_compatibility",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "HC-SR04 ultrasonic distance sensor",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:30.252644",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:30.252647",
+        "explicit": true,
+        "kind": "qualitative",
+        "object_type": "mount",
+        "operator": "present",
+        "originating_message": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "usable on its own where practical",
+        "record_id": "78306d4a-875e-4a76-ab3a-304a776f896a",
+        "requirement_id": "standalone_usability",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "standalone surface",
+        "tolerance": null,
+        "type": "qualitative_behavior",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:30.252649",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:47:30.252651",
+        "explicit": true,
+        "kind": "retention",
+        "object_type": "sensor",
+        "operator": "absent",
+        "originating_message": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "without requiring a special removal tool",
+        "record_id": "30dcf8e6-6f99-4b8f-b0db-586a52597601",
+        "requirement_id": "toolless_removal",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "sensor",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "special removal tool",
+        "tolerance": null,
+        "type": "feature_absence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:47:30.252651",
+        "value": false,
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:47:39.322437+00:00"
+  },
+  "revision_id": "58004bfe-f6bb-4e22-b56d-f9c476f5c4a3",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 3,
+    "total_authoritative_requirements": 9,
+    "unsupported_verifier": 6,
+    "unverifiable": 6
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 13.433150049007963,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 23,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 2,
+          "valid": true
+        },
+        "output_id": "ultrasonic_sensor_mount",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 2,
+    "job_ids": [
+      "59851962-874e-42eb-8728-7d0e50d55209:attempt:1:worker",
+      "59851962-874e-42eb-8728-7d0e50d55209:recovery-recheck:1:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "a5abe08165f92167e555c1ec4e24eb34f1fe1b7df103b5521a3a08183c123462",
+          "step": "f42301b6e34ee9f1bd9096539807964a55b36744f71ddce51b3aa89bc3f7430e",
+          "stl": "c5d05469176aa331ae0b1261a2c2bee40a0f7e713c53c615465e4a931bf8a6f8"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 54.0,
+              "size_y": 78.3,
+              "size_z": 50.0
+            },
+            "center_of_mass_mm": [
+              -2.659521233015857e-14,
+              -4.109547662366311,
+              25.323494849736974
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 28337.134469311684,
+            "volume_mm3": 151952.07124547742
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 23,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 2,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "ultrasonic_sensor_mount",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/047482d9-c383-401a-a2f6-abd6f407c21d/revisions/58004bfe-f6bb-4e22-b56d-f9c476f5c4a3/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "59851962-874e-42eb-8728-7d0e50d55209"
+}

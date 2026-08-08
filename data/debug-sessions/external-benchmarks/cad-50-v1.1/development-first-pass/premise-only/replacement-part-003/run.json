@@ -1,0 +1,157 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "replacement-part-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "replacement_parts",
+  "comparison_specification_hash": "314fc82e8aaa04ca1061bc0775fbfbe9f6bfea94d2a9e5963adbfb1a232f95b3",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "375ae4c8-ddb7-4045-b0d7-89f0fe981909",
+  "prompt": "Design a replacement latch for a Dyson wand tube used across the V7 through V15 family. It should fit the tube interface and restore the original retention function.",
+  "prompt_sha256": "d75fe1e4aa310f021ae8878bbdc04512fba6f651f0501e9b251f898af84f69cd",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "a65fa8ee-7edb-46a1-8a01-2a9a9c9908d1",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "8c82f73b-baef-4f67-a048-9a15757bbb62",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "bc62986595343a027521fd461c3717c7aaa12bebc447b0eb6d81040ac879f28d",
+      "request_hash": "5e22aa36f6f0ed75300ac6a7be0697aa63a62f908888b31dbbd8f16902a8fc0a",
+      "request_started_at": "2026-08-08T11:40:58.257832+00:00",
+      "response_length": 3621,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "78b034e78445ea38bbdb093eb8ff45dd5f3c21868a3a3dac5428e754671eb409",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Dyson V7-V15 wand tube outer diameter and retention pin geometry",
+        "id": "assumption_dyson_tube_interface",
+        "importance": "critical",
+        "kind": "fit",
+        "label": "Dyson V7-V15 wand tube outer diameter and retention pin geometry",
+        "object_type": "wand tube interface",
+        "operator": "exact",
+        "protected": true,
+        "raw_evidence": "Design a replacement latch for a Dyson wand tube used across the V7 through V15 family.",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "replacement latch",
+        "target": "Dyson wand tube",
+        "tolerance": null,
+        "unit": "mm",
+        "value": null
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact outer diameter dimensions and locking pin/button locations for the Dyson V7 through V15 wand tube interface that this replacement latch must engage with?",
+        "question_id": "259dbc50-4351-4ce7-b724-5bee2c0814b3",
+        "reason": "Missing mating dimensions for the proprietary Dyson wand tube interface.",
+        "requirement_id": "q_tube_interface_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "1f53c569-c414-48c5-9650-7f44d3f4ce44",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Exact mating dimensions and geometry of the Dyson wand tube interface and retention mechanism.",
+        "id": "exact_mating_dimensions_and_geometry_of_the_dyson_wand_tube_interface_and_retention_mechanism",
+        "importance": "critical",
+        "reason": "Exact mating dimensions and geometry of the Dyson wand tube interface and retention mechanism.",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "375ae4c8-ddb7-4045-b0d7-89f0fe981909",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:41:00.568614+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 5.076797072993941,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "bba97bef-ccd0-4842-98fd-faf3848bfdac"
+}

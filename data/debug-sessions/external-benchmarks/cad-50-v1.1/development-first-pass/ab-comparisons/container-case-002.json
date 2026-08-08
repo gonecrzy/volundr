@@ -1,0 +1,1230 @@
+{
+  "benchmark_project_id": "container-case-002",
+  "comparison_specification": {
+    "artifacts": {
+      "hashes": {
+        "carry_case:brep": "02331ca2c44aaa12d8cf1caf0ec23193590cfae2eeb8041021edf8b788b11c81",
+        "carry_case:step": "241ecbdbceabed26af7dc144707e6496458154a8c06677b024677434f1c5e6d3",
+        "carry_case:stl": "4a78391f50253410e2a7ec0e6d3af8a6c314b0f4cc5031c95d3c2e78c68c0a46"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "container-case-002",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 2,
+      "repair_calls": 0,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "31ae45cb5e7e03ea5f23c86853e6739a1a5ad13434fe97883625058a48a552c9",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "df62ac88-1bd0-427a-8db0-b2bd76a4d55d:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "8a56a0c9-82b6-45b6-a878-1c219b4795c2",
+            "attempt_number": 1,
+            "failure_class": null,
+            "level": "initial",
+            "logical_operation_id": "6576fb0b-18b9-4170-b709-060ff0cf8bb4",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "8a56a0c9-82b6-45b6-a878-1c219b4795c2",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "6576fb0b-18b9-4170-b709-060ff0cf8bb4",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "5cc07aa8eec092faa534f2f49918b4752334cc79d9858cb2e4f26049200b58fb",
+                "request_hash": "7f5ad33abbc84a532c7d661e08a6a4e9f469d009a69f3c2f03801ce32df7c587",
+                "request_started_at": "2026-08-08T11:43:54.101368+00:00",
+                "response_length": 2598,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "5cc07aa8eec092faa534f2f49918b4752334cc79d9858cb2e4f26049200b58fb",
+          "repair_level": "initial",
+          "result_hash": "d584da6692f7dabf705c924a9f6b6f672dc1562ee0e74dffe58c922263f852e0",
+          "revision_id": "f16746c1-c9af-4cd7-ad2e-1dccd5b34cf1",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_retain_cell",
+              "req_separate_lid"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "box_envelope_x",
+              "box_envelope_y",
+              "box_envelope_z",
+              "lid_envelope_x",
+              "lid_envelope_y",
+              "lid_envelope_z",
+              "req_battery_variants",
+              "req_portable_case",
+              "req_protect_cell"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "31ae45cb5e7e03ea5f23c86853e6739a1a5ad13434fe97883625058a48a552c9",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "carry_case"
+            ],
+            "phase": "failed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "31ae45cb5e7e03ea5f23c86853e6739a1a5ad13434fe97883625058a48a552c9",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": null,
+          "normalized_error": null,
+          "observed_stage": null,
+          "operation_id": "df62ac88-1bd0-427a-8db0-b2bd76a4d55d:recovery-recheck:1",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L0",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": null,
+            "attempt_number": null,
+            "failure_class": null,
+            "level": null,
+            "logical_operation_id": null,
+            "status": null,
+            "transport_attempts": []
+          },
+          "raw_response_hash": null,
+          "repair_level": "initial",
+          "result_hash": "d584da6692f7dabf705c924a9f6b6f672dc1562ee0e74dffe58c922263f852e0",
+          "revision_id": "f16746c1-c9af-4cd7-ad2e-1dccd5b34cf1",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_retain_cell",
+              "req_separate_lid"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "box_envelope_x",
+              "box_envelope_y",
+              "box_envelope_z",
+              "lid_envelope_x",
+              "lid_envelope_y",
+              "lid_envelope_z",
+              "req_battery_variants",
+              "req_portable_case",
+              "req_protect_cell"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "31ae45cb5e7e03ea5f23c86853e6739a1a5ad13434fe97883625058a48a552c9",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "carry_case"
+            ],
+            "phase": "failed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 2
+    },
+    "category": "container_cases",
+    "comparison_specification_hash": "c8ffc626ef0f5e5524fece275f5e3c39a42ddf027107656e737ad5cfbc4bc115",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "carry_case",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "carry case",
+          "purpose": "Design a portable carry case for a cylindrical battery with cell protection, transport retention, and a separate lid for access."
+        },
+        "project_id": "baa79b07-6c51-4f93-80b9-909605532a77",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": "portable carry case"
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_portable_case"
+          },
+          {
+            "authoritative_value": {
+              "value": "protect"
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_protect_cell"
+          },
+          {
+            "authoritative_value": {
+              "value": "secure retention during transport"
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_retain_cell"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_separate_lid"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 38.79999923706055
+            },
+            "kind": "dimension",
+            "object_type": "battery_box_26650",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.",
+            "requirement_id": "box_envelope_x",
+            "scope": "carry_case",
+            "source": "volundr_proposal",
+            "subject": "battery_box_26650"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 43.719478607177734
+            },
+            "kind": "dimension",
+            "object_type": "battery_box_26650",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.",
+            "requirement_id": "box_envelope_y",
+            "scope": "carry_case",
+            "source": "volundr_proposal",
+            "subject": "battery_box_26650"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 72.5
+            },
+            "kind": "dimension",
+            "object_type": "battery_box_26650",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.",
+            "requirement_id": "box_envelope_z",
+            "scope": "carry_case",
+            "source": "volundr_proposal",
+            "subject": "battery_box_26650"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 38.79999923706055
+            },
+            "kind": "dimension",
+            "object_type": "battery_lid",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.",
+            "requirement_id": "lid_envelope_x",
+            "scope": "carry_case",
+            "source": "volundr_proposal",
+            "subject": "battery_lid"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 38.79999923706055
+            },
+            "kind": "dimension",
+            "object_type": "battery_lid",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.",
+            "requirement_id": "lid_envelope_y",
+            "scope": "carry_case",
+            "source": "volundr_proposal",
+            "subject": "battery_lid"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": 19.0
+            },
+            "kind": "dimension",
+            "object_type": "battery_lid",
+            "operator": "approximately",
+            "origin": "model_design_choice",
+            "raw_evidence": "Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.",
+            "requirement_id": "lid_envelope_z",
+            "scope": "carry_case",
+            "source": "volundr_proposal",
+            "subject": "battery_lid"
+          },
+          {
+            "authority": "flexible",
+            "classification": "machine_required",
+            "expected": {
+              "value": [
+                "26650",
+                "26800",
+                "26350"
+              ]
+            },
+            "kind": "capacity",
+            "object_type": "cylindrical battery",
+            "operator": "qualitative",
+            "origin": "model_design_choice",
+            "raw_evidence": "battery_variants: ['26650', '26800', '26350'] descriptive",
+            "requirement_id": "req_battery_variants",
+            "scope": "carry_case",
+            "source": "volundr_proposal",
+            "subject": "battery variants"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": "portable carry case"
+            },
+            "kind": "qualitative",
+            "object_type": "carry case",
+            "operator": "qualitative",
+            "origin": "user_explicit",
+            "raw_evidence": "Design a portable carry case for a cylindrical battery.",
+            "requirement_id": "req_portable_case",
+            "scope": "carry_case",
+            "source": "initial_user",
+            "subject": "carry case"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": "protect"
+            },
+            "kind": "qualitative",
+            "object_type": "carry case",
+            "operator": "qualitative",
+            "origin": "user_explicit",
+            "raw_evidence": "It should protect the cell",
+            "requirement_id": "req_protect_cell",
+            "scope": "carry_case",
+            "source": "initial_user",
+            "subject": "carry case"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": "secure retention during transport"
+            },
+            "kind": "retention",
+            "object_type": "carry case",
+            "operator": "qualitative",
+            "origin": "user_explicit",
+            "raw_evidence": "retain it during transport",
+            "requirement_id": "req_retain_cell",
+            "scope": "carry_case",
+            "source": "initial_user",
+            "subject": "carry case"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "access",
+            "object_type": "carry case",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "use a separate lid for access.",
+            "requirement_id": "req_separate_lid",
+            "scope": "carry_case",
+            "source": "initial_user",
+            "subject": "carry case"
+          }
+        ],
+        "revision_id": "df62ac88-1bd0-427a-8db0-b2bd76a4d55d:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "df62ac88-1bd0-427a-8db0-b2bd76a4d55d"
+      },
+      "contract_hash": "c5f0afcae903f3e4f10c54b265e6f4bd6c570a15617ca73aaecc1db6ff477f44",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "semantic_requirement_unverifiable",
+    "first_blocker_stage": "semantic_verification",
+    "first_incorrect_owner": "application",
+    "mode": "comparison_specification",
+    "normal_recovery_resolved": false,
+    "observed_stage": "semantic_measurement",
+    "project_runtime_id": "baa79b07-6c51-4f93-80b9-909605532a77",
+    "prompt": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+    "prompt_sha256": "ad41fa4691b4eb2cd07f160553ab38851d5f70a13b98b518c38f80af80588d32",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "cab69b9b-45b0-4eaf-91d0-386a570ae785",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "d0cf480d-9435-412b-bc76-80fdcf4289ae",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "e14686c959d3b177b8ec8e951818edb37b4da0f064f57bd5f4f466f22636e1db",
+        "request_hash": "8937337092700a2d531c23917e1f136eced830dc7cc697dd9aeaaff047392c99",
+        "request_started_at": "2026-08-08T11:43:48.637558+00:00",
+        "response_length": 8701,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "8a56a0c9-82b6-45b6-a878-1c219b4795c2",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "6576fb0b-18b9-4170-b709-060ff0cf8bb4",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "5cc07aa8eec092faa534f2f49918b4752334cc79d9858cb2e4f26049200b58fb",
+        "request_hash": "7f5ad33abbc84a532c7d661e08a6a4e9f469d009a69f3c2f03801ce32df7c587",
+        "request_started_at": "2026-08-08T11:43:54.101368+00:00",
+        "response_length": 2598,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "unavailable",
+      "eligible_interpretation": false,
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "metrics": {
+        "aggregate": {
+          "bounding_box_error_by_axis_mm": {
+            "x": null,
+            "y": null,
+            "z": null
+          },
+          "solid_count_agreement": null,
+          "surface_area_difference_mm2": null,
+          "surface_area_difference_ratio": null,
+          "volume_difference_mm3": null,
+          "volume_difference_ratio": null
+        },
+        "mapping_status": "explicit_reference_output_mapping_required",
+        "per_part": {},
+        "project_part_count_agreement": false
+      },
+      "raw_generated": {
+        "carry_case": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 38.8,
+              "size_y": 43.7,
+              "size_z": 72.5
+            },
+            "center_of_mass_mm": [
+              -1.69432226710467e-13,
+              1.8616267926544094e-16,
+              36.25
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 21862.999978238397,
+            "volume_mm3": 85982.97039378271
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 9,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 2,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        }
+      },
+      "raw_reference": {
+        "authority": null,
+        "canonical_part_count": 2,
+        "canonical_part_ids": [
+          "battery_box_26650",
+          "battery_lid"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 38.79999923706055,
+                "size_y": 43.719478607177734,
+                "size_z": 72.5
+              },
+              "center_of_mass_mm": [
+                -0.318506584554135,
+                0.0028244264251766783,
+                35.332224287371915
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 18014.67143171488,
+              "volume_mm3": 46525.94954338262
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 28090,
+              "vertex_count": 14047,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 38.79999923706055,
+                "size_y": 38.79999923706055,
+                "size_z": 19.0
+              },
+              "center_of_mass_mm": [
+                0.02186941895999212,
+                0.003564117645427632,
+                77.2352629691723
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 8053.350824935788,
+              "volume_mm3": 9468.569496650143
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 28196,
+              "vertex_count": 14100,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/container-case-002/derived-reference.json",
+        "quality_classification": null
+      },
+      "status": "specification_underconstrained"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "8e6b5a696921839036ae87f486ca69ba3af80f5b0da54d3a941aae3850614e89",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Output parts battery_box_26650 and battery_lid constitute the portable carry case system.",
+          "id": "assumption_parts",
+          "importance": "important",
+          "kind": "qualitative",
+          "object_type": "carry case",
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": "Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm. Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.",
+          "requires_approval": false,
+          "source": "product_default",
+          "subject": "system",
+          "target": null,
+          "unit": null,
+          "value": "multi-part assembly"
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "128b399e-e068-47be-8fbd-5b2baa35a355",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "baa79b07-6c51-4f93-80b9-909605532a77",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089673",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "battery_box_26650",
+          "operator": "approximately",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.",
+          "record_id": "62d28bd7-3869-46ac-80d3-1cd95279ce23",
+          "requirement_id": "box_envelope_x",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "battery_box_26650",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:43:54.089676",
+          "value": 38.79999923706055,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089678",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "battery_box_26650",
+          "operator": "approximately",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.",
+          "record_id": "d139cdb6-868b-4a1c-a603-d4127b14e769",
+          "requirement_id": "box_envelope_y",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "battery_box_26650",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:43:54.089679",
+          "value": 43.719478607177734,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089681",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "battery_box_26650",
+          "operator": "approximately",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.",
+          "record_id": "4ce2e08d-54dc-4aac-9eea-bc7f39a886d8",
+          "requirement_id": "box_envelope_z",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "battery_box_26650",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:43:54.089682",
+          "value": 72.5,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089684",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "battery_lid",
+          "operator": "approximately",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.",
+          "record_id": "9e075896-0526-4998-b887-b89e401f0adf",
+          "requirement_id": "lid_envelope_x",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "battery_lid",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:43:54.089685",
+          "value": 38.79999923706055,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089687",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "battery_lid",
+          "operator": "approximately",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.",
+          "record_id": "8d2a9ab6-e9d4-4eab-afdb-c759a3d3b962",
+          "requirement_id": "lid_envelope_y",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "battery_lid",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:43:54.089688",
+          "value": 38.79999923706055,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089690",
+          "explicit": false,
+          "kind": "dimension",
+          "object_type": "battery_lid",
+          "operator": "approximately",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.",
+          "record_id": "d2542222-f972-4e5e-b44e-2bc50fdce120",
+          "requirement_id": "lid_envelope_z",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "battery_lid",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:43:54.089691",
+          "value": 19.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089693",
+          "explicit": true,
+          "kind": "qualitative",
+          "object_type": "carry case",
+          "operator": "qualitative",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Design a portable carry case for a cylindrical battery.",
+          "record_id": "5b7ae3f2-f951-4ed7-9995-79c64ddde635",
+          "requirement_id": "req_portable_case",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "carry case",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "cylindrical battery",
+          "tolerance": null,
+          "type": "qualitative_behavior",
+          "unit": null,
+          "updated_at": "2026-08-08T11:43:54.089694",
+          "value": "portable carry case",
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089696",
+          "explicit": true,
+          "kind": "qualitative",
+          "object_type": "carry case",
+          "operator": "qualitative",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "It should protect the cell",
+          "record_id": "5e1b3890-1ebb-415d-b23d-76b0b08f772b",
+          "requirement_id": "req_protect_cell",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "carry case",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "cell",
+          "tolerance": null,
+          "type": "qualitative_behavior",
+          "unit": null,
+          "updated_at": "2026-08-08T11:43:54.089697",
+          "value": "protect",
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089699",
+          "explicit": true,
+          "kind": "retention",
+          "object_type": "carry case",
+          "operator": "qualitative",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "retain it during transport",
+          "record_id": "931310db-5f2f-499e-ad1e-a9ea34ad194f",
+          "requirement_id": "req_retain_cell",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "carry case",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "cell",
+          "tolerance": null,
+          "type": "retention",
+          "unit": null,
+          "updated_at": "2026-08-08T11:43:54.089700",
+          "value": "secure retention during transport",
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089702",
+          "explicit": true,
+          "kind": "access",
+          "object_type": "carry case",
+          "operator": "present",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "use a separate lid for access.",
+          "record_id": "82e2082e-6545-4cb8-9a89-09d04aba1497",
+          "requirement_id": "req_separate_lid",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "carry case",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "lid",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:43:54.089703",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:54.089705",
+          "explicit": false,
+          "kind": "capacity",
+          "object_type": "cylindrical battery",
+          "operator": "qualitative",
+          "originating_message": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "battery_variants: ['26650', '26800', '26350'] descriptive",
+          "record_id": "45552c41-13dd-48e7-8224-6a710c89cf84",
+          "requirement_id": "req_battery_variants",
+          "source": "volundr_proposal",
+          "status": "active",
+          "subject": "battery variants",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "capacity",
+          "unit": null,
+          "updated_at": "2026-08-08T11:43:54.089706",
+          "value": [
+            "26650",
+            "26800",
+            "26350"
+          ],
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:44:00.979805+00:00"
+    },
+    "revision_id": "f16746c1-c9af-4cd7-ad2e-1dccd5b34cf1",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 2,
+      "total_authoritative_requirements": 11,
+      "unsupported_verifier": 9,
+      "unverifiable": 9
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 12.367504005000228,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 9,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 2,
+            "valid": true
+          },
+          "output_id": "carry_case",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "02331ca2c44aaa12d8cf1caf0ec23193590cfae2eeb8041021edf8b788b11c81",
+            "step": "241ecbdbceabed26af7dc144707e6496458154a8c06677b024677434f1c5e6d3",
+            "stl": "4a78391f50253410e2a7ec0e6d3af8a6c314b0f4cc5031c95d3c2e78c68c0a46"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 38.8,
+                "size_y": 43.7,
+                "size_z": 72.5
+              },
+              "center_of_mass_mm": [
+                -1.69432226710467e-13,
+                1.8616267926544094e-16,
+                36.25
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 21862.999978238397,
+              "volume_mm3": 85982.97039378271
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 9,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 2,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "carry_case",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "df62ac88-1bd0-427a-8db0-b2bd76a4d55d"
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "artifacts": {
+      "hashes": {},
+      "package_available": false
+    },
+    "benchmark_project_id": "container-case-002",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 0,
+      "repair_calls": 0,
+      "repair_history": [],
+      "total_transport_attempts": 1
+    },
+    "category": "container_cases",
+    "comparison_specification_hash": "c8ffc626ef0f5e5524fece275f5e3c39a42ddf027107656e737ad5cfbc4bc115",
+    "executable_contract": {
+      "contract": null,
+      "contract_hash": null,
+      "contract_source": null,
+      "created": false
+    },
+    "failure_class": null,
+    "first_blocker_stage": "clarification_required",
+    "first_incorrect_owner": null,
+    "mode": "premise_only",
+    "normal_recovery_resolved": false,
+    "observed_stage": null,
+    "project_runtime_id": "8f585795-f270-4380-8620-077486f03795",
+    "prompt": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.",
+    "prompt_sha256": "69013604e4eb7bfbcd12e4bf6d9e7225e625477bcab16762bc660082c510a942",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "3f36dc88-2663-407b-8ebf-71639ab56759",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "13bb185f-1d20-4c4b-8734-aa4c373eb23c",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "6b776dde2d3d56c1c1b01d6c7a6f190aa7ec98018d8c55eee8366c5c6bdc1674",
+        "request_hash": "a1dfab6fad7ca00ee152a2b42b2354d40a8e93e03662491e1ea7946ada72ea02",
+        "request_started_at": "2026-08-08T11:38:53.909643+00:00",
+        "response_length": 3780,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "mapping_status": "not_generated",
+      "metrics": {},
+      "raw_generated": null,
+      "raw_reference": null,
+      "status": "unavailable"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "8e6b5a696921839036ae87f486ca69ba3af80f5b0da54d3a941aae3850614e89",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "General functional wall thickness",
+          "id": "assumption_wall_thickness",
+          "importance": "important",
+          "kind": "dimension",
+          "label": "General functional wall thickness",
+          "object_type": "carry_case",
+          "operator": "exact",
+          "protected": true,
+          "raw_evidence": null,
+          "requires_approval": false,
+          "source": "product_default",
+          "subject": "carry_case",
+          "target": "wall",
+          "tolerance": null,
+          "unit": "mm",
+          "value": 3.0
+        }
+      ],
+      "clarification_question_count": 1,
+      "clarification_questions": [
+        {
+          "display_order": 0,
+          "question": "What are the exact diameter and length of the cylindrical battery the carry case is intended to hold?",
+          "question_id": "c1281ebb-aa54-41a9-b337-78852576ad27",
+          "reason": "Missing mating dimensions for the cylindrical battery cell are required to size the internal cavity accurately.",
+          "requirement_id": "q_battery_dimensions"
+        }
+      ],
+      "clarification_required": true,
+      "design_specification_id": "089fb865-3173-4e42-91e9-300488c223c1",
+      "generation_ready": false,
+      "missing_requirements": [
+        {
+          "description": "Cylindrical battery diameter",
+          "id": "cylindrical_battery_diameter",
+          "importance": "critical",
+          "reason": "Cylindrical battery diameter",
+          "source": "user"
+        },
+        {
+          "description": "Cylindrical battery length",
+          "id": "cylindrical_battery_length",
+          "importance": "critical",
+          "reason": "Cylindrical battery length",
+          "source": "user"
+        }
+      ],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "8f585795-f270-4380-8620-077486f03795",
+      "requirements": [],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:38:56.142667+00:00"
+    },
+    "revision_id": null,
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": null,
+      "review_required": 0,
+      "total_authoritative_requirements": 0,
+      "unsupported_verifier": 0,
+      "unverifiable": 0
+    },
+    "state": "awaiting_clarification",
+    "terminal_stage": "clarification_required",
+    "timing_seconds": 2.2573836570081767,
+    "topology": {
+      "outputs": [],
+      "valid": null
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": []
+    },
+    "workflow_id": "7e529195-d9b1-4334-a515-7257a74dd1bd"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

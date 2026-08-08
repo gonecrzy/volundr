@@ -1,0 +1,832 @@
+{
+  "artifacts": {
+    "hashes": {
+      "blower_wall_mount:brep": "1339ea1d51a5266c8511f1a48a2e47349c91446009aa454fbd2fdf88d6866bea",
+      "blower_wall_mount:step": "9b50245b7df47f64fd90f3a74c53ced7804e14b509698f01778ce0a4eef28268",
+      "blower_wall_mount:stl": "1ac3a37a2eec2c20cc4d17d17470c0572cb2cdbc7c38a5e7326558c3505bfd4e"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "holder-organizer-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 2,
+    "repair_calls": 0,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "0d0830ea744e19751347248df7e3ea0b4c1f44e62ffee02647967a3818383548",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "e3f1d497-1d86-4b04-8c68-c4b2cef14b1e:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "4d8a5cfd-79d6-4924-b39f-ea50e80140a8",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "ae249ea5-f6ce-4b46-84a6-214f034e4172",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "4d8a5cfd-79d6-4924-b39f-ea50e80140a8",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "ae249ea5-f6ce-4b46-84a6-214f034e4172",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "16710ab51aee0be3baca1c4467b6cfeb0259fa578349e4ab3862c5a17e29fca0",
+              "request_hash": "e097666d5a10b67ba399a483b10bd9845e99187e1ae8dca3c3544a298c4abb80",
+              "request_started_at": "2026-08-08T11:46:11.767968+00:00",
+              "response_length": 2886,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "16710ab51aee0be3baca1c4467b6cfeb0259fa578349e4ab3862c5a17e29fca0",
+        "repair_level": "initial",
+        "result_hash": "6ed667b64faf1de840828a775e881f043190c34eab8ac3d83e827723b3ba8661",
+        "revision_id": "3992994a-04c5-47e2-869f-3d18b13aef72",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_easy_removal",
+            "req_secure_retention"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "envelope_depth",
+            "envelope_height",
+            "envelope_width",
+            "req_mount_type",
+            "req_supported_tool"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "0d0830ea744e19751347248df7e3ea0b4c1f44e62ffee02647967a3818383548",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "blower_wall_mount"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "0d0830ea744e19751347248df7e3ea0b4c1f44e62ffee02647967a3818383548",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "e3f1d497-1d86-4b04-8c68-c4b2cef14b1e:recovery-recheck:1",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "initial",
+        "result_hash": "6ed667b64faf1de840828a775e881f043190c34eab8ac3d83e827723b3ba8661",
+        "revision_id": "3992994a-04c5-47e2-869f-3d18b13aef72",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_easy_removal",
+            "req_secure_retention"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "envelope_depth",
+            "envelope_height",
+            "envelope_width",
+            "req_mount_type",
+            "req_supported_tool"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "0d0830ea744e19751347248df7e3ea0b4c1f44e62ffee02647967a3818383548",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "blower_wall_mount"
+          ],
+          "phase": "completed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 2
+  },
+  "category": "holders_organizers",
+  "comparison_specification_hash": "8477fa2a3ccda1f90b4fd2f49ca075c0243c8ff289b5b7ac955cbd1ff66e6123",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "blower_wall_mount",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "blower_wall_mount",
+        "purpose": "Compact wall mount for a Stihl BGA 57 blower that holds the tool securely while allowing easy removal."
+      },
+      "project_id": "ce4d727a-27ba-4edb-9df5-43b25c98160d",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": "easy_removal"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_easy_removal"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_mount_type"
+        },
+        {
+          "authoritative_value": {
+            "value": "secure"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_secure_retention"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 76.0
+          },
+          "kind": "dimension",
+          "object_type": "blower_wall_mount",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.",
+          "requirement_id": "envelope_depth",
+          "scope": "blower_wall_mount",
+          "source": "volundr_proposal",
+          "subject": "blower_wall_mount"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 9.0
+          },
+          "kind": "dimension",
+          "object_type": "blower_wall_mount",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.",
+          "requirement_id": "envelope_height",
+          "scope": "blower_wall_mount",
+          "source": "volundr_proposal",
+          "subject": "blower_wall_mount"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": 114.41399383544922
+          },
+          "kind": "dimension",
+          "object_type": "blower_wall_mount",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "raw_evidence": "Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.",
+          "requirement_id": "envelope_width",
+          "scope": "blower_wall_mount",
+          "source": "volundr_proposal",
+          "subject": "blower_wall_mount"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": "easy_removal"
+          },
+          "kind": "access",
+          "object_type": "blower_wall_mount",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "while keeping it easy to remove for use.",
+          "requirement_id": "req_easy_removal",
+          "scope": "blower_wall_mount",
+          "source": "initial_user",
+          "subject": "blower_wall_mount"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "blower_wall_mount",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "Design a compact wall mount for a Stihl BGA 57 blower.",
+          "requirement_id": "req_mount_type",
+          "scope": "blower_wall_mount",
+          "source": "initial_user",
+          "subject": "blower_wall_mount"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": "secure"
+          },
+          "kind": "retention",
+          "object_type": "blower_wall_mount",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "It should hold the tool securely",
+          "requirement_id": "req_secure_retention",
+          "scope": "blower_wall_mount",
+          "source": "initial_user",
+          "subject": "blower_wall_mount"
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "expected": {
+            "value": "Stihl BGA 57"
+          },
+          "kind": "capacity",
+          "object_type": "Stihl BGA 57 blower",
+          "operator": "exact",
+          "origin": "model_design_choice",
+          "raw_evidence": "supported_tool: Stihl BGA 57 descriptive",
+          "requirement_id": "req_supported_tool",
+          "scope": "blower_wall_mount",
+          "source": "volundr_proposal",
+          "subject": "blower_wall_mount"
+        }
+      ],
+      "revision_id": "e3f1d497-1d86-4b04-8c68-c4b2cef14b1e:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "e3f1d497-1d86-4b04-8c68-c4b2cef14b1e"
+    },
+    "contract_hash": "fa344f3daa8006dbfafd544a43a8c9fe01fd8e85f459262b955abe7ffa8418f9",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "semantic_requirement_unverifiable",
+  "first_blocker_stage": "semantic_verification",
+  "first_incorrect_owner": "application",
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": "semantic_measurement",
+  "project_runtime_id": "ce4d727a-27ba-4edb-9df5-43b25c98160d",
+  "prompt": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.\n- supported_tool: Stihl BGA 57 descriptive",
+  "prompt_sha256": "6e367b62ca63beb94cdad3b97f74e846e3b08427bd5d986e9697ec521cfc8c37",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "c49fa5ce-1c1e-46ad-849c-91f68d16460d",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "a87be0bf-1aab-4ab1-8d4e-4e1c7a5a7fa2",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "6c5509ca030a3b3a99484cd018498a47caf1f0a0360ebcef8d2640031ed57020",
+      "request_hash": "3cb89f0ca3781c936975595ce978710682b404aa1abd39fced97c9f6cac43d6d",
+      "request_started_at": "2026-08-08T11:46:06.765647+00:00",
+      "response_length": 6102,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "4d8a5cfd-79d6-4924-b39f-ea50e80140a8",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "ae249ea5-f6ce-4b46-84a6-214f034e4172",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "16710ab51aee0be3baca1c4467b6cfeb0259fa578349e4ab3862c5a17e29fca0",
+      "request_hash": "e097666d5a10b67ba399a483b10bd9845e99187e1ae8dca3c3544a298c4abb80",
+      "request_started_at": "2026-08-08T11:46:11.767968+00:00",
+      "response_length": 2886,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "measured",
+    "eligible_interpretation": false,
+    "mapping_status": null,
+    "metrics": {
+      "bounding_box_error_by_axis_mm": {
+        "x": 4.220623850414995e-12,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "solid_count_agreement": true,
+      "surface_area_difference_mm2": 1965.390317166577,
+      "surface_area_difference_ratio": 0.10285985473403689,
+      "volume_difference_mm3": 18176.637533490102,
+      "volume_difference_ratio": 0.3054384801059928
+    },
+    "raw_generated": {
+      "authority": "analytic_brep",
+      "file_type": "step",
+      "geometry": {
+        "bounding_box_mm": {
+          "size_x": 114.413993835445,
+          "size_y": 76.0,
+          "size_z": 9.0
+        },
+        "center_of_mass_mm": [
+          2.3782642295737066e-12,
+          -1.1205062879067106e-16,
+          4.483417358160494
+        ],
+        "component_count": 1,
+        "solid_count": 1,
+        "surface_area_mm2": 21072.847956966438,
+        "volume_mm3": 77686.61652232763
+      },
+      "mesh": {},
+      "quality_classification": "analytic_brep_authoritative",
+      "schema_version": "external-cad-reference-derived-v1",
+      "topology": {
+        "face_count": 10,
+        "schema_version": "topology-evidence-v2",
+        "shell_count": 1,
+        "valid": true
+      },
+      "units": "unverified_model_units"
+    },
+    "raw_reference": {
+      "authority": "mesh_derived",
+      "canonical_part_count": 1,
+      "canonical_part_ids": [
+        "blower_wall_mount"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 114.41399383544922,
+              "size_y": 76.0,
+              "size_z": 9.0
+            },
+            "center_of_mass_mm": [
+              -1.5079287894180088e-15,
+              34.840256044413294,
+              4.120723106993607
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 19107.45763979986,
+            "volume_mm3": 59509.97898883753
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 732,
+            "vertex_count": 362,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/holder-organizer-003/derived-reference.json",
+      "quality_classification": "watertight_mesh_reference"
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "147db19a6fb90cb03146d81730ec9ae889444158bd5072b18368840fba858233",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Wall-mounted installation uses vertical planar wall mount with ordinary screw spacing and orientation.",
+        "id": "assumption_wall_mounting",
+        "importance": "important",
+        "kind": "orientation",
+        "object_type": "mounting_hole",
+        "operator": "qualitative",
+        "protected": true,
+        "raw_evidence": "Design a compact wall mount for a Stihl BGA 57 blower.",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "blower_wall_mount",
+        "target": "wall",
+        "tolerance": null,
+        "unit": null,
+        "value": "vertical planar wall mount"
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "7eeecbad-5913-47c2-93bf-82306b787a46",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "ce4d727a-27ba-4edb-9df5-43b25c98160d",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:10.566031",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "blower_wall_mount",
+        "operator": "approximately",
+        "originating_message": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.\n- supported_tool: Stihl BGA 57 descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.",
+        "record_id": "cb6af950-9349-4b6f-aba3-1530fa1f4141",
+        "requirement_id": "envelope_width",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "blower_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:46:10.566033",
+        "value": 114.41399383544922,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:10.566034",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "blower_wall_mount",
+        "operator": "approximately",
+        "originating_message": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.\n- supported_tool: Stihl BGA 57 descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.",
+        "record_id": "8351582d-885c-4ec1-b7e1-6fac9ec2f1d8",
+        "requirement_id": "envelope_depth",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "blower_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:46:10.566035",
+        "value": 76.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:10.566035",
+        "explicit": false,
+        "kind": "dimension",
+        "object_type": "blower_wall_mount",
+        "operator": "approximately",
+        "originating_message": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.\n- supported_tool: Stihl BGA 57 descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.",
+        "record_id": "6d84ccf8-6d1a-42fa-82fb-04d92b3edd4b",
+        "requirement_id": "envelope_height",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "blower_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:46:10.566036",
+        "value": 9.0,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:10.566036",
+        "explicit": true,
+        "kind": "feature",
+        "object_type": "blower_wall_mount",
+        "operator": "present",
+        "originating_message": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.\n- supported_tool: Stihl BGA 57 descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Design a compact wall mount for a Stihl BGA 57 blower.",
+        "record_id": "f118fa9d-b982-4920-a78c-ae68fdbcbf79",
+        "requirement_id": "req_mount_type",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "blower_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "wall",
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:46:10.566037",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:10.566037",
+        "explicit": true,
+        "kind": "retention",
+        "object_type": "blower_wall_mount",
+        "operator": "qualitative",
+        "originating_message": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.\n- supported_tool: Stihl BGA 57 descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "It should hold the tool securely",
+        "record_id": "3c22e5f2-08a9-427e-b62a-3ab18918faee",
+        "requirement_id": "req_secure_retention",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "blower_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "Stihl BGA 57 blower",
+        "tolerance": null,
+        "type": "retention",
+        "unit": null,
+        "updated_at": "2026-08-08T11:46:10.566038",
+        "value": "secure",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:10.566038",
+        "explicit": true,
+        "kind": "access",
+        "object_type": "blower_wall_mount",
+        "operator": "qualitative",
+        "originating_message": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.\n- supported_tool: Stihl BGA 57 descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "while keeping it easy to remove for use.",
+        "record_id": "6eb37d56-c648-4d3c-9688-cf6215d633e0",
+        "requirement_id": "req_easy_removal",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "blower_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "Stihl BGA 57 blower",
+        "tolerance": null,
+        "type": "access",
+        "unit": null,
+        "updated_at": "2026-08-08T11:46:10.566039",
+        "value": "easy_removal",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:46:10.566040",
+        "explicit": false,
+        "kind": "capacity",
+        "object_type": "Stihl BGA 57 blower",
+        "operator": "exact",
+        "originating_message": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.\n- supported_tool: Stihl BGA 57 descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "supported_tool: Stihl BGA 57 descriptive",
+        "record_id": "a5ae4dc1-8011-4a05-813d-c8ad74ec4d0b",
+        "requirement_id": "req_supported_tool",
+        "source": "volundr_proposal",
+        "status": "active",
+        "subject": "blower_wall_mount",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": "Stihl BGA 57 blower",
+        "tolerance": null,
+        "type": "capacity",
+        "unit": null,
+        "updated_at": "2026-08-08T11:46:10.566040",
+        "value": "Stihl BGA 57",
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:46:18.777695+00:00"
+  },
+  "revision_id": "3992994a-04c5-47e2-869f-3d18b13aef72",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 2,
+    "total_authoritative_requirements": 7,
+    "unsupported_verifier": 5,
+    "unverifiable": 5
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 12.031677353996201,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 10,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "output_id": "blower_wall_mount",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 2,
+    "job_ids": [
+      "e3f1d497-1d86-4b04-8c68-c4b2cef14b1e:attempt:1:worker",
+      "e3f1d497-1d86-4b04-8c68-c4b2cef14b1e:recovery-recheck:1:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "1339ea1d51a5266c8511f1a48a2e47349c91446009aa454fbd2fdf88d6866bea",
+          "step": "9b50245b7df47f64fd90f3a74c53ced7804e14b509698f01778ce0a4eef28268",
+          "stl": "1ac3a37a2eec2c20cc4d17d17470c0572cb2cdbc7c38a5e7326558c3505bfd4e"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 114.413993835445,
+              "size_y": 76.0,
+              "size_z": 9.0
+            },
+            "center_of_mass_mm": [
+              2.3782642295737066e-12,
+              -1.1205062879067106e-16,
+              4.483417358160494
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 21072.847956966438,
+            "volume_mm3": 77686.61652232763
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 10,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "blower_wall_mount",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/ce4d727a-27ba-4edb-9df5-43b25c98160d/revisions/3992994a-04c5-47e2-869f-3d18b13aef72/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "e3f1d497-1d86-4b04-8c68-c4b2cef14b1e"
+}

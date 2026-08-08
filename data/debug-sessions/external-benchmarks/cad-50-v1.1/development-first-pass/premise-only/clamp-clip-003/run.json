@@ -1,0 +1,174 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "clamp-clip-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "clamp_clip",
+  "comparison_specification_hash": "51b9354354d4e0265b965c5d6fa62e5883649f8b3d3c2968f4d61136d9e10a1a",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "a57d4b07-8d6d-48c9-8ae6-7f3c7bf5d3af",
+  "prompt": "Design a two-part clamp system for securing a Shaper Origin workstation to a portable work surface. It should fit the workstation feet accurately and allow quick assembly and removal.",
+  "prompt_sha256": "dc998ca4e6090cf3f5e043cbe81691e41b1e0128a74f376b335a92574d32adcd",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "9c00312d-4c84-4d52-97ea-881add20997a",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "3979e07a-781d-477d-9a4b-d5870040466d",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "0c1c06d72aeeceb73788fa54b69a55fa553904622517d49e411f11d8b5793c65",
+      "request_hash": "f32f033e9cf4e858ff9eefc15fa388f5075bb6b431710a7ec339f0425ec15d9a",
+      "request_started_at": "2026-08-08T11:38:29.149991+00:00",
+      "response_length": 4224,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "a6f8965cf2229916b0d90df8fa7d9a4d000fb864cdbe603f74fe4d2ecd068098",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Removable fit clearance",
+        "id": "assumption_fit_clearance",
+        "importance": "important",
+        "kind": "clearance",
+        "label": "Removable fit clearance",
+        "object_type": "clamp system",
+        "operator": "range",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "clamp",
+        "target": "workstation feet",
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          0.3,
+          0.5
+        ]
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact dimensions, shape, and spacing of the Shaper Origin workstation feet that the clamp system must secure?",
+        "question_id": "af699208-6866-4dde-9170-c46858e12af5",
+        "reason": null,
+        "requirement_id": "q_mating_dimensions"
+      },
+      {
+        "display_order": 1,
+        "question": "What is the thickness range of the portable work surface the workstation is being clamped to?",
+        "question_id": "29104e10-0e6e-43b7-ad8d-a8331574622a",
+        "reason": null,
+        "requirement_id": "q_work_surface_thickness"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "0482d113-32d1-4a2a-aad2-92f0a931366b",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Shaper Origin workstation foot dimensions and geometry",
+        "id": "shaper_origin_workstation_foot_dimensions_and_geometry",
+        "importance": "critical",
+        "reason": "Shaper Origin workstation foot dimensions and geometry",
+        "source": "user"
+      },
+      {
+        "description": "Portable work surface thickness",
+        "id": "portable_work_surface_thickness",
+        "importance": "critical",
+        "reason": "Portable work surface thickness",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "a57d4b07-8d6d-48c9-8ae6-7f3c7bf5d3af",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:38:31.645041+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 5.0645181449945085,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "765572fe-42f6-4586-9664-05d770eb6a11"
+}

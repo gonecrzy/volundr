@@ -1,0 +1,1618 @@
+{
+  "benchmark_project_id": "clamp-clip-001",
+  "comparison_specification": {
+    "artifacts": {
+      "hashes": {
+        "pipe_clamp_50mm:brep": "da2a1b8383c45be1c1e8a60ed97a4e36bbdbb67472f36f137354b8f426c96af3",
+        "pipe_clamp_50mm:step": "613d89ae2c483c2b7b2c82005493fbef23fa06723dc589eab36b365770c39bdb",
+        "pipe_clamp_50mm:stl": "76fab235ee17d4d18dca7b05bb915fc7a2dae5421c70cbffc33340f018d21b7d"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "clamp-clip-001",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 2,
+      "repair_calls": 0,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "e297d717c85b6ad8bfee2b24818c5aabe1617995b6ee1100f9b3393d3f5d2491",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "c299ceaa-00c2-4033-819b-d79f5f7882fa:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "8cfa329c-4eae-433b-b6f8-9103a912dadd",
+            "attempt_number": 1,
+            "failure_class": null,
+            "level": "initial",
+            "logical_operation_id": "490e927f-4c8f-47ad-b31b-b56cad63912e",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "8cfa329c-4eae-433b-b6f8-9103a912dadd",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "490e927f-4c8f-47ad-b31b-b56cad63912e",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "6f632a09bd41e2a895f5a3b93b58f19f43ddbd9ff461107ffeedbff9e3bbd8d2",
+                "request_hash": "f09f2e42f11a65c1c193316c2e0cbf4a5e2e363bd3302584cf1b15c7e6ac36cf",
+                "request_started_at": "2026-08-08T11:43:07.987147+00:00",
+                "response_length": 4212,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "6f632a09bd41e2a895f5a3b93b58f19f43ddbd9ff461107ffeedbff9e3bbd8d2",
+          "repair_level": "initial",
+          "result_hash": "dc1ac3674424ac44e81bff4c16e5689b74c13b6c9203487e5747f26acb5f44b3",
+          "revision_id": "942c59a9-fedb-45c7-a229-6dc63d069d85",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_snap_in_clamp",
+              "req_ziptie_lock"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_height",
+              "envelope_length",
+              "envelope_width",
+              "req_printable"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "e297d717c85b6ad8bfee2b24818c5aabe1617995b6ee1100f9b3393d3f5d2491",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "pipe_clamp_50mm"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "e297d717c85b6ad8bfee2b24818c5aabe1617995b6ee1100f9b3393d3f5d2491",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": null,
+          "normalized_error": null,
+          "observed_stage": null,
+          "operation_id": "c299ceaa-00c2-4033-819b-d79f5f7882fa:recovery-recheck:1",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L0",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": null,
+            "attempt_number": null,
+            "failure_class": null,
+            "level": null,
+            "logical_operation_id": null,
+            "status": null,
+            "transport_attempts": []
+          },
+          "raw_response_hash": null,
+          "repair_level": "initial",
+          "result_hash": "dc1ac3674424ac44e81bff4c16e5689b74c13b6c9203487e5747f26acb5f44b3",
+          "revision_id": "942c59a9-fedb-45c7-a229-6dc63d069d85",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_snap_in_clamp",
+              "req_ziptie_lock"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "envelope_height",
+              "envelope_length",
+              "envelope_width",
+              "req_printable"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "e297d717c85b6ad8bfee2b24818c5aabe1617995b6ee1100f9b3393d3f5d2491",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "pipe_clamp_50mm"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 2
+    },
+    "category": "clamp_clip",
+    "comparison_specification_hash": "469261826a849253ee139eafc18fefe33498079316896c0b5899a376655bb57d",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "pipe_clamp_50mm",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "pipe_clamp_50mm",
+          "purpose": "Design a snap-in clamp for securing a round pipe with a zip-tie locking feature."
+        },
+        "project_id": "f66fae17-7d8b-4b57-9ec8-ec7047cc195e",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": 20.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_height"
+          },
+          {
+            "authoritative_value": {
+              "value": 62.100088
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_length"
+          },
+          {
+            "authoritative_value": {
+              "value": 61.999216
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "envelope_width"
+          },
+          {
+            "authoritative_value": {
+              "value": "printable"
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_printable"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_snap_in_clamp"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_ziptie_lock"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 20.0
+            },
+            "kind": "dimension",
+            "object_type": "pipe_clamp_50mm",
+            "operator": "exact",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.",
+            "requirement_id": "envelope_height",
+            "scope": "pipe_clamp_50mm",
+            "source": "initial_user",
+            "subject": "pipe_clamp_50mm"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 62.100088
+            },
+            "kind": "dimension",
+            "object_type": "pipe_clamp_50mm",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.",
+            "requirement_id": "envelope_length",
+            "scope": "pipe_clamp_50mm",
+            "source": "initial_user",
+            "subject": "pipe_clamp_50mm"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 61.999216
+            },
+            "kind": "dimension",
+            "object_type": "pipe_clamp_50mm",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.",
+            "requirement_id": "envelope_width",
+            "scope": "pipe_clamp_50mm",
+            "source": "initial_user",
+            "subject": "pipe_clamp_50mm"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": "printable"
+            },
+            "kind": "qualitative",
+            "object_type": "clamp",
+            "operator": "qualitative",
+            "origin": "user_explicit",
+            "raw_evidence": "It should be printable",
+            "requirement_id": "req_printable",
+            "scope": "pipe_clamp_50mm",
+            "source": "initial_user",
+            "subject": "clamp"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "retention",
+            "object_type": "clamp",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "Design a snap-in clamp for securing a round pipe",
+            "requirement_id": "req_snap_in_clamp",
+            "scope": "pipe_clamp_50mm",
+            "source": "initial_user",
+            "subject": "clamp"
+          },
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "retention",
+            "object_type": "clamp",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "with a zip-tie locking feature",
+            "requirement_id": "req_ziptie_lock",
+            "scope": "pipe_clamp_50mm",
+            "source": "initial_user",
+            "subject": "clamp"
+          }
+        ],
+        "revision_id": "c299ceaa-00c2-4033-819b-d79f5f7882fa:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "c299ceaa-00c2-4033-819b-d79f5f7882fa"
+      },
+      "contract_hash": "17c705f065ca7429fcde39ca93709aa7a3c5f7fec72d1a226dfcbf341c0dc653",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "semantic_requirement_unverifiable",
+    "first_blocker_stage": "semantic_verification",
+    "first_incorrect_owner": "application",
+    "mode": "comparison_specification",
+    "normal_recovery_resolved": false,
+    "observed_stage": "semantic_measurement",
+    "project_runtime_id": "f66fae17-7d8b-4b57-9ec8-ec7047cc195e",
+    "prompt": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.\n- retention: zip-tie lock descriptive\n- variant_nominal_diameter: 50 mm",
+    "prompt_sha256": "e493692ba31395817836e2df1d5c28cd8c33273196da1fbef0723da43d44949b",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "f360e0a7-d5ae-41a7-84fc-1e09e1b55d4f",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "1eefe7f2-248a-4fc3-ba41-32d15f8445d6",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "24cd9177e2dbe70e90dfb7fd42d2813b14674535771888d09ba5bb6d3e240282",
+        "request_hash": "093836915e4764d6ca9764ed0a282cac8916731d25362c3c3a90f04e219bf1e6",
+        "request_started_at": "2026-08-08T11:43:02.984991+00:00",
+        "response_length": 5089,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "8cfa329c-4eae-433b-b6f8-9103a912dadd",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "490e927f-4c8f-47ad-b31b-b56cad63912e",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "6f632a09bd41e2a895f5a3b93b58f19f43ddbd9ff461107ffeedbff9e3bbd8d2",
+        "request_hash": "f09f2e42f11a65c1c193316c2e0cbf4a5e2e363bd3302584cf1b15c7e6ac36cf",
+        "request_started_at": "2026-08-08T11:43:07.987147+00:00",
+        "response_length": 4212,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "measured",
+      "eligible_interpretation": true,
+      "mapping_status": null,
+      "metrics": {
+        "bounding_box_error_by_axis_mm": {
+          "x": 7.105427357601002e-15,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "solid_count_agreement": true,
+        "surface_area_difference_mm2": 2273.3832813603276,
+        "surface_area_difference_ratio": 0.25362118986847526,
+        "volume_difference_mm3": 19885.50596476737,
+        "volume_difference_ratio": 2.167986687443125
+      },
+      "raw_generated": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 61.999216000000004,
+            "size_y": 62.100088,
+            "size_z": 20.0
+          },
+          "center_of_mass_mm": [
+            -7.426734947619126e-13,
+            -5.882238765378821,
+            10.000000000000117
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 11237.079424175821,
+          "volume_mm3": 29057.843636369907
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 26,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      },
+      "raw_reference": {
+        "authority": "mesh_derived",
+        "canonical_part_count": 1,
+        "canonical_part_ids": [
+          "pipe_clamp_50mm"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "3mf",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 61.999216,
+                "size_y": 62.100088,
+                "size_z": 20.0
+              },
+              "center_of_mass_mm": [
+                6.244439307286472e-07,
+                26.54411568214203,
+                9.999973518768188
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 8963.696142815494,
+              "volume_mm3": 9172.337671602536
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 25392,
+              "vertex_count": 12688,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/clamp-clip-001/derived-reference.json",
+        "quality_classification": "watertight_mesh_reference"
+      },
+      "status": "eligible"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "51a9b5c5b6f62d209291b6927b022194ea5e50281eecc22743651523358844f9",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Variant nominal diameter",
+          "id": "assumption_variant_diameter",
+          "importance": "important",
+          "kind": "dimension",
+          "label": "Variant nominal diameter",
+          "object_type": "pipe_clamp_50mm",
+          "operator": "exact",
+          "protected": false,
+          "raw_evidence": "variant_nominal_diameter: 50 mm",
+          "requires_approval": false,
+          "source": "product_default",
+          "subject": "pipe",
+          "target": null,
+          "tolerance": null,
+          "unit": "mm",
+          "value": 50
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "5e9dfcd5-33be-459d-883e-e37b3f2c1037",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "f66fae17-7d8b-4b57-9ec8-ec7047cc195e",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:06.142430",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pipe_clamp_50mm",
+          "operator": "approximately",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.\n- retention: zip-tie lock descriptive\n- variant_nominal_diameter: 50 mm",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.",
+          "record_id": "178ebd88-aa4c-407b-b7f8-e9b26b8b4054",
+          "requirement_id": "envelope_width",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pipe_clamp_50mm",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:43:06.142433",
+          "value": 61.999216,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:06.142434",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pipe_clamp_50mm",
+          "operator": "approximately",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.\n- retention: zip-tie lock descriptive\n- variant_nominal_diameter: 50 mm",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.",
+          "record_id": "73d8097d-45af-400b-bfb1-de1a69606b3c",
+          "requirement_id": "envelope_length",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pipe_clamp_50mm",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:43:06.142435",
+          "value": 62.100088,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:06.142436",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "pipe_clamp_50mm",
+          "operator": "exact",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.\n- retention: zip-tie lock descriptive\n- variant_nominal_diameter: 50 mm",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.",
+          "record_id": "d2b83984-8664-4db8-b344-62ecb89025fe",
+          "requirement_id": "envelope_height",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "pipe_clamp_50mm",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:43:06.142437",
+          "value": 20.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:06.142438",
+          "explicit": true,
+          "kind": "retention",
+          "object_type": "clamp",
+          "operator": "present",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.\n- retention: zip-tie lock descriptive\n- variant_nominal_diameter: 50 mm",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Design a snap-in clamp for securing a round pipe",
+          "record_id": "5d7160b6-00b4-48cd-9b7b-54ef8dfaecd0",
+          "requirement_id": "req_snap_in_clamp",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "clamp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "round pipe",
+          "tolerance": null,
+          "type": "retention",
+          "unit": null,
+          "updated_at": "2026-08-08T11:43:06.142439",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:06.142440",
+          "explicit": true,
+          "kind": "retention",
+          "object_type": "clamp",
+          "operator": "present",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.\n- retention: zip-tie lock descriptive\n- variant_nominal_diameter: 50 mm",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "with a zip-tie locking feature",
+          "record_id": "7e5f80b1-1d4b-442d-a39b-b6a53b9a5e99",
+          "requirement_id": "req_ziptie_lock",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "clamp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "zip-tie",
+          "tolerance": null,
+          "type": "retention",
+          "unit": null,
+          "updated_at": "2026-08-08T11:43:06.142441",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:43:06.142442",
+          "explicit": true,
+          "kind": "qualitative",
+          "object_type": "clamp",
+          "operator": "qualitative",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.\n- retention: zip-tie lock descriptive\n- variant_nominal_diameter: 50 mm",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "It should be printable",
+          "record_id": "a3fe16df-cd48-43f2-8d9f-1633199a4fab",
+          "requirement_id": "req_printable",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "clamp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "qualitative_behavior",
+          "unit": null,
+          "updated_at": "2026-08-08T11:43:06.142443",
+          "value": "printable",
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:43:15.528969+00:00"
+    },
+    "revision_id": "942c59a9-fedb-45c7-a229-6dc63d069d85",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 2,
+      "total_authoritative_requirements": 6,
+      "unsupported_verifier": 4,
+      "unverifiable": 4
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 12.561831237995648,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 26,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "output_id": "pipe_clamp_50mm",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "da2a1b8383c45be1c1e8a60ed97a4e36bbdbb67472f36f137354b8f426c96af3",
+            "step": "613d89ae2c483c2b7b2c82005493fbef23fa06723dc589eab36b365770c39bdb",
+            "stl": "76fab235ee17d4d18dca7b05bb915fc7a2dae5421c70cbffc33340f018d21b7d"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 61.999216000000004,
+                "size_y": 62.100088,
+                "size_z": 20.0
+              },
+              "center_of_mass_mm": [
+                -7.426734947619126e-13,
+                -5.882238765378821,
+                10.000000000000117
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 11237.079424175821,
+              "volume_mm3": 29057.843636369907
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 26,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "pipe_clamp_50mm",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "c299ceaa-00c2-4033-819b-d79f5f7882fa"
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": true,
+  "premise_only": {
+    "artifacts": {
+      "hashes": {
+        "snap_in_pipe_clamp:brep": "2209808280df04b3c52772c63016558ecd85478267d6b7159e6e1bdba2a1acb7",
+        "snap_in_pipe_clamp:step": "1c7c69a27397e4c37e370916a43b6ab8ffb780551318e1802814098f39747056",
+        "snap_in_pipe_clamp:stl": "33ce0ea63a22640de2f161e9a5182abdf6a8c8f4894f058e807189dacde77d45"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "clamp-clip-001",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 1,
+      "repair_calls": 2,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "2060b4be7c191baa6b1be0630524ad09f038ba7b78139c8fc134ce440e03729e",
+          "extraction_succeeded": true,
+          "failure_boundary": "execution",
+          "failure_class": "cadquery_api_error",
+          "first_incorrect_owner": "geometry",
+          "normalized_error": "'Workplane' object has no attribute 'torus'",
+          "observed_stage": "build_execution",
+          "operation_id": "2a123024-5d34-48e1-af6f-faecbe76c196:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "6e4a4a3d-1bd7-4764-ba5f-8d066094d166",
+            "attempt_number": 1,
+            "failure_class": null,
+            "level": "initial",
+            "logical_operation_id": "6bffc185-b758-465a-b39f-6ec335214d10",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "6e4a4a3d-1bd7-4764-ba5f-8d066094d166",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "6bffc185-b758-465a-b39f-6ec335214d10",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "0f38bf3038f2de84be34b0f77196da313a4364a36a65b37aa61209ad801a89b6",
+                "request_hash": "f2e9fdb1912a18df54e8a6c91fa83cd58f0a62e409432137c9257748cdf12513",
+                "request_started_at": "2026-08-08T11:38:08.657146+00:00",
+                "response_length": 4692,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "0f38bf3038f2de84be34b0f77196da313a4364a36a65b37aa61209ad801a89b6",
+          "repair_level": "initial",
+          "result_hash": "74e0f1fde37d3c46d070a4f0de10aecd0b7cb219ae3884f858ad075804011c82",
+          "revision_id": "a427d415-f4c1-4106-a1a0-ae03e25b9dc0",
+          "semantic_result": {},
+          "source_contract_valid": true,
+          "source_hash": "2060b4be7c191baa6b1be0630524ad09f038ba7b78139c8fc134ce440e03729e",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": null,
+            "expected_solid_count": null,
+            "failure_class": null,
+            "outcome": null,
+            "schema_version": null,
+            "valid": null
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "snap_in_pipe_clamp"
+            ],
+            "phase": "failed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 2,
+          "extracted_source_hash": "e70f92877b7e24f079572cfb1984e94330555ccda4b14f817e68a353e751571a",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "2a123024-5d34-48e1-af6f-faecbe76c196:attempt:2",
+          "progress": {
+            "measurable_progress": true,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [
+              "later_execution_phase",
+              "prior_error_signature_removed",
+              "execution_diagnostic_changed"
+            ],
+            "progress_result": "progressed",
+            "protected_fact_regression": false,
+            "repair_level": "L1",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": "743ba76b-e698-44b2-85f8-ba8ebd013e1a",
+            "attempt_number": 2,
+            "failure_class": null,
+            "level": "L1",
+            "logical_operation_id": "9587cfa7-f795-4bf3-90fa-34f7967ecc40",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "743ba76b-e698-44b2-85f8-ba8ebd013e1a",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "9587cfa7-f795-4bf3-90fa-34f7967ecc40",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "e29d925e7392a3b90b8eacb4b90718049eda18d42bd3f9296f7190836b9a82f8",
+                "request_hash": "43a6b7d3a185191149120af49409588c5ed8d04d8494c04b7faeb038c064fca5",
+                "request_started_at": "2026-08-08T11:38:15.923813+00:00",
+                "response_length": 4750,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "e29d925e7392a3b90b8eacb4b90718049eda18d42bd3f9296f7190836b9a82f8",
+          "repair_level": "L1",
+          "result_hash": "e0681f9e106bb12181db85cadb3cf9b08b1cf153ef24e678f2c41809eb398e25",
+          "revision_id": "b1b41336-2b70-4a75-9124-ffc9dba9695f",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_hold_firmly"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "req_printable",
+              "req_snap_in_clamp",
+              "req_ziptie_lock"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "e70f92877b7e24f079572cfb1984e94330555ccda4b14f817e68a353e751571a",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "snap_in_pipe_clamp"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 2,
+          "extracted_source_hash": "e70f92877b7e24f079572cfb1984e94330555ccda4b14f817e68a353e751571a",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": null,
+          "normalized_error": null,
+          "observed_stage": null,
+          "operation_id": "2a123024-5d34-48e1-af6f-faecbe76c196:recovery-recheck:2",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L1",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": null,
+            "attempt_number": null,
+            "failure_class": null,
+            "level": null,
+            "logical_operation_id": null,
+            "status": null,
+            "transport_attempts": []
+          },
+          "raw_response_hash": null,
+          "repair_level": "L1",
+          "result_hash": "e0681f9e106bb12181db85cadb3cf9b08b1cf153ef24e678f2c41809eb398e25",
+          "revision_id": "b1b41336-2b70-4a75-9124-ffc9dba9695f",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [
+              "req_hold_firmly"
+            ],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "req_printable",
+              "req_snap_in_clamp",
+              "req_ziptie_lock"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "e70f92877b7e24f079572cfb1984e94330555ccda4b14f817e68a353e751571a",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "snap_in_pipe_clamp"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 4
+    },
+    "category": "clamp_clip",
+    "comparison_specification_hash": "469261826a849253ee139eafc18fefe33498079316896c0b5899a376655bb57d",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "snap_in_pipe_clamp",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "snap-in pipe clamp",
+          "purpose": "Secure a round pipe with a snap-in mechanism and a zip-tie locking feature."
+        },
+        "project_id": "8dac7ef3-3d82-4c62-9e32-bed0790a371e",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": "secure retention"
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_hold_firmly"
+          },
+          {
+            "authoritative_value": {
+              "value": "3D printable without excessive supports"
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_printable"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_snap_in_clamp"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_ziptie_lock"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "required",
+            "classification": "review_required",
+            "expected": {
+              "value": "secure retention"
+            },
+            "kind": "retention",
+            "object_type": "pipe",
+            "operator": "qualitative",
+            "origin": "user_explicit",
+            "raw_evidence": "hold the pipe firmly",
+            "requirement_id": "req_hold_firmly",
+            "scope": "snap_in_pipe_clamp",
+            "source": "initial_user",
+            "subject": "clamp"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": "3D printable without excessive supports"
+            },
+            "kind": "qualitative",
+            "operator": "qualitative",
+            "origin": "user_explicit",
+            "raw_evidence": "It should be printable",
+            "requirement_id": "req_printable",
+            "scope": "snap_in_pipe_clamp",
+            "source": "initial_user",
+            "subject": "clamp"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "pipe",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "Design a snap-in clamp for securing a round pipe",
+            "requirement_id": "req_snap_in_clamp",
+            "scope": "snap_in_pipe_clamp",
+            "source": "initial_user",
+            "subject": "clamp"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "zip-tie",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "with a zip-tie locking feature",
+            "requirement_id": "req_ziptie_lock",
+            "scope": "snap_in_pipe_clamp",
+            "source": "initial_user",
+            "subject": "clamp"
+          }
+        ],
+        "revision_id": "2a123024-5d34-48e1-af6f-faecbe76c196:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "2a123024-5d34-48e1-af6f-faecbe76c196"
+      },
+      "contract_hash": "9a5c3db3623e362fc9134f0ba79a6a325d69d016cfeb78c42f6e894fc9bddaec",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "cadquery_api_error",
+    "first_blocker_stage": "source_execution",
+    "first_incorrect_owner": "geometry",
+    "mode": "premise_only",
+    "normal_recovery_resolved": false,
+    "observed_stage": "build_execution",
+    "project_runtime_id": "8dac7ef3-3d82-4c62-9e32-bed0790a371e",
+    "prompt": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.",
+    "prompt_sha256": "3d7da6407fd288d194903dc45a31b6c58d26160f8802a6c8e95ef9363628d7a6",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "df8de8c0-c643-4881-8694-ff669be093b1",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "7c802d4b-08da-4c77-8499-966dc07c772f",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "e1719e08eaf11b41aef3c0e1d9f9e56a2deedb6316f101c6ee4b4dc22414181f",
+        "request_hash": "a02802c5fdf237b1e3c89042ed601009285a23ae6d87c05e8e8474df3407b568",
+        "request_started_at": "2026-08-08T11:37:58.649525+00:00",
+        "response_length": 4218,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "4a5e8370-d204-4fcb-9822-58a6a2dfad7d",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "d20863dd-c433-415b-9184-e38276640efe",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "3ef3d853ec807a6c9e63d851a44ec15d2361c41eeede154924af92c0e852da1e",
+        "request_hash": "0c981a74134fd4ad07e1f474bc1af1db86746c54847024e44b692ee01166f833",
+        "request_started_at": "2026-08-08T11:38:03.653197+00:00",
+        "response_length": 3906,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "6e4a4a3d-1bd7-4764-ba5f-8d066094d166",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "6bffc185-b758-465a-b39f-6ec335214d10",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "0f38bf3038f2de84be34b0f77196da313a4364a36a65b37aa61209ad801a89b6",
+        "request_hash": "f2e9fdb1912a18df54e8a6c91fa83cd58f0a62e409432137c9257748cdf12513",
+        "request_started_at": "2026-08-08T11:38:08.657146+00:00",
+        "response_length": 4692,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "743ba76b-e698-44b2-85f8-ba8ebd013e1a",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "9587cfa7-f795-4bf3-90fa-34f7967ecc40",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "e29d925e7392a3b90b8eacb4b90718049eda18d42bd3f9296f7190836b9a82f8",
+        "request_hash": "43a6b7d3a185191149120af49409588c5ed8d04d8494c04b7faeb038c064fca5",
+        "request_started_at": "2026-08-08T11:38:15.923813+00:00",
+        "response_length": 4750,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "measured",
+      "eligible_interpretation": false,
+      "mapping_status": null,
+      "metrics": {
+        "bounding_box_error_by_axis_mm": {
+          "x": 15.799215999999994,
+          "y": 42.100088,
+          "z": 13.000000000000128
+        },
+        "solid_count_agreement": true,
+        "surface_area_difference_mm2": 3263.1739211461017,
+        "surface_area_difference_ratio": 0.3640433443029607,
+        "volume_difference_mm3": 1567.77640120066,
+        "volume_difference_ratio": 0.17092440960328792
+      },
+      "raw_generated": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 46.2,
+            "size_y": 20.000000000000004,
+            "size_z": 33.00000000000013
+          },
+          "center_of_mass_mm": [
+            -5.129659179850279,
+            -4.097564189952457e-13,
+            17.327379885835807
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 5700.522221669392,
+          "volume_mm3": 7604.561270401876
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 41,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 1,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      },
+      "raw_reference": {
+        "authority": "mesh_derived",
+        "canonical_part_count": 1,
+        "canonical_part_ids": [
+          "pipe_clamp_50mm"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "3mf",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 61.999216,
+                "size_y": 62.100088,
+                "size_z": 20.0
+              },
+              "center_of_mass_mm": [
+                6.244439307286472e-07,
+                26.54411568214203,
+                9.999973518768188
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 8963.696142815494,
+              "volume_mm3": 9172.337671602536
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 25392,
+              "vertex_count": 12688,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/clamp-clip-001/derived-reference.json",
+        "quality_classification": "watertight_mesh_reference"
+      },
+      "status": "specification_underconstrained"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "51a9b5c5b6f62d209291b6927b022194ea5e50281eecc22743651523358844f9",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Support a standard nominal useful pipe size range of 20mm to 32mm diameter for a general-purpose snap-in pipe clamp since no specific pipe diameter was provided.",
+          "id": "assumption_pipe_size_range",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "statement": "Support a standard nominal useful pipe size range of 20mm to 32mm diameter for a general-purpose snap-in pipe clamp since no specific pipe diameter was provided."
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "bc9adb4a-4d0f-4dfc-8819-6130f61ace9e",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 2,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 1,
+      "schema_retries": 2,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "8dac7ef3-3d82-4c62-9e32-bed0790a371e",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:38:05.932115",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "pipe",
+          "operator": "present",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Design a snap-in clamp for securing a round pipe",
+          "record_id": "a50da074-5b24-4c82-bef2-34c49b854533",
+          "requirement_id": "req_snap_in_clamp",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "clamp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "pipe",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:38:05.932118",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:38:05.932120",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "zip-tie",
+          "operator": "present",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "with a zip-tie locking feature",
+          "record_id": "c0e04c18-696d-44d8-8118-8ec566b11ea5",
+          "requirement_id": "req_ziptie_lock",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "clamp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "zip-tie",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:38:05.932121",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:38:05.932123",
+          "explicit": true,
+          "kind": "qualitative",
+          "object_type": null,
+          "operator": "qualitative",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "It should be printable",
+          "record_id": "deb934a9-50e1-437f-b347-bb6c6d2f28b0",
+          "requirement_id": "req_printable",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "clamp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "qualitative_behavior",
+          "unit": null,
+          "updated_at": "2026-08-08T11:38:05.932124",
+          "value": "3D printable without excessive supports",
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:38:05.932125",
+          "explicit": true,
+          "kind": "retention",
+          "object_type": "pipe",
+          "operator": "qualitative",
+          "originating_message": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "hold the pipe firmly",
+          "record_id": "3637b77f-bd12-4805-8155-cd1c7b8b2af1",
+          "requirement_id": "req_hold_firmly",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "clamp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "pipe",
+          "tolerance": null,
+          "type": "qualitative_behavior",
+          "unit": null,
+          "updated_at": "2026-08-08T11:38:05.932126",
+          "value": "secure retention",
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:38:23.980135+00:00"
+    },
+    "revision_id": "b1b41336-2b70-4a75-9124-ffc9dba9695f",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 1,
+      "total_authoritative_requirements": 4,
+      "unsupported_verifier": 3,
+      "unverifiable": 3
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 27.844604211000842,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 41,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "output_id": "snap_in_pipe_clamp",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "2209808280df04b3c52772c63016558ecd85478267d6b7159e6e1bdba2a1acb7",
+            "step": "1c7c69a27397e4c37e370916a43b6ab8ffb780551318e1802814098f39747056",
+            "stl": "33ce0ea63a22640de2f161e9a5182abdf6a8c8f4894f058e807189dacde77d45"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 46.2,
+                "size_y": 20.000000000000004,
+                "size_z": 33.00000000000013
+              },
+              "center_of_mass_mm": [
+                -5.129659179850279,
+                -4.097564189952457e-13,
+                17.327379885835807
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 5700.522221669392,
+              "volume_mm3": 7604.561270401876
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 41,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "snap_in_pipe_clamp",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "2a123024-5d34-48e1-af6f-faecbe76c196"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

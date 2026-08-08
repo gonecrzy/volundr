@@ -1,0 +1,152 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "adapter-coupler-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "adapter_coupler",
+  "comparison_specification_hash": "d0f1caf0b89f379f7ab81d94ed8f02be236844400371004caa4f7328b5df289c",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "cde79440-274c-4997-b798-c82bfcda72cc",
+  "prompt": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.",
+  "prompt_sha256": "abab958d2f608b725bfc1d51b62a97507691b0f0fbacd3ca40e2a31d3136b2af",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "f1353c51-ef18-4dbc-98f3-6ad24c844b1f",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "d0deca12-9e4d-47bb-bb92-eb93700a637a",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "400bf9fb0b5385057b577c28b8c211c0f838a82a356848264547f036c5822269",
+      "request_hash": "9294f5a90726bef39b5ade080dcb49102e6a27a3eac487edf3caf1e9a48c198c",
+      "request_started_at": "2026-08-08T11:37:33.849311+00:00",
+      "response_length": 3736,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "5e24f2ac7143597aa2de7c3332919a8f35a96e06b813c8a0c41888fdb981c681",
+  "requirement_extraction": {
+    "assumptions": [],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact outer diameter and connection geometry (such as locking tab positions or latch style) of the Tineco stick vacuum attachment port that this adapter needs to connect to?",
+        "question_id": "abd1236c-70b0-4a06-8c60-0c701d2c85c2",
+        "reason": "Missing mating dimensions for the primary connection interface.",
+        "requirement_id": "missing_tineco_mating_dimensions"
+      },
+      {
+        "display_order": 1,
+        "question": "What is the inner or outer diameter of the flexible hose or accessory that will connect to the other side of this adapter?",
+        "question_id": "d6110032-1f40-4179-9740-0fe3b75ddc62",
+        "reason": "Missing mating dimensions for the secondary connection interface.",
+        "requirement_id": "missing_hose_mating_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "caa62a81-95ae-4346-9e47-68a6c426f932",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Tineco vacuum connection mating dimensions",
+        "id": "tineco_vacuum_connection_mating_dimensions",
+        "importance": "critical",
+        "reason": "Tineco vacuum connection mating dimensions",
+        "source": "user"
+      },
+      {
+        "description": "Flexible hose or accessory mating dimensions",
+        "id": "flexible_hose_or_accessory_mating_dimensions",
+        "importance": "critical",
+        "reason": "Flexible hose or accessory mating dimensions",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "cde79440-274c-4997-b798-c82bfcda72cc",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:37:36.479022+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 2.869890050002141,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "4add14d2-be39-4dc1-9a46-74a82b6c5655"
+}

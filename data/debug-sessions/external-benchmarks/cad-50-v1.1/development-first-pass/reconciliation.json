@@ -1,0 +1,10 @@
+{
+  "cell_count": 60,
+  "provider_calls": 0,
+  "reason": "worker execution identities and ISO request timestamps were not fully carried into the initial compact evidence serializer",
+  "reconciled_offline": true,
+  "schema_version": "external-cad-development-first-pass-v1-evidence-reconciliation",
+  "source_runtime_data_dir": "/tmp/volundr-external-cad-survey.WhYzMe/data",
+  "worker_executions_during_reconciliation": 0,
+  "workflow_outcomes_unchanged": true
+}

@@ -1,0 +1,169 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "jig-guide-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "jig_guides",
+  "comparison_specification_hash": "06a503b0093d755d62cbf66f9761dfe8b20c88ee1297a11c497ad9126cc10ab8",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "0068a0d1-1729-4477-a4eb-a5b07251ee75",
+  "prompt": "Design a router jig for cutting repeatable corner radii. It should include a stable jig body and interchangeable templates for different radius sizes.",
+  "prompt_sha256": "5b52dc7d9375aaad4eadffa122eb7fcbaeb420b62281158b7ce16be294894c24",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "9edf920f-1393-474a-8fd2-9598ebba320e",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "6b42cad3-564d-4b8e-9d84-ad72775df367",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "5e12f1735f7d1681325504db918b194ab620b1263b008b42f4a4aeab4ee8f807",
+      "request_hash": "424b5de82522b454042d66cf7335b760875e0815547604c43cc8e83e6a539c7c",
+      "request_started_at": "2026-08-08T11:40:11.220228+00:00",
+      "response_length": 3746,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "36f55aa532f158a486c9c9d94114a3e7953ea834ea8b014013e396e0c46b25e1",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Standard woodworking corner radius template sizes (e.g., small, medium, large radii) will be supported by interchangeable template inserts.",
+        "id": "assumption_template_sizes",
+        "importance": "important",
+        "kind": "qualitative",
+        "object_type": "template",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": "interchangeable templates for different radius sizes",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "interchangeable templates",
+        "target": null,
+        "unit": null,
+        "value": "standard radius sizes"
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What specific corner radius sizes (or range of radii) should the interchangeable templates accommodate?",
+        "question_id": "bcd0bd2e-8679-4205-9065-245bf4c438b2",
+        "reason": "Missing specific radius dimensions required for template design.",
+        "requirement_id": "clarify_radius_sizes"
+      },
+      {
+        "display_order": 1,
+        "question": "What router bit diameter, guide bushing size, or offset is the jig expected to accommodate?",
+        "question_id": "e4e077b9-41ed-40c0-8b78-4016a8a75313",
+        "reason": "Missing mating dimensions and tooling offset for accurate radius cutting.",
+        "requirement_id": "clarify_router_bushing_bit"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "571a44aa-0ec4-4d4f-a4be-618347f7acda",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Specific radius dimensions",
+        "id": "specific_radius_dimensions",
+        "importance": "critical",
+        "reason": "Specific radius dimensions",
+        "source": "user"
+      },
+      {
+        "description": "Router bit and guide bushing specifications",
+        "id": "router_bit_and_guide_bushing_specifications",
+        "importance": "critical",
+        "reason": "Router bit and guide bushing specifications",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "0068a0d1-1729-4477-a4eb-a5b07251ee75",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:40:13.674440+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 4.3318434079992585,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "d32ac293-65a6-4fef-991e-576b328141c3"
+}

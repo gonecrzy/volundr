@@ -1,0 +1,190 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "electronics-enclosure-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "electronics_enclosures",
+  "comparison_specification_hash": "b6ba02b63c1e97eb8a8ec8f808034bdc8107233b438fc00cca005309d401c2d9",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "96908ff1-a8a2-4ab5-811b-489745d675a5",
+  "prompt": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.",
+  "prompt_sha256": "331091b3845dcbe270087d4c8f4aeb5dfbe04856aaf1cdcb8ab1724040da7056",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "560afc1b-43a6-486b-a608-82358fc07fd7",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "0f245c88-65e0-44f2-b231-d2631b853ea8",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "15038c59b13df9b94fdca7836b2d0060e11d155e4600fb6d8bedf876d06ee0b7",
+      "request_hash": "51877b10fb6a8a64c759353800dd1c345334f6796ebc14ee1e677ba458b09f11",
+      "request_started_at": "2026-08-08T11:39:03.916694+00:00",
+      "response_length": 4611,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "c4662ce461163696b8c9c05cab316b2c22eb641a9d13c68236a262891f4c8ac7",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "General removable fit clearance per side applied to the two-part enclosure.",
+        "id": "assumption_fit_clearance",
+        "importance": "important",
+        "kind": "clearance",
+        "object_type": "enclosure",
+        "operator": "range",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "lower housing",
+        "target": "top cover",
+        "tolerance": null,
+        "unit": "mm",
+        "value": [
+          0.3,
+          0.5
+        ]
+      },
+      {
+        "description": "General functional wall thickness for the protective case.",
+        "id": "assumption_wall_thickness",
+        "importance": "important",
+        "kind": "dimension",
+        "object_type": "enclosure",
+        "operator": "exact",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "wall",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": 3.0
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact external dimensions and display/button cutout positions of the LCR-T4 ESR meter to ensure an accurate fit?",
+        "question_id": "2a31e691-d214-486b-9112-6f01103fcf6a",
+        "reason": "Missing mating dimensions for the specific electronic instrument.",
+        "requirement_id": "clarify_lcr_t4_dimensions"
+      },
+      {
+        "display_order": 1,
+        "question": "How should the lower housing and top cover be secured together (e.g., snap-fit, screws, slide-on)?",
+        "question_id": "342a7314-a5e2-4435-bcd5-4b41df9a15da",
+        "reason": "Essential enclosure retention method not specified.",
+        "requirement_id": "clarify_retention_method"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "fb8b2193-b65c-4977-9d2f-5355e4cd45bb",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Exact physical dimensions of the LCR-T4 ESR meter",
+        "id": "exact_physical_dimensions_of_the_lcr_t4_esr_meter",
+        "importance": "critical",
+        "reason": "Exact physical dimensions of the LCR-T4 ESR meter",
+        "source": "user"
+      },
+      {
+        "description": "Enclosure fastening or retention mechanism between lower housing and top cover",
+        "id": "enclosure_fastening_or_retention_mechanism_between_lower_housing_and_top_cover",
+        "importance": "critical",
+        "reason": "Enclosure fastening or retention mechanism between lower housing and top cover",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "96908ff1-a8a2-4ab5-811b-489745d675a5",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:39:06.778650+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 5.806870467000408,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "3304cd8e-bb85-4afd-b12a-3f74066b6601"
+}

@@ -1,0 +1,189 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "mounting-bracket-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "mounting_brackets",
+  "comparison_specification_hash": "d16b6505a8f274841435c1dcb5a374380a46c9557702bdd70b860b84ea3790d1",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "0f4fb9aa-9f7f-4c47-af53-5d1f4fcc7783",
+  "prompt": "Design a replacement mounting bracket for an e-bike wheel speed sensor. It should attach securely to a bicycle chain stay, keep the sensor aligned with the wheel spokes, and allow attachment using a screw and zip tie. Keep the design compact and practical.",
+  "prompt_sha256": "069e479e26be4ad9cc403e9bf36f437fd2106c36c1487a65d2dca3f843f6157d",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "e0f69754-97cb-4aba-9a25-2f0937693732",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "a0b4f3cc-5910-4246-8bf4-c3251446313b",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "bde2f32b5270796eed78aac0596d0156e16e10923ffd0ea2f9b1ff919209ef7f",
+      "request_hash": "a6f106433faef7703a7a3b6f83a9174bf37af8b688b0b3d28fc59b5d47359aca",
+      "request_started_at": "2026-08-08T11:40:16.223033+00:00",
+      "response_length": 6383,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "1308eab6133020635e988137183c171e839f9fb0df0ed0e1fe3172f257692d60",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Bicycle chainstay cross-section shape",
+        "id": "assumption_chainstay_geometry",
+        "importance": "critical",
+        "kind": "qualitative",
+        "label": "Bicycle chainstay cross-section shape",
+        "object_type": "bicycle chainstay",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": "attach securely to a bicycle chain stay",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "mounting bracket",
+        "target": "bicycle chain stay",
+        "tolerance": null,
+        "unit": null,
+        "value": "oval or round cross-section typical of e-bike chainstays"
+      },
+      {
+        "description": "Wheel speed sensor mounting interface dimensions",
+        "id": "assumption_sensor_dimensions",
+        "importance": "critical",
+        "kind": "dimension",
+        "label": "Wheel speed sensor mounting interface dimensions",
+        "object_type": "wheel speed sensor",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": "replacement mounting bracket for an e-bike wheel speed sensor",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "mounting bracket",
+        "target": "wheel speed sensor",
+        "tolerance": null,
+        "unit": "mm",
+        "value": "standard e-bike spoke magnet sensor footprint"
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact mounting hole spacing, width, and depth dimensions of the e-bike wheel speed sensor that this bracket must hold?",
+        "question_id": "46a3c21f-3e0e-41c7-bba1-e6b4fca9e528",
+        "reason": "Missing mating dimensions for the specific wheel speed sensor make it impossible to guarantee a correct fit.",
+        "requirement_id": "q_sensor_dimensions"
+      },
+      {
+        "display_order": 1,
+        "question": "What are the approximate outer dimensions (diameter or width and height) of the bicycle chainstay where the bracket will be attached?",
+        "question_id": "6c26305f-960b-4f4f-9665-6d921c6ab83a",
+        "reason": "Missing chainstay geometry prevents accurate contouring of the bracket inner face for a secure fit.",
+        "requirement_id": "q_chainstay_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "0bcbe1ea-329d-4497-8599-016a31d9bac0",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Exact sensor mounting hole spacing and fastener size",
+        "id": "exact_sensor_mounting_hole_spacing_and_fastener_size",
+        "importance": "critical",
+        "reason": "Exact sensor mounting hole spacing and fastener size",
+        "source": "user"
+      },
+      {
+        "description": "Chainstay cross-section dimensions",
+        "id": "chainstay_cross_section_dimensions",
+        "importance": "critical",
+        "reason": "Chainstay cross-section dimensions",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "0f4fb9aa-9f7f-4c47-af53-5d1f4fcc7783",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:40:20.217189+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 6.540230828002677,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "e0f9016c-71ba-4c5a-beac-bcd8bce18fd8"
+}

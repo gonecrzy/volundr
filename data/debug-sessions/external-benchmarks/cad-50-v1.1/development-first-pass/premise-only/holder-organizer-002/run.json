@@ -1,0 +1,166 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "holder-organizer-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 2
+  },
+  "category": "holders_organizers",
+  "comparison_specification_hash": "acf483392a8f7ad1a8907a1e711caeb7d58915ea1bee6caa1f90c9ad9cadabdf",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "9141b1cd-6133-443c-81be-e515ac3c9518",
+  "prompt": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.",
+  "prompt_sha256": "e698910fc1df132b147f1c0f5ca0e8149557019c13b2d3f96bc3b0c07028978b",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "097f10a8-579b-4cb0-8569-28641c6e8960",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "4d3d2c3e-a55f-42bd-8008-d635847c3493",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "e16946b872987a013b6af3a5eff7a24dc882007b390d7244eb96b6c65ef1693c",
+      "request_hash": "8dec32dc1861c3b693df3d1357feb4d3d7599d73da614548770f47180e9a3711",
+      "request_started_at": "2026-08-08T11:39:51.207027+00:00",
+      "response_length": 4224,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "403cb164-3d7b-459d-993d-6c89ac54b1a9",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "b1c4d6c2-e81b-4b50-8602-a261fad7387e",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "c007e2aaf77e5f0fb18dc54723525e7701821998183df85da172239be9f4fab7",
+      "request_hash": "f92237dffa1c43e83c25aae5127653a9023ea3db1cde2bc77e3ce2f965cd2f19",
+      "request_started_at": "2026-08-08T11:39:56.210468+00:00",
+      "response_length": 4397,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "8178426c9d256f88fa177e962709582868a04f770fe3c5b0d3fddbf729ac9cbf",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Wall-mounted means a vertical planar wall mount with standard screw spacing and orientation.",
+        "id": "assumption_wall_mount_type",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "statement": "Wall-mounted means a vertical planar wall mount with standard screw spacing and orientation."
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact physical dimensions and locking tab/groove locations of the Stihl AP-series battery pack to ensure a secure yet accessible fit?",
+        "question_id": "4302b689-951d-4c4b-a901-576378e6ca97",
+        "reason": "Missing mating dimensions for the specific proprietary battery pack geometry.",
+        "requirement_id": "q_battery_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "418805c6-490a-4cea-82d9-2c4a6245f662",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Stihl AP-series battery pack physical mating dimensions",
+        "id": "stihl_ap_series_battery_pack_physical_mating_dimensions",
+        "importance": "critical",
+        "reason": "Stihl AP-series battery pack physical mating dimensions",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 2,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 1,
+    "schema_retries": 2,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "9141b1cd-6133-443c-81be-e515ac3c9518",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:39:58.600690+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 9.821318218004308,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "c5e82885-fa7b-4be2-81da-c948ff5a9907"
+}

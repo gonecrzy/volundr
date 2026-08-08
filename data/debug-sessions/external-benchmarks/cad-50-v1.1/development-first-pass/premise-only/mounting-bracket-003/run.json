@@ -1,0 +1,180 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "mounting-bracket-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 2
+  },
+  "category": "mounting_brackets",
+  "comparison_specification_hash": "5207bf8f107a31a5164052242b7c922a5779546b2d2b595984e63f1a61359839",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "bc2dc020-a677-43c9-953d-aad479401be7",
+  "prompt": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.",
+  "prompt_sha256": "cf4af83aa98e25ac424839049d7d9cde808c7fc8e35ed917215ab129b2e576a0",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "f9ccd2f2-a1ab-4e3d-95d0-b16620102149",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "c67c9166-ab6a-46d6-ae41-6a558a469564",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "d5c9f2bb904f24ff692b0039eac1b457f332ccffeb985d7cbe4e13c9f1673e4e",
+      "request_hash": "c8edae3d736a5054a9c5cbbfc326beb405df243f95e900d5179134eb2c9f6120",
+      "request_started_at": "2026-08-08T11:40:38.246308+00:00",
+      "response_length": 5538,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "2e39ab24-f3b6-4efa-9e37-02b4ae27b43c",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "63dfbe90-a03b-4a64-978d-04d57c063813",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "17f9b0c18f692f845b7f0b016177990f338b8ff7167628db65fe08c83304973f",
+      "request_hash": "6a9830fd87a29b607a0a74236936397f7411c7621f83d71fda551a2defc4477a",
+      "request_started_at": "2026-08-08T11:40:43.248353+00:00",
+      "response_length": 5754,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "ee3ceaba662f8561636e21f7839104456592b68610bce6bf11e24af3df55d71c",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Small 8020-style aluminum extrusion refers to the 10-series or 15-series / 2020 metric profile, standardly using M4 or M5 hardware or drop-in T-nuts.",
+        "id": "assumption_small_8020_extrusion_series",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "statement": "Small 8020-style aluminum extrusion refers to the 10-series or 15-series / 2020 metric profile, standardly using M4 or M5 hardware or drop-in T-nuts."
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact body dimensions, pin spacing, and ultrasonic transducer placement for the HC-SR04 sensor to ensure a precise snap-fit or slide-in mount?",
+        "question_id": "c0114e6e-227a-4775-a574-e5f705f9cf71",
+        "reason": "Missing mating dimensions for the specific sensor housing.",
+        "requirement_id": "clarify_sensor_dimensions"
+      },
+      {
+        "display_order": 1,
+        "question": "Which specific small 8020-series profile size is being used (e.g., 2020 metric or 10-series fractional), and what fasteners or T-nuts are preferred for attachment?",
+        "question_id": "c68f3eb1-09de-4599-90cc-f4555cac536a",
+        "reason": "Missing mating dimensions for the specific aluminum extrusion slot profile.",
+        "requirement_id": "clarify_extrusion_profile"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "4b240592-dee4-453a-9e02-e4ff42c97c60",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Exact dimensions and tolerances for the HC-SR04 ultrasonic sensor housing",
+        "id": "exact_dimensions_and_tolerances_for_the_hc_sr04_ultrasonic_sensor_housing",
+        "importance": "critical",
+        "reason": "Exact dimensions and tolerances for the HC-SR04 ultrasonic sensor housing",
+        "source": "user"
+      },
+      {
+        "description": "Exact profile dimensions and T-slot fastener specifications for the small 8020-style extrusion",
+        "id": "exact_profile_dimensions_and_t_slot_fastener_specifications_for_the_small_8020_style_extrusion",
+        "importance": "critical",
+        "reason": "Exact profile dimensions and T-slot fastener specifications for the small 8020-style extrusion",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 2,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 1,
+    "schema_retries": 2,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "bc2dc020-a677-43c9-953d-aad479401be7",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:40:46.368183+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 8.142064256986487,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "ba65d4df-a690-4414-9202-2f92ae92c9e3"
+}

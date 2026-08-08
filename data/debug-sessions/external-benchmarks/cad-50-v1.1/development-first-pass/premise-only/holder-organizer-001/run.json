@@ -1,0 +1,182 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "holder-organizer-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "holders_organizers",
+  "comparison_specification_hash": "de0b1b85af621a6745a8f927272999d44c7036beac04624f729cb6fa74209859",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "9b4bb81a-b5ed-4d95-91fc-c24b821e2f6e",
+  "prompt": "Design a sturdy wall-mounted holder for a string trimmer. It should keep the tool upright for storage and provide a secure screw-mounted interface around the tool body.",
+  "prompt_sha256": "371b68367db20971ef8d977fd4768a6d969973a10448ffbe5b8125391645871c",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "ff5158c8-39cb-43ae-9bd0-6296cc6a9574",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "1411708d-940e-4362-8bab-30f6be50f578",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "e4fe15059498de1697603684451714fb0651d0a4242801a61d036e79ad928577",
+      "request_hash": "52884792f651ac320138a154509e0895e4882cbe349763a14e896056b9ee584b",
+      "request_started_at": "2026-08-08T11:39:46.204167+00:00",
+      "response_length": 4286,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "06f8956cc3fede382f3b2a90bb7d3eebe68044e2fdd82e7b31ddd8a25956bb07",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Vertical planar wall mount",
+        "id": "assumption_wall_mount_type",
+        "importance": "important",
+        "kind": "orientation",
+        "label": "Vertical planar wall mount",
+        "object_type": "holder",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": "wall-mounted",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "holder",
+        "target": "wall",
+        "tolerance": null,
+        "unit": null,
+        "value": "vertical planar"
+      },
+      {
+        "description": "Standard screw mounting hole spacing",
+        "id": "assumption_fastener_spacing",
+        "importance": "important",
+        "kind": "relationship",
+        "label": "Standard screw mounting hole spacing",
+        "object_type": "mounting interface",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": "screw-mounted interface",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "holder",
+        "target": "screw",
+        "tolerance": null,
+        "unit": null,
+        "value": "standard spacing"
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What is the diameter of the string trimmer body where the holder grips it, and what is the overall weight of the trimmer?",
+        "question_id": "bb44d0e5-24a8-46af-b2cc-10f412aff14a",
+        "reason": null,
+        "requirement_id": "q_trimmer_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "ce75af66-c294-4933-bfbf-569d3394b2ce",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "string trimmer body diameter or gripping dimensions",
+        "id": "string_trimmer_body_diameter_or_gripping_dimensions",
+        "importance": "critical",
+        "reason": "string trimmer body diameter or gripping dimensions",
+        "source": "user"
+      },
+      {
+        "description": "string trimmer weight for load context",
+        "id": "string_trimmer_weight_for_load_context",
+        "importance": "critical",
+        "reason": "string trimmer weight for load context",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "9b4bb81a-b5ed-4d95-91fc-c24b821e2f6e",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:39:48.776965+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 5.188746587999049,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "d99e1489-efc5-4e99-9cd0-db5c028b59c0"
+}

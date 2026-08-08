@@ -1,0 +1,157 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "container-case-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "container_cases",
+  "comparison_specification_hash": "1c838c835644fa095d709480887aedcff86d611b84b69e10d41fbba5b536f13f",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "b33582eb-4706-45df-8317-4da36d47a1ce",
+  "prompt": "Design a compact organizer box for multiple common battery sizes. It should keep cells separated and protected while making them easy to identify and remove.",
+  "prompt_sha256": "76fee8532a586533707d243e44de3d9beef3285d5174b68adf9e39abc4e37994",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "5c6611b6-63bf-4cf2-ac3f-ea97c700c42d",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "07788515-ff87-427e-9a83-bfb62747acb2",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "c629f5c4d10b76aebf4021316653fa8133e2e6f152dc15daa34e0629c94ca059",
+      "request_hash": "03068dcaf4dd4fbef31284d541b781455f5ac810a110370560fd132252d8932b",
+      "request_started_at": "2026-08-08T11:38:58.912748+00:00",
+      "response_length": 3205,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "5e71007baf5919b164cd929c73496d3e759da7f03de523595d1d0c1a2273b97c",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Common battery sizes default set",
+        "id": "assumption_battery_types",
+        "importance": "important",
+        "kind": "qualitative",
+        "label": "Common battery sizes default set",
+        "object_type": "battery",
+        "operator": "qualitative",
+        "protected": true,
+        "raw_evidence": "multiple common battery sizes",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "organizer box",
+        "target": "battery",
+        "tolerance": null,
+        "unit": null,
+        "value": "AA, AAA, 18650"
+      }
+    ],
+    "clarification_question_count": 1,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "Which specific battery types (e.g., AA, AAA, 18650, 9V) and quantities should the organizer box accommodate?",
+        "question_id": "a455f531-821e-41f3-924b-5ea4d4d14bf0",
+        "reason": null,
+        "requirement_id": "q_battery_types_quantities"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "346e22a5-7434-4bd3-82c5-73de89b02e68",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Specific battery types and quantities",
+        "id": "specific_battery_types_and_quantities",
+        "importance": "critical",
+        "reason": "Specific battery types and quantities",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "b33582eb-4706-45df-8317-4da36d47a1ce",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:39:00.969062+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 4.823657107990584,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "6dae4212-e905-4864-a75f-206b0f87a06b"
+}

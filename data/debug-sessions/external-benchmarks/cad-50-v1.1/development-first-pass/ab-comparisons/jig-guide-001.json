@@ -1,0 +1,2907 @@
+{
+  "benchmark_project_id": "jig-guide-001",
+  "comparison_specification": {
+    "artifacts": {
+      "hashes": {
+        "routing_jig:brep": "0789dae9177bb58a177db629ebbd526d2b8dbf647d27d41692cdd1742744d6b7",
+        "routing_jig:step": "9234aac9fd32e949f986b5bcd97b6bb339d07949e370a2ba7cdf328db426356a",
+        "routing_jig:stl": "58dedc3d7e4551e560065468719628cc5212b6347c1fedf5c541299843bb487a"
+      },
+      "package_available": false
+    },
+    "benchmark_project_id": "jig-guide-001",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 1,
+      "repair_calls": 2,
+      "repair_history": [
+        {
+          "attempt_number": 1,
+          "extracted_source_hash": "0cced79d49e6b75c02a3a6924580aae1c0f06e5c45210016f47c49bc1e0920bb",
+          "extraction_succeeded": true,
+          "failure_boundary": "source_contract",
+          "failure_class": "source_contract_violation",
+          "first_incorrect_owner": "geometry",
+          "normalized_error": "source contract violation for ['routing_jig']: duplicate output_id: routing_jig",
+          "observed_stage": "source_contract",
+          "operation_id": "9e1c79a2-ed8e-4848-aa5a-7a8a700d6123:attempt:1",
+          "progress": {
+            "measurable_progress": true,
+            "progress_reasons": [
+              "first_repair_after_failure"
+            ]
+          },
+          "provider_attempt": {
+            "attempt_id": "1e057e9c-681b-4f88-89f4-ccb169abf406",
+            "attempt_number": 1,
+            "failure_class": "source_contract_violation",
+            "level": "initial",
+            "logical_operation_id": "ccfde67b-3d03-4c4d-852d-d762b5df772f",
+            "status": "contract_failure",
+            "transport_attempts": [
+              {
+                "attempt_id": "1e057e9c-681b-4f88-89f4-ccb169abf406",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "ccfde67b-3d03-4c4d-852d-d762b5df772f",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "256368c7c3d0c50a6cda92e99000f8656e907fb95962f5f788876aa62d228908",
+                "request_hash": "00577e9dc24df209206115270e29f1e310fe16dae820852a354bcca73ee4f27c",
+                "request_started_at": "2026-08-08T11:46:39.857316+00:00",
+                "response_length": 5488,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "256368c7c3d0c50a6cda92e99000f8656e907fb95962f5f788876aa62d228908",
+          "repair_level": "initial",
+          "result_hash": "8e741eef845afbbc9539dda88ef1b4f7648a67b4ec4984d4570c5119b8acc64c",
+          "revision_id": null,
+          "semantic_result": {},
+          "source_contract_valid": false,
+          "source_hash": "0cced79d49e6b75c02a3a6924580aae1c0f06e5c45210016f47c49bc1e0920bb",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": null,
+            "expected_solid_count": null,
+            "failure_class": null,
+            "outcome": null,
+            "schema_version": null,
+            "valid": null
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": null,
+            "phase": null,
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 2,
+          "extracted_source_hash": "430be989a4bb8e286f1d4ab92fce3214e408851474b382ab9faddd06c2f0d0f0",
+          "extraction_succeeded": true,
+          "failure_boundary": "source_contract",
+          "failure_class": "source_contract_violation",
+          "first_incorrect_owner": "geometry",
+          "normalized_error": "canonical output identity changed in source: expected ['routing_jig'], got ['routing_jig', 'fraswagen', 'griff_oben', 'griff_vorne', 'grundkorper', 'kontermutter', 'kopfteil', 'mutter', 'wagenstopp', 'x_wagen']",
+          "observed_stage": "source_contract",
+          "operation_id": "9e1c79a2-ed8e-4848-aa5a-7a8a700d6123:attempt:2",
+          "progress": {
+            "measurable_progress": true,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 1,
+            "progress_reasons": [
+              "extracted_source_hash_changed",
+              "diagnostic_code_changed",
+              "contract_failure_signature_removed"
+            ],
+            "progress_result": "progressed",
+            "protected_fact_regression": false,
+            "repair_level": "L0",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          },
+          "provider_attempt": {
+            "attempt_id": "f3119eb6-c5e2-45b3-802c-5fd35f4aec3a",
+            "attempt_number": 2,
+            "failure_class": "source_contract_violation",
+            "level": "L0",
+            "logical_operation_id": "bbd276d2-6cf7-495b-8279-a22013301e17",
+            "status": "contract_failure",
+            "transport_attempts": [
+              {
+                "attempt_id": "f3119eb6-c5e2-45b3-802c-5fd35f4aec3a",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "bbd276d2-6cf7-495b-8279-a22013301e17",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "4c1de213f62f430fe331f3264b1860f0959a8bb38514e4adcebc7fda92747676",
+                "request_hash": "e72c8af8e66cf2dff9d05b99e9bcc7100c70af806dfb83e4e14b6a8a02266523",
+                "request_started_at": "2026-08-08T11:46:44.859176+00:00",
+                "response_length": 5473,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "4c1de213f62f430fe331f3264b1860f0959a8bb38514e4adcebc7fda92747676",
+          "repair_level": "L0",
+          "result_hash": "8e741eef845afbbc9539dda88ef1b4f7648a67b4ec4984d4570c5119b8acc64c",
+          "revision_id": null,
+          "semantic_result": {},
+          "source_contract_valid": false,
+          "source_hash": "430be989a4bb8e286f1d4ab92fce3214e408851474b382ab9faddd06c2f0d0f0",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": null,
+            "expected_solid_count": null,
+            "failure_class": null,
+            "outcome": null,
+            "schema_version": null,
+            "valid": null
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": null,
+            "phase": null,
+            "result_hash": null,
+            "success": null
+          }
+        },
+        {
+          "attempt_number": 3,
+          "extracted_source_hash": "e376b9fe7ff4909b1cad04e37f993d0e70d86bdd4395c0cae06ff1854bb86e86",
+          "extraction_succeeded": true,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "normalized_error": null,
+          "observed_stage": "semantic_measurement",
+          "operation_id": "9e1c79a2-ed8e-4848-aa5a-7a8a700d6123:attempt:3",
+          "progress": {
+            "measurable_progress": true,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [
+              "source_contract_passed",
+              "extracted_source_hash_changed",
+              "diagnostic_code_changed",
+              "violation_count_decreased",
+              "contract_failure_signature_removed"
+            ],
+            "progress_result": "progressed",
+            "protected_fact_regression": false,
+            "repair_level": "L0",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": true
+          },
+          "provider_attempt": {
+            "attempt_id": "f50f81f1-829e-45d4-97b3-7f671129a59f",
+            "attempt_number": 3,
+            "failure_class": null,
+            "level": "L0",
+            "logical_operation_id": "60593e72-7ce4-4fe4-a607-4f6cff728d7c",
+            "status": "response_received",
+            "transport_attempts": [
+              {
+                "attempt_id": "f50f81f1-829e-45d4-97b3-7f671129a59f",
+                "attempt_index": 0,
+                "credential_present": true,
+                "credential_slot": "primary",
+                "exception_type": null,
+                "failure_class": null,
+                "logical_operation_id": "60593e72-7ce4-4fe4-a607-4f6cff728d7c",
+                "normalized_transport_error": null,
+                "provider_request_id": null,
+                "rate_limit_429_classification": "not_429",
+                "raw_response_hash": "d91d83280d35170c8223f05467831f886cff605b123c277018f850ab789d5800",
+                "request_hash": "9d26ac39e9f1bf0a1176ae60fcff07f46c409e7ba892decd90a2db5a4b380d11",
+                "request_started_at": "2026-08-08T11:46:49.860801+00:00",
+                "response_length": 1556,
+                "response_received": true,
+                "retry_delay_seconds": null,
+                "status_code": 200,
+                "transport_retry_classification": "none"
+              }
+            ]
+          },
+          "raw_response_hash": "d91d83280d35170c8223f05467831f886cff605b123c277018f850ab789d5800",
+          "repair_level": "L0",
+          "result_hash": "08a7e0fbfd888ce793b0e64ef8c23ead5b914aea3c33bd7cc5746596d23eb2ba",
+          "revision_id": "2e527010-1c01-42ea-b300-7bf109a5fe96",
+          "semantic_result": {
+            "failed": [],
+            "passed": [],
+            "review_required": [],
+            "status": "unsupported_verifier",
+            "unverifiable": [
+              "dim_anschlag_envelope_x",
+              "dim_anschlag_envelope_y",
+              "dim_anschlag_envelope_z",
+              "dim_fraswagen_envelope_x",
+              "dim_fraswagen_envelope_y",
+              "dim_fraswagen_envelope_z",
+              "dim_griff_oben_envelope_x",
+              "dim_griff_oben_envelope_y",
+              "dim_griff_oben_envelope_z",
+              "dim_griff_vorne_envelope_x",
+              "dim_griff_vorne_envelope_y",
+              "dim_griff_vorne_envelope_z",
+              "dim_grundkorper_envelope_x",
+              "dim_grundkorper_envelope_y",
+              "dim_grundkorper_envelope_z",
+              "dim_kontermutter_envelope_x",
+              "dim_kontermutter_envelope_y",
+              "dim_kontermutter_envelope_z",
+              "dim_kopfteil_envelope_x",
+              "dim_kopfteil_envelope_y",
+              "dim_kopfteil_envelope_z",
+              "dim_mutter_envelope_x",
+              "dim_mutter_envelope_y",
+              "dim_mutter_envelope_z",
+              "dim_output_count",
+              "dim_wagenstopp_envelope_x",
+              "dim_wagenstopp_envelope_y",
+              "dim_wagenstopp_envelope_z",
+              "dim_x_wagen_envelope_x",
+              "dim_x_wagen_envelope_y",
+              "dim_x_wagen_envelope_z",
+              "req_handles_stops",
+              "req_repeatable_positioning",
+              "req_tool_guide"
+            ]
+          },
+          "source_contract_valid": true,
+          "source_hash": "e376b9fe7ff4909b1cad04e37f993d0e70d86bdd4395c0cae06ff1854bb86e86",
+          "syntax_valid": true,
+          "topology_result": {
+            "detected_solid_count": 1,
+            "expected_solid_count": 1,
+            "failure_class": null,
+            "outcome": "valid",
+            "schema_version": "topology-evidence-v2",
+            "valid": true
+          },
+          "worker_result": {
+            "execution_manifest_path": null,
+            "failure_class": null,
+            "job_id": null,
+            "output_ids": [
+              "routing_jig"
+            ],
+            "phase": "completed",
+            "result_hash": null,
+            "success": null
+          }
+        }
+      ],
+      "total_transport_attempts": 5
+    },
+    "category": "jig_guides",
+    "comparison_specification_hash": "61cc817a275bde8cdd5f17a31244cbee23705426bd72cc8339d99fdd960fce6e",
+    "executable_contract": {
+      "contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v1",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "expected_solid_count": 1,
+            "output_id": "routing_jig",
+            "output_type": "printable_component",
+            "required": true
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "routing jig",
+          "purpose": "Multi-part routing jig for a Domino-style router with accurate guidance, handles, stops, and repeatable workpiece positioning."
+        },
+        "project_id": "d05989fd-8973-40b5-8f16-2d3a24011c3f",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "value": 116.5
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_anschlag_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 128.00000381469727
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_anschlag_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 35.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_anschlag_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 110.61710357666016
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_fraswagen_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 89.48259735107422
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_fraswagen_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 50.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_fraswagen_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 125.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_griff_oben_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 19.800003051757812
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_griff_oben_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 31.50000762939453
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_griff_oben_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 15.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_griff_vorne_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 110.00000381469727
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_griff_vorne_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 16.99999237060547
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_griff_vorne_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 142.00000762939453
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_grundkorper_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 116.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_grundkorper_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 171.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_grundkorper_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 18.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_kontermutter_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 82.50000762939453
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_kontermutter_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 8.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_kontermutter_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 25.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_kopfteil_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 126.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_kopfteil_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 8.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_kopfteil_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 30.00000762939453
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_mutter_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 30.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_mutter_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 14.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_mutter_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 10.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_output_count"
+          },
+          {
+            "authoritative_value": {
+              "value": 24.332244873046875
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_wagenstopp_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 22.353118896484375
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_wagenstopp_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 7.5
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_wagenstopp_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": 31.999717712402344
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_x_wagen_envelope_x"
+          },
+          {
+            "authoritative_value": {
+              "value": 24.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_x_wagen_envelope_y"
+          },
+          {
+            "authoritative_value": {
+              "value": 76.0
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "dim_x_wagen_envelope_z"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_handles_stops"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_repeatable_positioning"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_tool_guide"
+          }
+        ],
+        "relationships": [],
+        "requirements": [
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 116.5
+            },
+            "kind": "dimension",
+            "object_type": "anschlag",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.",
+            "requirement_id": "dim_anschlag_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "anschlag"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 128.00000381469727
+            },
+            "kind": "dimension",
+            "object_type": "anschlag",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.",
+            "requirement_id": "dim_anschlag_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "anschlag"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 35.0
+            },
+            "kind": "dimension",
+            "object_type": "anschlag",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.",
+            "requirement_id": "dim_anschlag_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "anschlag"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 110.61710357666016
+            },
+            "kind": "dimension",
+            "object_type": "fraswagen",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.",
+            "requirement_id": "dim_fraswagen_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "fraswagen"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 89.48259735107422
+            },
+            "kind": "dimension",
+            "object_type": "fraswagen",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.",
+            "requirement_id": "dim_fraswagen_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "fraswagen"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 50.0
+            },
+            "kind": "dimension",
+            "object_type": "fraswagen",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.",
+            "requirement_id": "dim_fraswagen_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "fraswagen"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 125.0
+            },
+            "kind": "dimension",
+            "object_type": "griff_oben",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.",
+            "requirement_id": "dim_griff_oben_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "griff_oben"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 19.800003051757812
+            },
+            "kind": "dimension",
+            "object_type": "griff_oben",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.",
+            "requirement_id": "dim_griff_oben_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "griff_oben"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 31.50000762939453
+            },
+            "kind": "dimension",
+            "object_type": "griff_oben",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.",
+            "requirement_id": "dim_griff_oben_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "griff_oben"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 15.0
+            },
+            "kind": "dimension",
+            "object_type": "griff_vorne",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.",
+            "requirement_id": "dim_griff_vorne_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "griff_vorne"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 110.00000381469727
+            },
+            "kind": "dimension",
+            "object_type": "griff_vorne",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.",
+            "requirement_id": "dim_griff_vorne_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "griff_vorne"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 16.99999237060547
+            },
+            "kind": "dimension",
+            "object_type": "griff_vorne",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.",
+            "requirement_id": "dim_griff_vorne_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "griff_vorne"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 142.00000762939453
+            },
+            "kind": "dimension",
+            "object_type": "grundkorper",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.",
+            "requirement_id": "dim_grundkorper_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "grundkorper"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 116.0
+            },
+            "kind": "dimension",
+            "object_type": "grundkorper",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.",
+            "requirement_id": "dim_grundkorper_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "grundkorper"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 171.0
+            },
+            "kind": "dimension",
+            "object_type": "grundkorper",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.",
+            "requirement_id": "dim_grundkorper_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "grundkorper"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 18.0
+            },
+            "kind": "dimension",
+            "object_type": "kontermutter",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.",
+            "requirement_id": "dim_kontermutter_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "kontermutter"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 82.50000762939453
+            },
+            "kind": "dimension",
+            "object_type": "kontermutter",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.",
+            "requirement_id": "dim_kontermutter_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "kontermutter"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 8.0
+            },
+            "kind": "dimension",
+            "object_type": "kontermutter",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.",
+            "requirement_id": "dim_kontermutter_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "kontermutter"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 25.0
+            },
+            "kind": "dimension",
+            "object_type": "kopfteil",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.",
+            "requirement_id": "dim_kopfteil_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "kopfteil"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 126.0
+            },
+            "kind": "dimension",
+            "object_type": "kopfteil",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.",
+            "requirement_id": "dim_kopfteil_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "kopfteil"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 8.0
+            },
+            "kind": "dimension",
+            "object_type": "kopfteil",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.",
+            "requirement_id": "dim_kopfteil_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "kopfteil"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 30.00000762939453
+            },
+            "kind": "dimension",
+            "object_type": "mutter",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.",
+            "requirement_id": "dim_mutter_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "mutter"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 30.0
+            },
+            "kind": "dimension",
+            "object_type": "mutter",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.",
+            "requirement_id": "dim_mutter_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "mutter"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 14.0
+            },
+            "kind": "dimension",
+            "object_type": "mutter",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.",
+            "requirement_id": "dim_mutter_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "mutter"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 10.0
+            },
+            "kind": "count",
+            "object_type": "print_output",
+            "operator": "exact",
+            "origin": "user_explicit",
+            "raw_evidence": "Provide exactly 10 printed output(s).",
+            "requirement_id": "dim_output_count",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "outputs"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 24.332244873046875
+            },
+            "kind": "dimension",
+            "object_type": "wagenstopp",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.",
+            "requirement_id": "dim_wagenstopp_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "wagenstopp"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 22.353118896484375
+            },
+            "kind": "dimension",
+            "object_type": "wagenstopp",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.",
+            "requirement_id": "dim_wagenstopp_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "wagenstopp"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 7.5
+            },
+            "kind": "dimension",
+            "object_type": "wagenstopp",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.",
+            "requirement_id": "dim_wagenstopp_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "wagenstopp"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 31.999717712402344
+            },
+            "kind": "dimension",
+            "object_type": "x_wagen",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.",
+            "requirement_id": "dim_x_wagen_envelope_x",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "x_wagen"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 24.0
+            },
+            "kind": "dimension",
+            "object_type": "x_wagen",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.",
+            "requirement_id": "dim_x_wagen_envelope_y",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "x_wagen"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": 76.0
+            },
+            "kind": "dimension",
+            "object_type": "x_wagen",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "raw_evidence": "Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.",
+            "requirement_id": "dim_x_wagen_envelope_z",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "x_wagen"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "jig",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "provide handles and stops",
+            "requirement_id": "req_handles_stops",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "routing jig"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "jig",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "allow the workpiece to be positioned repeatably",
+            "requirement_id": "req_repeatable_positioning",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "routing jig"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "jig",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately",
+            "requirement_id": "req_tool_guide",
+            "scope": "routing_jig",
+            "source": "initial_user",
+            "subject": "routing jig"
+          }
+        ],
+        "revision_id": "9e1c79a2-ed8e-4848-aa5a-7a8a700d6123:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "9e1c79a2-ed8e-4848-aa5a-7a8a700d6123"
+      },
+      "contract_hash": "885b625cdece133dc7ee202fb9fb97c7af581b507bf38590d53df58e7c35e908",
+      "contract_source": "production_requirement_ledger",
+      "created": true
+    },
+    "failure_class": "source_contract_violation",
+    "first_blocker_stage": "source_contract",
+    "first_incorrect_owner": "geometry",
+    "mode": "comparison_specification",
+    "normal_recovery_resolved": false,
+    "observed_stage": "source_contract",
+    "project_runtime_id": "d05989fd-8973-40b5-8f16-2d3a24011c3f",
+    "prompt": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+    "prompt_sha256": "d4e00ba6a106818d5cd4a842ec5359cfceda2b7d84369f24e5bf4aa6fb8dd623",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "5ca633ce-223d-48c3-8cf3-997eb8a44dea",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "bd2becb7-b1ae-4baa-9591-211f26e60454",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "5e81030e034f6abdcb73346149fe216beb673aef9b3aac4cc240cbfb77fbdb01",
+        "request_hash": "ecec751457e54abca6f6856afe2c3c2f4f99d62c3b90d830a09b87a59510c7f2",
+        "request_started_at": "2026-08-08T11:46:18.831930+00:00",
+        "response_length": 10729,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "6a3df924-fcf5-40be-a8c4-89f8229c13be",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "13bafc42-6238-4896-bf0a-ca116f861da6",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "582d98228b7baa49694499757d50f2a26b6a0f1d12e64d8e31ed387df67e86e6",
+        "request_hash": "2aad1da5d6c7e3de09087644e7bb4397692fff161ce4a4f182dd6f0011246835",
+        "request_started_at": "2026-08-08T11:46:25.646000+00:00",
+        "response_length": 22212,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "1e057e9c-681b-4f88-89f4-ccb169abf406",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "ccfde67b-3d03-4c4d-852d-d762b5df772f",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "256368c7c3d0c50a6cda92e99000f8656e907fb95962f5f788876aa62d228908",
+        "request_hash": "00577e9dc24df209206115270e29f1e310fe16dae820852a354bcca73ee4f27c",
+        "request_started_at": "2026-08-08T11:46:39.857316+00:00",
+        "response_length": 5488,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "f3119eb6-c5e2-45b3-802c-5fd35f4aec3a",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "bbd276d2-6cf7-495b-8279-a22013301e17",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "4c1de213f62f430fe331f3264b1860f0959a8bb38514e4adcebc7fda92747676",
+        "request_hash": "e72c8af8e66cf2dff9d05b99e9bcc7100c70af806dfb83e4e14b6a8a02266523",
+        "request_started_at": "2026-08-08T11:46:44.859176+00:00",
+        "response_length": 5473,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      },
+      {
+        "attempt_id": "f50f81f1-829e-45d4-97b3-7f671129a59f",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "60593e72-7ce4-4fe4-a607-4f6cff728d7c",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "d91d83280d35170c8223f05467831f886cff605b123c277018f850ab789d5800",
+        "request_hash": "9d26ac39e9f1bf0a1176ae60fcff07f46c409e7ba892decd90a2db5a4b380d11",
+        "request_started_at": "2026-08-08T11:46:49.860801+00:00",
+        "response_length": 1556,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "comparison_engine_status": "unavailable",
+      "eligible_interpretation": false,
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "metrics": {
+        "aggregate": {
+          "bounding_box_error_by_axis_mm": {
+            "x": null,
+            "y": null,
+            "z": null
+          },
+          "solid_count_agreement": null,
+          "surface_area_difference_mm2": null,
+          "surface_area_difference_ratio": null,
+          "volume_difference_mm3": null,
+          "volume_difference_ratio": null
+        },
+        "mapping_status": "explicit_reference_output_mapping_required",
+        "per_part": {},
+        "project_part_count_agreement": false
+      },
+      "raw_generated": {
+        "routing_jig": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 142.000007629387,
+              "size_y": 116.0,
+              "size_z": 171.0
+            },
+            "center_of_mass_mm": [
+              3.495022282077079e-12,
+              1.0229228477782083e-15,
+              85.5
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 121180.00437926812,
+            "volume_mm3": 2816712.15133652
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 6,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        }
+      },
+      "raw_reference": {
+        "authority": null,
+        "canonical_part_count": 10,
+        "canonical_part_ids": [
+          "fraswagen",
+          "grundkorper",
+          "mutter",
+          "kontermutter",
+          "x_wagen",
+          "kopfteil",
+          "griff_vorne",
+          "anschlag",
+          "griff_oben",
+          "wagenstopp"
+        ],
+        "canonical_parts": [
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 110.61710357666016,
+                "size_y": 89.48259735107422,
+                "size_z": 50.0
+              },
+              "center_of_mass_mm": [
+                130.1293222183429,
+                111.91905754704301,
+                25.00000003022131
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 45100.771504580895,
+              "volume_mm3": 200331.20165208456
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 8684,
+              "vertex_count": 4330,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 142.00000762939453,
+                "size_y": 116.0,
+                "size_z": 171.0
+              },
+              "center_of_mass_mm": [
+                165.59958930282852,
+                106.4137331562316,
+                51.90817064162911
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 102065.20525920975,
+              "volume_mm3": 350922.92729315074
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 9944,
+              "vertex_count": 4944,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 30.00000762939453,
+                "size_y": 30.0,
+                "size_z": 14.0
+              },
+              "center_of_mass_mm": [
+                122.26540550608085,
+                111.75075531005865,
+                6.83436470781791
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 2783.079214967346,
+              "volume_mm3": 7128.519847709232
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 3120,
+              "vertex_count": 1560,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 18.0,
+                "size_y": 82.50000762939453,
+                "size_z": 8.0
+              },
+              "center_of_mass_mm": [
+                115.60619354248055,
+                108.66091320009706,
+                3.1850392239600196
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 4695.364689613054,
+              "volume_mm3": 7811.611459320405
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 564,
+              "vertex_count": 280,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 31.999717712402344,
+                "size_y": 24.0,
+                "size_z": 76.0
+              },
+              "center_of_mass_mm": [
+                114.29308061444479,
+                96.94215976486173,
+                37.99999975323089
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 13393.69955540739,
+              "volume_mm3": 38838.76227267377
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 2762,
+              "vertex_count": 1383,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 25.0,
+                "size_y": 126.0,
+                "size_z": 8.0
+              },
+              "center_of_mass_mm": [
+                94.33471843453069,
+                104.99999961959983,
+                4.0
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 7772.5193997798815,
+              "volume_mm3": 18054.738428882672
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 1620,
+              "vertex_count": 800,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 15.0,
+                "size_y": 110.00000381469727,
+                "size_z": 16.99999237060547
+              },
+              "center_of_mass_mm": [
+                124.63020302769934,
+                102.55212693519873,
+                9.081182032482392
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 6893.315862397278,
+              "volume_mm3": 24488.676163886365
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 7272,
+              "vertex_count": 3636,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 116.5,
+                "size_y": 128.00000381469727,
+                "size_z": 35.0
+              },
+              "center_of_mass_mm": [
+                123.11464327988625,
+                103.07345596120268,
+                10.355640624460515
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 48827.35486848252,
+              "volume_mm3": 153086.55072851686
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 6386,
+              "vertex_count": 3187,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 125.0,
+                "size_y": 19.800003051757812,
+                "size_z": 31.50000762939453
+              },
+              "center_of_mass_mm": [
+                132.6607702587145,
+                105.03076217138653,
+                18.733226527211514
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 12337.685822831256,
+              "volume_mm3": 54727.448623935874
+            },
+            "mesh": {
+              "component_count": 1,
+              "face_count": 13986,
+              "vertex_count": 6991,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          },
+          {
+            "authority": "mesh_derived",
+            "file_type": "stl",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 24.332244873046875,
+                "size_y": 22.353118896484375,
+                "size_z": 7.5
+              },
+              "center_of_mass_mm": [
+                163.2188859677667,
+                116.6343706036037,
+                3.2463829315439434
+              ],
+              "component_count": 2,
+              "solid_count": 2,
+              "surface_area_mm2": 1825.2272797699084,
+              "volume_mm3": 1841.2315514700051
+            },
+            "mesh": {
+              "component_count": 2,
+              "face_count": 1328,
+              "vertex_count": 660,
+              "watertight": true,
+              "winding_consistent": true
+            },
+            "quality_classification": "watertight_mesh_reference",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {},
+            "units": "mm"
+          }
+        ],
+        "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/derived-reference.json",
+        "quality_classification": null
+      },
+      "status": "specification_underconstrained"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "f8d42b56222452775e5e5fa68f2ad741f3c1771d3d568117064f40da1600d83c",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Domino-style router interface dimensions are derived from standard tooling envelopes.",
+          "id": "assump_router_dimensions",
+          "importance": "important",
+          "kind": "dimension",
+          "label": "Router interface dimensions",
+          "object_type": "router",
+          "operator": "approximately",
+          "protected": true,
+          "raw_evidence": "Domino router descriptive",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "router",
+          "target": null,
+          "tolerance": null,
+          "unit": "mm",
+          "value": 0.0
+        }
+      ],
+      "clarification_question_count": 0,
+      "clarification_questions": [],
+      "clarification_required": false,
+      "design_specification_id": "f24a60a3-7ac9-477f-bfa9-82ecf9f74ee5",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "provider_calls": 2,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 1,
+      "schema_retries": 2,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "d05989fd-8973-40b5-8f16-2d3a24011c3f",
+      "requirements": [
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839865",
+          "explicit": true,
+          "kind": "count",
+          "object_type": "print_output",
+          "operator": "exact",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Provide exactly 10 printed output(s).",
+          "record_id": "2f84cd3f-edef-47bd-b963-5b61f6c0e562",
+          "requirement_id": "dim_output_count",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "outputs",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": null,
+          "updated_at": "2026-08-08T11:46:39.839868",
+          "value": 10.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839869",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "anschlag",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.",
+          "record_id": "19f5eed2-0760-46e1-ba16-906c243dc436",
+          "requirement_id": "dim_anschlag_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "anschlag",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839869",
+          "value": 116.5,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839870",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "anschlag",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.",
+          "record_id": "dda18365-8a28-4f90-8d98-3f5caa409ae9",
+          "requirement_id": "dim_anschlag_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "anschlag",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839871",
+          "value": 128.00000381469727,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839871",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "anschlag",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.",
+          "record_id": "58f88ba2-9a61-4aeb-8d86-020e2a2b7c8f",
+          "requirement_id": "dim_anschlag_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "anschlag",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839872",
+          "value": 35.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839873",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "fraswagen",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.",
+          "record_id": "4fadd81e-9c13-48b3-8426-d135dc2532ff",
+          "requirement_id": "dim_fraswagen_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "fraswagen",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839873",
+          "value": 110.61710357666016,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839874",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "fraswagen",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.",
+          "record_id": "8e7ae97b-f1bf-46c5-8073-c3ea39752d7e",
+          "requirement_id": "dim_fraswagen_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "fraswagen",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839874",
+          "value": 89.48259735107422,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839875",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "fraswagen",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.",
+          "record_id": "8158ccb5-9c99-4a71-90cf-06b88e236e58",
+          "requirement_id": "dim_fraswagen_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "fraswagen",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839885",
+          "value": 50.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839887",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "griff_oben",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.",
+          "record_id": "6da0b1c1-6b95-4cc0-9d9d-7f451d94272b",
+          "requirement_id": "dim_griff_oben_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "griff_oben",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839889",
+          "value": 125.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839890",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "griff_oben",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.",
+          "record_id": "f314876f-3940-4378-b8b1-d0dd946d8673",
+          "requirement_id": "dim_griff_oben_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "griff_oben",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839890",
+          "value": 19.800003051757812,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839891",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "griff_oben",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.",
+          "record_id": "e33a2b2b-1d02-4884-82ca-008992c0dbac",
+          "requirement_id": "dim_griff_oben_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "griff_oben",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839892",
+          "value": 31.50000762939453,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839893",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "griff_vorne",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.",
+          "record_id": "db47a0eb-f7d1-4f93-af51-65622e03088e",
+          "requirement_id": "dim_griff_vorne_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "griff_vorne",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839894",
+          "value": 15.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839897",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "griff_vorne",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.",
+          "record_id": "016d8602-cccb-4ba0-82d8-3874ee2cd9ca",
+          "requirement_id": "dim_griff_vorne_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "griff_vorne",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839898",
+          "value": 110.00000381469727,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839901",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "griff_vorne",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.",
+          "record_id": "73ff5fb6-cb63-4fbf-b0ed-4077a9c63109",
+          "requirement_id": "dim_griff_vorne_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "griff_vorne",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839902",
+          "value": 16.99999237060547,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839904",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "grundkorper",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.",
+          "record_id": "b1c409be-b97b-4b3b-9289-40364abbe47c",
+          "requirement_id": "dim_grundkorper_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "grundkorper",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839905",
+          "value": 142.00000762939453,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839907",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "grundkorper",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.",
+          "record_id": "eea818e3-738e-424b-85da-6523d0153f6b",
+          "requirement_id": "dim_grundkorper_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "grundkorper",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839908",
+          "value": 116.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839910",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "grundkorper",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.",
+          "record_id": "70ab2e21-6b43-4802-9586-09a9e56dab01",
+          "requirement_id": "dim_grundkorper_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "grundkorper",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839911",
+          "value": 171.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839912",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "kontermutter",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.",
+          "record_id": "1f1f0556-9068-48c3-9b02-45c23b2ca748",
+          "requirement_id": "dim_kontermutter_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "kontermutter",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839914",
+          "value": 18.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839915",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "kontermutter",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.",
+          "record_id": "40bbcec7-17be-4d2f-b83f-0a06a1453f29",
+          "requirement_id": "dim_kontermutter_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "kontermutter",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839916",
+          "value": 82.50000762939453,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839918",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "kontermutter",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.",
+          "record_id": "ed46506d-d546-4150-aa3e-a26228391c3e",
+          "requirement_id": "dim_kontermutter_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "kontermutter",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839919",
+          "value": 8.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839921",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "kopfteil",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.",
+          "record_id": "57f4bbfb-3bbe-4ebd-915b-cd026d5a7070",
+          "requirement_id": "dim_kopfteil_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "kopfteil",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839922",
+          "value": 25.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839924",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "kopfteil",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.",
+          "record_id": "3e71af19-c923-43fe-a48f-9f3890fe9333",
+          "requirement_id": "dim_kopfteil_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "kopfteil",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839925",
+          "value": 126.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839927",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "kopfteil",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.",
+          "record_id": "4db06633-6998-4117-9832-c6b3f6168ed0",
+          "requirement_id": "dim_kopfteil_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "kopfteil",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839928",
+          "value": 8.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839930",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "mutter",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.",
+          "record_id": "c99e50f8-3797-47d2-92a1-e45a8167b458",
+          "requirement_id": "dim_mutter_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "mutter",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839931",
+          "value": 30.00000762939453,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839932",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "mutter",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.",
+          "record_id": "a32eb9b4-d685-437c-8aa1-545a8d9459e9",
+          "requirement_id": "dim_mutter_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "mutter",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839934",
+          "value": 30.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839935",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "mutter",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.",
+          "record_id": "7c8847df-b88e-424f-bba4-58b67fbcbdee",
+          "requirement_id": "dim_mutter_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "mutter",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839936",
+          "value": 14.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839938",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "wagenstopp",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.",
+          "record_id": "0fbdf075-a131-4672-b767-42ebb81c5880",
+          "requirement_id": "dim_wagenstopp_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "wagenstopp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839939",
+          "value": 24.332244873046875,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839941",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "wagenstopp",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.",
+          "record_id": "be5653e8-1881-4514-a82d-47d93b4bab9f",
+          "requirement_id": "dim_wagenstopp_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "wagenstopp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839942",
+          "value": 22.353118896484375,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839944",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "wagenstopp",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.",
+          "record_id": "418032e9-e92c-425c-a043-d9014812714b",
+          "requirement_id": "dim_wagenstopp_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "wagenstopp",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839945",
+          "value": 7.5,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839947",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "x_wagen",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.",
+          "record_id": "b0c66483-505f-4e7c-a8b1-84724cfab887",
+          "requirement_id": "dim_x_wagen_envelope_x",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "x_wagen",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839948",
+          "value": 31.999717712402344,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839950",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "x_wagen",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.",
+          "record_id": "1a528190-f3f8-411e-bd87-04ccdba6391c",
+          "requirement_id": "dim_x_wagen_envelope_y",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "x_wagen",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839951",
+          "value": 24.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839953",
+          "explicit": true,
+          "kind": "dimension",
+          "object_type": "x_wagen",
+          "operator": "approximately",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.",
+          "record_id": "960975ba-e98a-406a-8215-a22203450aaa",
+          "requirement_id": "dim_x_wagen_envelope_z",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "x_wagen",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "exact_dimension",
+          "unit": "mm",
+          "updated_at": "2026-08-08T11:46:39.839954",
+          "value": 76.0,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839956",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "jig",
+          "operator": "present",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately",
+          "record_id": "3cec35a3-3e27-4f4f-8b2e-7c3bbb3f6e09",
+          "requirement_id": "req_tool_guide",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "routing jig",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "router",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:46:39.839957",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839959",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "jig",
+          "operator": "present",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "provide handles and stops",
+          "record_id": "0afe669e-7f8e-427b-b401-fc803983cf0c",
+          "requirement_id": "req_handles_stops",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "routing jig",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": null,
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:46:39.839960",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        },
+        {
+          "classification": null,
+          "created_at": "2026-08-08T11:46:39.839962",
+          "explicit": true,
+          "kind": "feature",
+          "object_type": "jig",
+          "operator": "present",
+          "originating_message": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+          "originating_revision_id": null,
+          "policy": null,
+          "provenance": null,
+          "raw_evidence": "allow the workpiece to be positioned repeatably",
+          "record_id": "9ae12a22-1aa3-46b6-baf2-c3fb57f68e51",
+          "requirement_id": "req_repeatable_positioning",
+          "source": "initial_user",
+          "status": "active",
+          "subject": "routing jig",
+          "superseded_by": null,
+          "supersedes_requirement_id": null,
+          "target": "workpiece",
+          "tolerance": null,
+          "type": "feature_presence",
+          "unit": null,
+          "updated_at": "2026-08-08T11:46:39.839963",
+          "value": true,
+          "verification_evidence": null,
+          "verification_policy": null
+        }
+      ],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:46:55.615612+00:00"
+    },
+    "revision_id": "2e527010-1c01-42ea-b300-7bf109a5fe96",
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": "unsupported_verifier",
+      "review_required": 0,
+      "total_authoritative_requirements": 34,
+      "unsupported_verifier": 34,
+      "unverifiable": 34
+    },
+    "state": "verification_failed",
+    "terminal_stage": "semantic_verification",
+    "timing_seconds": 36.78703281299386,
+    "topology": {
+      "outputs": [
+        {
+          "geometry_topology": {
+            "face_count": 6,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "valid": true
+          },
+          "output_id": "routing_jig",
+          "solid_count": 1,
+          "topology_status": "passed"
+        }
+      ],
+      "valid": true
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": [
+        {
+          "artifact_available": true,
+          "artifact_hashes": {
+            "brep": "0789dae9177bb58a177db629ebbd526d2b8dbf647d27d41692cdd1742744d6b7",
+            "step": "9234aac9fd32e949f986b5bcd97b6bb339d07949e370a2ba7cdf328db426356a",
+            "stl": "58dedc3d7e4551e560065468719628cc5212b6347c1fedf5c541299843bb487a"
+          },
+          "failure_owner": "verification",
+          "generation_status": "completed",
+          "geometry": {
+            "authority": "analytic_brep",
+            "file_type": "step",
+            "geometry": {
+              "bounding_box_mm": {
+                "size_x": 142.000007629387,
+                "size_y": 116.0,
+                "size_z": 171.0
+              },
+              "center_of_mass_mm": [
+                3.495022282077079e-12,
+                1.0229228477782083e-15,
+                85.5
+              ],
+              "component_count": 1,
+              "solid_count": 1,
+              "surface_area_mm2": 121180.00437926812,
+              "volume_mm3": 2816712.15133652
+            },
+            "mesh": {},
+            "quality_classification": "analytic_brep_authoritative",
+            "schema_version": "external-cad-reference-derived-v1",
+            "topology": {
+              "face_count": 6,
+              "schema_version": "topology-evidence-v2",
+              "shell_count": 1,
+              "valid": true
+            },
+            "units": "unverified_model_units"
+          },
+          "output_id": "routing_jig",
+          "required": true,
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "semantic_verification": "failed",
+          "solid_count": 1,
+          "state": "semantic_verification_failed",
+          "topology_status": "passed",
+          "worker_status": "completed"
+        }
+      ]
+    },
+    "workflow_id": "9e1c79a2-ed8e-4848-aa5a-7a8a700d6123"
+  },
+  "interpreted_similarity_allowed_only_for_comparison_ready": false,
+  "premise_only": {
+    "artifacts": {
+      "hashes": {},
+      "package_available": false
+    },
+    "benchmark_project_id": "jig-guide-001",
+    "cad_calls": {
+      "fallback_calls": 0,
+      "initial_generation_calls": 0,
+      "repair_calls": 0,
+      "repair_history": [],
+      "total_transport_attempts": 1
+    },
+    "category": "jig_guides",
+    "comparison_specification_hash": "61cc817a275bde8cdd5f17a31244cbee23705426bd72cc8339d99fdd960fce6e",
+    "executable_contract": {
+      "contract": null,
+      "contract_hash": null,
+      "contract_source": null,
+      "created": false
+    },
+    "failure_class": null,
+    "first_blocker_stage": "clarification_required",
+    "first_incorrect_owner": null,
+    "mode": "premise_only",
+    "normal_recovery_resolved": false,
+    "observed_stage": null,
+    "project_runtime_id": "4c313ac1-e3f1-4643-84af-fdb17b0d0e21",
+    "prompt": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.",
+    "prompt_sha256": "7508cf1cddc0c3228059782282a2d6ee920882a0c171f072811057ec21c4c614",
+    "provider_attempt_forensics": [
+      {
+        "attempt_id": "b4cbb9a9-0e36-4aa3-b6a6-3c6f6393a60c",
+        "attempt_index": 0,
+        "credential_present": true,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "logical_operation_id": "dabd4208-aced-4146-b066-392db2b302c8",
+        "normalized_transport_error": null,
+        "provider_request_id": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "9501b4ad8850e01c84afe8937bf48cfe0d58c1db448e788effce1f5f85dcfe67",
+        "request_hash": "22eaccccc5cb4f56204d231fb1ec9c2222d13ffa6624b3d24d9217c2c809bd8d",
+        "request_started_at": "2026-08-08T11:40:06.217190+00:00",
+        "response_length": 5078,
+        "response_received": true,
+        "retry_delay_seconds": null,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "reference_comparison": {
+      "eligible_interpretation": false,
+      "mapping_status": "not_generated",
+      "metrics": {},
+      "raw_generated": null,
+      "raw_reference": null,
+      "status": "unavailable"
+    },
+    "reference_only_isolation": {
+      "forbidden_reference_identifiers_in_prompt": [],
+      "hidden_reference_facts_used_for_premise_only": false,
+      "reference_geometry_sent_to_provider": false
+    },
+    "reference_set_sha256": "f8d42b56222452775e5e5fa68f2ad741f3c1771d3d568117064f40da1600d83c",
+    "requirement_extraction": {
+      "assumptions": [
+        {
+          "description": "Standard functional wall thickness of 3.0mm applied for rigid jig structure.",
+          "id": "assumption_jig_material_and_thickness",
+          "importance": "important",
+          "kind": "qualitative",
+          "object_type": "routing jig",
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": null,
+          "requires_approval": false,
+          "source": "product_default",
+          "subject": "routing jig",
+          "target": null,
+          "tolerance": null,
+          "unit": "mm",
+          "value": 3.0
+        }
+      ],
+      "clarification_question_count": 2,
+      "clarification_questions": [
+        {
+          "display_order": 0,
+          "question": "What are the exact dimensions, collar size, and base geometry of the specific Domino-style router to ensure an accurate sliding or guiding fit?",
+          "question_id": "837d7c3f-c1e1-4869-817b-8d0df6c25282",
+          "reason": "Missing mating dimensions and essential tool-guidance interface geometry.",
+          "requirement_id": "q_router_dimensions"
+        },
+        {
+          "display_order": 1,
+          "question": "What are the dimensions of the workpieces being positioned and joined, and what range of stock thicknesses must the repeatable stops accommodate?",
+          "question_id": "79a1b4a5-9239-45cd-88c7-858faffa022d",
+          "reason": "Missing mating dimensions and workpiece range context for stops and positioning.",
+          "requirement_id": "q_workpiece_dimensions"
+        }
+      ],
+      "clarification_required": true,
+      "design_specification_id": "ec7124de-69a8-46c8-b01a-77492d3baa86",
+      "generation_ready": false,
+      "missing_requirements": [
+        {
+          "description": "Exact mating geometry and collar/base dimensions of the Domino-style router",
+          "id": "exact_mating_geometry_and_collar_base_dimensions_of_the_domino_style_router",
+          "importance": "critical",
+          "reason": "Exact mating geometry and collar/base dimensions of the Domino-style router",
+          "source": "user"
+        },
+        {
+          "description": "Workpiece dimensions and stock thickness range for repeatable stops",
+          "id": "workpiece_dimensions_and_stock_thickness_range_for_repeatable_stops",
+          "importance": "critical",
+          "reason": "Workpiece dimensions and stock thickness range for repeatable stops",
+          "source": "user"
+        }
+      ],
+      "provider_calls": 1,
+      "requirement_ids": [],
+      "requirements": [],
+      "schema_invalid_responses": 0,
+      "schema_retries": 0,
+      "source_label_anomalies": {
+        "missing_or_clarification_labeled_user": [],
+        "model_assumption_labeled_user_required": [],
+        "user_explicit_lost_authority": []
+      }
+    },
+    "requirement_ledger": {
+      "project_id": "4c313ac1-e3f1-4643-84af-fdb17b0d0e21",
+      "requirements": [],
+      "schema_version": "requirement-ledger-v1",
+      "updated_at": "2026-08-08T11:40:09.339868+00:00"
+    },
+    "revision_id": null,
+    "schema_version": "external-cad-development-first-pass-v1-cell",
+    "semantic": {
+      "candidate_state": null,
+      "informational": 0,
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "overall_status": null,
+      "review_required": 0,
+      "total_authoritative_requirements": 0,
+      "unsupported_verifier": 0,
+      "unverifiable": 0
+    },
+    "state": "awaiting_clarification",
+    "terminal_stage": "clarification_required",
+    "timing_seconds": 5.6215129969932605,
+    "topology": {
+      "outputs": [],
+      "valid": null
+    },
+    "worker": {
+      "execution_count": 0,
+      "job_ids": [],
+      "outputs": []
+    },
+    "workflow_id": "890efbe5-804a-47b1-a14e-ec3074ff2acb"
+  },
+  "schema_version": "external-cad-development-first-pass-v1-ab"
+}

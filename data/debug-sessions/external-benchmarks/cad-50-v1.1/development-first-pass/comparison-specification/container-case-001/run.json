@@ -1,0 +1,1069 @@
+{
+  "artifacts": {
+    "hashes": {
+      "battery_case:brep": "0793259efadd3711974367f190a0b2483a4e5d5daf583e8c2950d283c9b4f899",
+      "battery_case:step": "5722729a5899223c3493548fd2c94cecaa3436721a7926088632fc5ebdad7ec1",
+      "battery_case:stl": "751566f5744def4a03ff58c6def65b98d58ed4e4cc3b88f91a3b344d7e800baa"
+    },
+    "package_available": false
+  },
+  "benchmark_project_id": "container-case-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 2,
+    "repair_calls": 0,
+    "repair_history": [
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "6e400d70ed4291644f99df01fce70743234c1fba389460aa25c81c6a6ae1bcb6",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": "application",
+        "normalized_error": null,
+        "observed_stage": "semantic_measurement",
+        "operation_id": "dde3e05c-eb9e-405c-b829-767205d4b317:attempt:1",
+        "progress": {
+          "measurable_progress": true,
+          "progress_reasons": [
+            "first_repair_after_failure"
+          ]
+        },
+        "provider_attempt": {
+          "attempt_id": "628b5950-0c0a-4095-8a86-2938b1385872",
+          "attempt_number": 1,
+          "failure_class": null,
+          "level": "initial",
+          "logical_operation_id": "e55a4f12-961a-4fcb-b755-8f93753d5f23",
+          "status": "response_received",
+          "transport_attempts": [
+            {
+              "attempt_id": "628b5950-0c0a-4095-8a86-2938b1385872",
+              "attempt_index": 0,
+              "credential_present": true,
+              "credential_slot": "primary",
+              "exception_type": null,
+              "failure_class": null,
+              "logical_operation_id": "e55a4f12-961a-4fcb-b755-8f93753d5f23",
+              "normalized_transport_error": null,
+              "provider_request_id": null,
+              "rate_limit_429_classification": "not_429",
+              "raw_response_hash": "f7e57df04e6c6dd102c190b76412dabe4b712a686201ce0fbd4910816301bdce",
+              "request_hash": "58832807070a5bdb871544265e9abd7c5b96e3cf15fe3b21121aff5f207c70d0",
+              "request_started_at": "2026-08-08T11:43:40.723758+00:00",
+              "response_length": 3187,
+              "response_received": true,
+              "retry_delay_seconds": null,
+              "status_code": 200,
+              "transport_retry_classification": "none"
+            }
+          ]
+        },
+        "raw_response_hash": "f7e57df04e6c6dd102c190b76412dabe4b712a686201ce0fbd4910816301bdce",
+        "repair_level": "initial",
+        "result_hash": "aca8be0822f010d0ec2ee51677967e1fe314ce8895df92620eda7c5355a5ea7c",
+        "revision_id": "c8b6a068-0fff-4710-9217-98be857e2085",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_closure",
+            "req_retention_features"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "battery_body_envelope",
+            "flexible_strap_envelope",
+            "lower_bumper_envelope",
+            "req_battery_type",
+            "screw_lid_envelope",
+            "strap_retainer_envelope"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "6e400d70ed4291644f99df01fce70743234c1fba389460aa25c81c6a6ae1bcb6",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "battery_case"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      },
+      {
+        "attempt_number": 1,
+        "extracted_source_hash": "6e400d70ed4291644f99df01fce70743234c1fba389460aa25c81c6a6ae1bcb6",
+        "extraction_succeeded": true,
+        "failure_boundary": "semantic",
+        "failure_class": "semantic_requirement_unverifiable",
+        "first_incorrect_owner": null,
+        "normalized_error": null,
+        "observed_stage": null,
+        "operation_id": "dde3e05c-eb9e-405c-b829-767205d4b317:recovery-recheck:1",
+        "progress": {
+          "measurable_progress": false,
+          "no_violation_decrease_across_two_repairs": false,
+          "no_violation_decrease_streak": 0,
+          "progress_reasons": [],
+          "progress_result": "no_progress",
+          "protected_fact_regression": false,
+          "repair_level": "L0",
+          "same_diagnostic_signature": false,
+          "violation_count_decreased": false
+        },
+        "provider_attempt": {
+          "attempt_id": null,
+          "attempt_number": null,
+          "failure_class": null,
+          "level": null,
+          "logical_operation_id": null,
+          "status": null,
+          "transport_attempts": []
+        },
+        "raw_response_hash": null,
+        "repair_level": "initial",
+        "result_hash": "aca8be0822f010d0ec2ee51677967e1fe314ce8895df92620eda7c5355a5ea7c",
+        "revision_id": "c8b6a068-0fff-4710-9217-98be857e2085",
+        "semantic_result": {
+          "failed": [],
+          "passed": [],
+          "review_required": [
+            "req_closure",
+            "req_retention_features"
+          ],
+          "status": "unsupported_verifier",
+          "unverifiable": [
+            "battery_body_envelope",
+            "flexible_strap_envelope",
+            "lower_bumper_envelope",
+            "req_battery_type",
+            "screw_lid_envelope",
+            "strap_retainer_envelope"
+          ]
+        },
+        "source_contract_valid": true,
+        "source_hash": "6e400d70ed4291644f99df01fce70743234c1fba389460aa25c81c6a6ae1bcb6",
+        "syntax_valid": true,
+        "topology_result": {
+          "detected_solid_count": 1,
+          "expected_solid_count": 1,
+          "failure_class": null,
+          "outcome": "valid",
+          "schema_version": "topology-evidence-v2",
+          "valid": true
+        },
+        "worker_result": {
+          "execution_manifest_path": null,
+          "failure_class": null,
+          "job_id": null,
+          "output_ids": [
+            "battery_case"
+          ],
+          "phase": "failed",
+          "result_hash": null,
+          "success": null
+        }
+      }
+    ],
+    "total_transport_attempts": 3
+  },
+  "category": "container_cases",
+  "comparison_specification_hash": "c71de82b52d38707bc29064a409e673a41a337f8131f5ed11b98cd6f9fb0a58b",
+  "executable_contract": {
+    "contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v1",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "expected_solid_count": 1,
+          "output_id": "battery_case",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "battery_case",
+        "purpose": "Design a protective 26650 battery case with a screw-on lid and retention features."
+      },
+      "project_id": "4182fc83-a340-4b0f-b4b6-22b7c1717e73",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "value": 78.73999786376953
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "battery_body_envelope"
+        },
+        {
+          "authoritative_value": {
+            "value": 92.30131530761719
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "flexible_strap_envelope"
+        },
+        {
+          "authoritative_value": {
+            "value": 27.939998626708984
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "lower_bumper_envelope"
+        },
+        {
+          "authoritative_value": {
+            "value": "26650 cell descriptive"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_battery_type"
+        },
+        {
+          "authoritative_value": {
+            "value": "screw lid descriptive"
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_closure"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_retention_features"
+        },
+        {
+          "authoritative_value": {
+            "value": 36.74241638183594
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "screw_lid_envelope"
+        },
+        {
+          "authoritative_value": {
+            "value": 15.239999771118164
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "strap_retainer_envelope"
+        }
+      ],
+      "relationships": [],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 78.73999786376953
+          },
+          "kind": "dimension",
+          "object_type": "battery_body",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.",
+          "requirement_id": "battery_body_envelope",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "battery_body"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 92.30131530761719
+          },
+          "kind": "dimension",
+          "object_type": "flexible_strap",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.",
+          "requirement_id": "flexible_strap_envelope",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "flexible_strap"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 27.939998626708984
+          },
+          "kind": "dimension",
+          "object_type": "lower_bumper",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.",
+          "requirement_id": "lower_bumper_envelope",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "lower_bumper"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": "26650 cell descriptive"
+          },
+          "kind": "capacity",
+          "object_type": "battery_type",
+          "operator": "qualitative",
+          "origin": "user_explicit",
+          "raw_evidence": "battery_type: 26650 cell descriptive",
+          "requirement_id": "req_battery_type",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "battery_type"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": "screw lid descriptive"
+          },
+          "kind": "retention",
+          "object_type": "closure",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "closure: screw lid descriptive",
+          "requirement_id": "req_closure",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "closure"
+        },
+        {
+          "authority": "required",
+          "classification": "review_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "retention",
+          "object_type": "retention_features",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "It should keep the cell secure and provide a durable, reusable enclosure.",
+          "requirement_id": "req_retention_features",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "retention_features"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 36.74241638183594
+          },
+          "kind": "dimension",
+          "object_type": "screw_lid",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.",
+          "requirement_id": "screw_lid_envelope",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "screw_lid"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": 15.239999771118164
+          },
+          "kind": "dimension",
+          "object_type": "strap_retainer",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "raw_evidence": "Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.",
+          "requirement_id": "strap_retainer_envelope",
+          "scope": "battery_case",
+          "source": "initial_user",
+          "subject": "strap_retainer"
+        }
+      ],
+      "revision_id": "dde3e05c-eb9e-405c-b829-767205d4b317:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "dde3e05c-eb9e-405c-b829-767205d4b317"
+    },
+    "contract_hash": "078236ca038b87e3d3a377fd8cb8117de94e9995c555dac486006bc1e8ad487b",
+    "contract_source": "production_requirement_ledger",
+    "created": true
+  },
+  "failure_class": "semantic_requirement_unverifiable",
+  "first_blocker_stage": "semantic_verification",
+  "first_incorrect_owner": "application",
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": "semantic_measurement",
+  "project_runtime_id": "4182fc83-a340-4b0f-b4b6-22b7c1717e73",
+  "prompt": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+  "prompt_sha256": "54ca9b086d79045671eb8b32d832baaf9a602ff197c391850800d895881895d1",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "43a13c33-fe41-478d-9133-cffa49a55804",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "c44fd6c7-75fc-4288-a365-573d14523770",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "4aa7e417e7be18489922b75725e0921583239dcccf4979a22dd4228a8a824c62",
+      "request_hash": "184476e7c59b753381434d9fc62d85a108eb3eb13cc8d689feee1ca76aa7e435",
+      "request_started_at": "2026-08-08T11:43:30.721662+00:00",
+      "response_length": 7123,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "0bfb4da2-b746-4dfc-aee2-f99f4945ed38",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "3f1d79ee-a202-4fe6-909e-cd274acf319f",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "760e621dcb8d2ff70f776bee3143fe065f44b304726f4738b2aa16283c4a21f1",
+      "request_hash": "316423286791af57abb1bede60aebc478a3f902707e301560b86009ff63152e0",
+      "request_started_at": "2026-08-08T11:43:35.722340+00:00",
+      "response_length": 6786,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    },
+    {
+      "attempt_id": "628b5950-0c0a-4095-8a86-2938b1385872",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "e55a4f12-961a-4fcb-b755-8f93753d5f23",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "f7e57df04e6c6dd102c190b76412dabe4b712a686201ce0fbd4910816301bdce",
+      "request_hash": "58832807070a5bdb871544265e9abd7c5b96e3cf15fe3b21121aff5f207c70d0",
+      "request_started_at": "2026-08-08T11:43:40.723758+00:00",
+      "response_length": 3187,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "comparison_engine_status": "unavailable",
+    "eligible_interpretation": false,
+    "mapping_status": "explicit_reference_output_mapping_required",
+    "metrics": {
+      "aggregate": {
+        "bounding_box_error_by_axis_mm": {
+          "x": null,
+          "y": null,
+          "z": null
+        },
+        "solid_count_agreement": null,
+        "surface_area_difference_mm2": null,
+        "surface_area_difference_ratio": null,
+        "volume_difference_mm3": null,
+        "volume_difference_ratio": null
+      },
+      "mapping_status": "explicit_reference_output_mapping_required",
+      "per_part": {},
+      "project_part_count_agreement": false
+    },
+    "raw_generated": {
+      "battery_case": {
+        "authority": "analytic_brep",
+        "file_type": "step",
+        "geometry": {
+          "bounding_box_mm": {
+            "size_x": 92.3,
+            "size_y": 36.742,
+            "size_z": 92.71
+          },
+          "center_of_mass_mm": [
+            0.24728496162454675,
+            -2.6387377387991976e-14,
+            49.225391075054944
+          ],
+          "component_count": 1,
+          "solid_count": 1,
+          "surface_area_mm2": 20800.085018412854,
+          "volume_mm3": 51613.95013141445
+        },
+        "mesh": {},
+        "quality_classification": "analytic_brep_authoritative",
+        "schema_version": "external-cad-reference-derived-v1",
+        "topology": {
+          "face_count": 34,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 2,
+          "valid": true
+        },
+        "units": "unverified_model_units"
+      }
+    },
+    "raw_reference": {
+      "authority": null,
+      "canonical_part_count": 5,
+      "canonical_part_ids": [
+        "flexible_strap",
+        "battery_body",
+        "screw_lid",
+        "strap_retainer",
+        "lower_bumper"
+      ],
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 92.30131530761719,
+              "size_y": 1.2699999809265137,
+              "size_z": 36.067970633506775
+            },
+            "center_of_mass_mm": [
+              44.43805379945141,
+              0.6349999904632568,
+              18.033999918859422
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 1610.9983098497325,
+            "volume_mm3": 723.9582148135008
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 2764,
+            "vertex_count": 1380,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 35.17900085449219,
+              "size_y": 78.73999786376953,
+              "size_z": 35.17900085449219
+            },
+            "center_of_mass_mm": null,
+            "component_count": 2,
+            "solid_count": null,
+            "surface_area_mm2": 17078.328132315673,
+            "volume_mm3": null
+          },
+          "mesh": {
+            "component_count": 2,
+            "face_count": 21310,
+            "vertex_count": 10656,
+            "watertight": false,
+            "winding_consistent": true
+          },
+          "quality_classification": "nonwatertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 36.74241638183594,
+              "size_y": 12.699999809265137,
+              "size_z": 36.74241638183594
+            },
+            "center_of_mass_mm": [
+              18.38685835759343,
+              5.312175977221082,
+              18.37493837441471
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 3762.378131984764,
+            "volume_mm3": 9521.981442263486
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 21454,
+            "vertex_count": 10729,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 15.239999771118164,
+              "size_y": 4.445000171661377,
+              "size_z": 15.239999771118164
+            },
+            "center_of_mass_mm": [
+              7.619999818418906,
+              2.012723776119588,
+              7.619999818468141
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 552.0873694814418,
+            "volume_mm3": 559.7312918377929
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 3240,
+            "vertex_count": 1620,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 27.939998626708984,
+              "size_y": 1.2699999809265137,
+              "size_z": 27.939998626708984
+            },
+            "center_of_mass_mm": [
+              13.970008454408909,
+              0.43142249735667093,
+              13.969995067800394
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 1180.93829522653,
+            "volume_mm3": 320.53624669547764
+          },
+          "mesh": {
+            "component_count": 1,
+            "face_count": 7950,
+            "vertex_count": 3967,
+            "watertight": true,
+            "winding_consistent": true
+          },
+          "quality_classification": "watertight_mesh_reference",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {},
+          "units": "mm"
+        }
+      ],
+      "derived_reference_path": "data/external-benchmarks/external-cad-50-v1/container-case-001/derived-reference.json",
+      "quality_classification": null
+    },
+    "status": "specification_underconstrained"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "21895cb048edc5aeb71c43a9b5086b8c90c9218a5b5787ca23e19b09c44663bf",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Standard protective case for a 26650 battery using a screw-on lid.",
+        "id": "assumption_battery_case_type",
+        "importance": "important",
+        "kind": "qualitative",
+        "object_type": "battery_case",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": "Design a protective 26650 battery case with a screw-on lid and retention features.",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "battery_case",
+        "target": null,
+        "tolerance": null,
+        "unit": null,
+        "value": "protective 26650 battery case"
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": false,
+    "design_specification_id": "0b5a8ad4-1222-4510-89a9-9159d371a78b",
+    "generation_ready": true,
+    "missing_requirements": [],
+    "provider_calls": 2,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 1,
+    "schema_retries": 2,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "4182fc83-a340-4b0f-b4b6-22b7c1717e73",
+    "requirements": [
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:43:40.127951",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "battery_body",
+        "operator": "approximately",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.",
+        "record_id": "961c728c-bb40-4b53-8be9-9278365bf385",
+        "requirement_id": "battery_body_envelope",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "battery_body",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:43:40.127953",
+        "value": 78.73999786376953,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:43:40.127954",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "flexible_strap",
+        "operator": "approximately",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.",
+        "record_id": "52f27a0b-1524-42c3-bce2-1db216371ded",
+        "requirement_id": "flexible_strap_envelope",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "flexible_strap",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:43:40.127955",
+        "value": 92.30131530761719,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:43:40.127956",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "lower_bumper",
+        "operator": "approximately",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.",
+        "record_id": "7b9bbf65-5ad6-4810-aa72-38a67f704bde",
+        "requirement_id": "lower_bumper_envelope",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "lower_bumper",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:43:40.127956",
+        "value": 27.939998626708984,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:43:40.127957",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "screw_lid",
+        "operator": "approximately",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.",
+        "record_id": "e9d3e5ac-11ed-4365-a78f-2be4976720ab",
+        "requirement_id": "screw_lid_envelope",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "screw_lid",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:43:40.127958",
+        "value": 36.74241638183594,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:43:40.127958",
+        "explicit": true,
+        "kind": "dimension",
+        "object_type": "strap_retainer",
+        "operator": "approximately",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.",
+        "record_id": "8cb0cff8-941d-4bd3-a84b-7751a73bb3a4",
+        "requirement_id": "strap_retainer_envelope",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "strap_retainer",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "exact_dimension",
+        "unit": "mm",
+        "updated_at": "2026-08-08T11:43:40.127959",
+        "value": 15.239999771118164,
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:43:40.127960",
+        "explicit": true,
+        "kind": "capacity",
+        "object_type": "battery_type",
+        "operator": "qualitative",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "battery_type: 26650 cell descriptive",
+        "record_id": "d42d9c50-4310-4c8a-8cc0-75ac8919e59e",
+        "requirement_id": "req_battery_type",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "battery_type",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "capacity",
+        "unit": null,
+        "updated_at": "2026-08-08T11:43:40.127960",
+        "value": "26650 cell descriptive",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:43:40.127961",
+        "explicit": true,
+        "kind": "retention",
+        "object_type": "closure",
+        "operator": "present",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "closure: screw lid descriptive",
+        "record_id": "51e7d113-8177-4655-9c1b-2963884b7435",
+        "requirement_id": "req_closure",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "closure",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "feature_presence",
+        "unit": null,
+        "updated_at": "2026-08-08T11:43:40.127962",
+        "value": "screw lid descriptive",
+        "verification_evidence": null,
+        "verification_policy": null
+      },
+      {
+        "classification": null,
+        "created_at": "2026-08-08T11:43:40.127962",
+        "explicit": true,
+        "kind": "retention",
+        "object_type": "retention_features",
+        "operator": "present",
+        "originating_message": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+        "originating_revision_id": null,
+        "policy": null,
+        "provenance": null,
+        "raw_evidence": "It should keep the cell secure and provide a durable, reusable enclosure.",
+        "record_id": "eb455bf3-41e4-4010-adcd-3625344bcc70",
+        "requirement_id": "req_retention_features",
+        "source": "initial_user",
+        "status": "active",
+        "subject": "retention_features",
+        "superseded_by": null,
+        "supersedes_requirement_id": null,
+        "target": null,
+        "tolerance": null,
+        "type": "retention",
+        "unit": null,
+        "updated_at": "2026-08-08T11:43:40.127963",
+        "value": true,
+        "verification_evidence": null,
+        "verification_policy": null
+      }
+    ],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:43:48.496910+00:00"
+  },
+  "revision_id": "c8b6a068-0fff-4710-9217-98be857e2085",
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": "unsupported_verifier",
+    "review_required": 2,
+    "total_authoritative_requirements": 8,
+    "unsupported_verifier": 6,
+    "unverifiable": 6
+  },
+  "state": "verification_failed",
+  "terminal_stage": "semantic_verification",
+  "timing_seconds": 19.842380315996706,
+  "topology": {
+    "outputs": [
+      {
+        "geometry_topology": {
+          "face_count": 34,
+          "schema_version": "topology-evidence-v2",
+          "shell_count": 2,
+          "valid": true
+        },
+        "output_id": "battery_case",
+        "solid_count": 1,
+        "topology_status": "passed"
+      }
+    ],
+    "valid": true
+  },
+  "worker": {
+    "execution_count": 2,
+    "job_ids": [
+      "dde3e05c-eb9e-405c-b829-767205d4b317:attempt:1:worker",
+      "dde3e05c-eb9e-405c-b829-767205d4b317:recovery-recheck:1:worker"
+    ],
+    "outputs": [
+      {
+        "artifact_available": true,
+        "artifact_hashes": {
+          "brep": "0793259efadd3711974367f190a0b2483a4e5d5daf583e8c2950d283c9b4f899",
+          "step": "5722729a5899223c3493548fd2c94cecaa3436721a7926088632fc5ebdad7ec1",
+          "stl": "751566f5744def4a03ff58c6def65b98d58ed4e4cc3b88f91a3b344d7e800baa"
+        },
+        "failure_owner": "verification",
+        "generation_status": "completed",
+        "geometry": {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "geometry": {
+            "bounding_box_mm": {
+              "size_x": 92.3,
+              "size_y": 36.742,
+              "size_z": 92.71
+            },
+            "center_of_mass_mm": [
+              0.24728496162454675,
+              -2.6387377387991976e-14,
+              49.225391075054944
+            ],
+            "component_count": 1,
+            "solid_count": 1,
+            "surface_area_mm2": 20800.085018412854,
+            "volume_mm3": 51613.95013141445
+          },
+          "mesh": {},
+          "quality_classification": "analytic_brep_authoritative",
+          "schema_version": "external-cad-reference-derived-v1",
+          "topology": {
+            "face_count": 34,
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 2,
+            "valid": true
+          },
+          "units": "unverified_model_units"
+        },
+        "output_id": "battery_case",
+        "required": true,
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "semantic_verification": "failed",
+        "solid_count": 1,
+        "state": "semantic_verification_failed",
+        "topology_status": "passed",
+        "worker_status": "completed"
+      }
+    ],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": "projects/4182fc83-a340-4b0f-b4b6-22b7c1717e73/revisions/c8b6a068-0fff-4710-9217-98be857e2085/execution-manifest.json"
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "dde3e05c-eb9e-405c-b829-767205d4b317"
+}

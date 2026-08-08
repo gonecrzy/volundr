@@ -1,0 +1,189 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "clamp-clip-002",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "clamp_clip",
+  "comparison_specification_hash": "aca2dd47b2993c74f1e31917a552c5ee1daf64176e1a9cbb1320ea97f1361025",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "389a5498-d947-408f-84ae-9909f3375538",
+  "prompt": "Design a small clip that routes and retains a cable along a vacuum hose without damaging the hose or cable.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output vacuum_hose_cable_clip should have an overall envelope of approximately 43.0 mm x 53.537001609802246 mm x 15.0 mm.\n- application: vacuum hose cable routing descriptive",
+  "prompt_sha256": "2b2d6da8bfce76932741a5a87eb313a3046b2b776c0207ca7478a8284e359c54",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "b2a835ad-674d-4962-a23d-ebff8be10af6",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "b5b62bf8-d4fe-4973-b456-260454363a24",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "022ba1d3852da748f6892480dacfaf6d6e89a744e732602f0cf46816183e41cb",
+      "request_hash": "dc3cdef969b8dde6fbb92419630e562731ba087cbae1498b7cbdef7618cf99ac",
+      "request_started_at": "2026-08-08T11:43:15.713590+00:00",
+      "response_length": 5704,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "fa68693a2eec67b10bff87f6196d118223423b2733f444bda80508fd32bf2c69",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Vacuum hose diameter assumed from envelope",
+        "id": "assumption_hose_diameter",
+        "importance": "critical",
+        "kind": "dimension",
+        "label": "Vacuum hose diameter assumed from envelope",
+        "object_type": "vacuum_hose",
+        "operator": "approximately",
+        "protected": false,
+        "raw_evidence": "overall envelope of approximately 43.0 mm x 53.537001609802246 mm x 15.0 mm",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "clip",
+        "target": "vacuum_hose_diameter",
+        "tolerance": null,
+        "unit": "mm",
+        "value": 35.0
+      },
+      {
+        "description": "Cable diameter assumed from envelope",
+        "id": "assumption_cable_diameter",
+        "importance": "critical",
+        "kind": "dimension",
+        "label": "Cable diameter assumed from envelope",
+        "object_type": "cable",
+        "operator": "approximately",
+        "protected": false,
+        "raw_evidence": "overall envelope of approximately 43.0 mm x 53.537001609802246 mm x 15.0 mm",
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "clip",
+        "target": "cable_diameter",
+        "tolerance": null,
+        "unit": "mm",
+        "value": 6.0
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What is the exact outer diameter of the vacuum hose the clip will attach to?",
+        "question_id": "69602042-93a3-4de2-96b8-33e80408d373",
+        "reason": null,
+        "requirement_id": "q_hose_diameter"
+      },
+      {
+        "display_order": 1,
+        "question": "What is the exact outer diameter of the cable being routed along the hose?",
+        "question_id": "0e211bd1-87ff-4765-8ae9-558348b13f4a",
+        "reason": null,
+        "requirement_id": "q_cable_diameter"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "96a220a3-92f1-4b09-9b3a-06afc05dad6a",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Vacuum hose outer diameter",
+        "id": "vacuum_hose_outer_diameter",
+        "importance": "critical",
+        "reason": "Vacuum hose outer diameter",
+        "source": "user"
+      },
+      {
+        "description": "Cable outer diameter",
+        "id": "cable_outer_diameter",
+        "importance": "critical",
+        "reason": "Cable outer diameter",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "389a5498-d947-408f-84ae-9909f3375538",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:43:19.352445+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 3.6745693440025207,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "4a1d6838-5e02-468e-b5f5-e088e7f5b0b5"
+}

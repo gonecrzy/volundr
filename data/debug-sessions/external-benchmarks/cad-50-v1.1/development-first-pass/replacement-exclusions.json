@@ -1,0 +1,56 @@
+[
+  {
+    "benchmark_id": "functional-assembly-002",
+    "category": "functional_assemblies",
+    "mode": "premise_only",
+    "order": 14,
+    "provider_calls": 0,
+    "status": "excluded_replacement_required",
+    "worker_executions": 0
+  },
+  {
+    "benchmark_id": "jig-guide-002",
+    "category": "jig_guides",
+    "mode": "premise_only",
+    "order": 20,
+    "provider_calls": 0,
+    "status": "excluded_replacement_required",
+    "worker_executions": 0
+  },
+  {
+    "benchmark_id": "stand-support-002",
+    "category": "stand_supports",
+    "mode": "premise_only",
+    "order": 29,
+    "provider_calls": 0,
+    "status": "excluded_replacement_required",
+    "worker_executions": 0
+  },
+  {
+    "benchmark_id": "functional-assembly-002",
+    "category": "functional_assemblies",
+    "mode": "comparison_specification",
+    "order": 44,
+    "provider_calls": 0,
+    "status": "excluded_replacement_required",
+    "worker_executions": 0
+  },
+  {
+    "benchmark_id": "jig-guide-002",
+    "category": "jig_guides",
+    "mode": "comparison_specification",
+    "order": 50,
+    "provider_calls": 0,
+    "status": "excluded_replacement_required",
+    "worker_executions": 0
+  },
+  {
+    "benchmark_id": "stand-support-002",
+    "category": "stand_supports",
+    "mode": "comparison_specification",
+    "order": 59,
+    "provider_calls": 0,
+    "status": "excluded_replacement_required",
+    "worker_executions": 0
+  }
+]

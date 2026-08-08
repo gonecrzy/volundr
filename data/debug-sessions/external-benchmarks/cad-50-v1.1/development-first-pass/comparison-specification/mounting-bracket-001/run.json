@@ -1,0 +1,148 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "mounting-bracket-001",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "mounting_brackets",
+  "comparison_specification_hash": "d16b6505a8f274841435c1dcb5a374380a46c9557702bdd70b860b84ea3790d1",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "comparison_specification",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "9ce97c32-fcd5-4299-b8a6-596bf6d25809",
+  "prompt": "Design a replacement mounting bracket for an e-bike wheel speed sensor. It should attach securely to a bicycle chain stay, keep the sensor aligned with the wheel spokes, and allow attachment using a screw and zip tie. Keep the design compact and practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output sensor_bracket should have an overall envelope of approximately 14.000000200000006 mm x 13.662709938909213 mm x 26.499859272838457 mm.\n- attachment_methods: ['one screw', 'one zip tie', 'self-adhesive tape footprint'] descriptive\n- overall_envelope: {'x': 14.0, 'y': 13.6627, 'z': 26.4999} mm",
+  "prompt_sha256": "3e6b857742a49919860995bdec54dfa7bde43fc885df5ba91489808cfc1562de",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "8c9ae2d5-a4e2-4358-93d1-1b5ef80cc5ac",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "d772b330-0739-4b27-aabc-1d1511e0f7f7",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "39e1565cf067a19430408e6117e52e778bd4bc53f8063abc3b646a1fd166b3a0",
+      "request_hash": "670af9b297659f564a68341463f449a6108df3678a5fef475318d1936301218f",
+      "request_started_at": "2026-08-08T11:47:08.180609+00:00",
+      "response_length": 5591,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "1308eab6133020635e988137183c171e839f9fb0df0ed0e1fe3172f257692d60",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "Chain stay diameter and exact screw fastener size are not specified, standard general clearance and functional wall thickness apply.",
+        "id": "chain_stay_and_fastener_default",
+        "importance": "important",
+        "kind": "relationship",
+        "object_type": "mounting_bracket",
+        "operator": "qualitative",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "ai_assumption",
+        "subject": "sensor_bracket",
+        "target": "chain stay",
+        "type": "relationship",
+        "unit": null,
+        "value": "standard fit"
+      }
+    ],
+    "clarification_question_count": 0,
+    "clarification_questions": [],
+    "clarification_required": true,
+    "design_specification_id": "dd38088c-fd1f-49ce-ab80-533e31924b2e",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Missing specific mating dimensions for the e-bike wheel speed sensor and bicycle chain stay geometry.",
+        "id": "missing_specific_mating_dimensions_for_the_e_bike_wheel_speed_sensor_and_bicycle_chain_stay_geometry",
+        "importance": "critical",
+        "reason": "Missing specific mating dimensions for the e-bike wheel speed sensor and bicycle chain stay geometry.",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "9ce97c32-fcd5-4299-b8a6-596bf6d25809",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:47:11.693855+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 3.5343418960110284,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "4b2b9bed-99c9-48bd-a3c9-da8e377443fb"
+}

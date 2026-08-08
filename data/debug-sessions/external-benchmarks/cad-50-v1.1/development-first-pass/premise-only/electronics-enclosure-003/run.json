@@ -1,0 +1,171 @@
+{
+  "artifacts": {
+    "hashes": {},
+    "package_available": false
+  },
+  "benchmark_project_id": "electronics-enclosure-003",
+  "cad_calls": {
+    "fallback_calls": 0,
+    "initial_generation_calls": 0,
+    "repair_calls": 0,
+    "repair_history": [],
+    "total_transport_attempts": 1
+  },
+  "category": "electronics_enclosures",
+  "comparison_specification_hash": "c99097761568482b4ce0c8942d8bb3972b2014dafc6e60eace2690d0a6c40ec2",
+  "executable_contract": {
+    "contract": null,
+    "contract_hash": null,
+    "contract_source": null,
+    "created": false
+  },
+  "failure_class": null,
+  "first_blocker_stage": "clarification_required",
+  "first_incorrect_owner": null,
+  "mode": "premise_only",
+  "normal_recovery_resolved": false,
+  "observed_stage": null,
+  "project_runtime_id": "77b7db2f-f51b-4328-9553-d22169d8820f",
+  "prompt": "Design a two-part enclosure for an HX711 load-cell display. It should protect the electronics, hold the display in position, and provide a removable cover.",
+  "prompt_sha256": "482a8989099bc33104e1ae735750ad8ce03c05b9ee92de13fd606f5ad669723b",
+  "provider_attempt_forensics": [
+    {
+      "attempt_id": "1573ba60-344e-4583-adfb-716224582cd0",
+      "attempt_index": 0,
+      "credential_present": true,
+      "credential_slot": "primary",
+      "exception_type": null,
+      "failure_class": null,
+      "logical_operation_id": "6ba417c8-cc46-400a-8b2d-c853ae7b99c5",
+      "normalized_transport_error": null,
+      "provider_request_id": null,
+      "rate_limit_429_classification": "not_429",
+      "raw_response_hash": "13a4d292e5da9839edef17d31da0da52b54e2b4814975a0fe6974fe3a95dc6e4",
+      "request_hash": "f2c168ec950cd6518977cb7b4b5efd7a5644a54fbc93f6e1ec6eef53953acc36",
+      "request_started_at": "2026-08-08T11:39:18.925536+00:00",
+      "response_length": 4685,
+      "response_received": true,
+      "retry_delay_seconds": null,
+      "status_code": 200,
+      "transport_retry_classification": "none"
+    }
+  ],
+  "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+  "reference_comparison": {
+    "eligible_interpretation": false,
+    "mapping_status": "not_generated",
+    "metrics": {},
+    "raw_generated": null,
+    "raw_reference": null,
+    "status": "unavailable"
+  },
+  "reference_only_isolation": {
+    "forbidden_reference_identifiers_in_prompt": [],
+    "hidden_reference_facts_used_for_premise_only": false,
+    "reference_geometry_sent_to_provider": false
+  },
+  "reference_set_sha256": "7cd1c3687486d7529b615ee39ff71afc07801c80125eee4c1e11fe0830435523",
+  "requirement_extraction": {
+    "assumptions": [
+      {
+        "description": "General functional wall thickness",
+        "id": "assumption_wall_thickness",
+        "importance": "important",
+        "kind": "dimension",
+        "label": "General functional wall thickness",
+        "object_type": "enclosure",
+        "operator": "exact",
+        "protected": false,
+        "raw_evidence": null,
+        "requires_approval": false,
+        "source": "product_default",
+        "subject": "enclosure",
+        "target": null,
+        "tolerance": null,
+        "unit": "mm",
+        "value": 3.0
+      }
+    ],
+    "clarification_question_count": 2,
+    "clarification_questions": [
+      {
+        "display_order": 0,
+        "question": "What are the exact dimensions, mounting hole locations, and cutout requirements for the HX711 load-cell display?",
+        "question_id": "d88dd4fe-4536-4e16-b876-69e945171ac8",
+        "reason": "Missing mating dimensions and essential component geometry for the display.",
+        "requirement_id": "q_display_dimensions"
+      },
+      {
+        "display_order": 1,
+        "question": "What are the dimensions and mounting hole locations for the HX711 electronics board?",
+        "question_id": "ffe85d09-059b-4cbd-9b1a-136d5ab9657b",
+        "reason": "Missing internal mounting dimensions to securely hold the electronics.",
+        "requirement_id": "q_pcb_dimensions"
+      }
+    ],
+    "clarification_required": true,
+    "design_specification_id": "c241058c-28ce-4114-910b-9c0156322c51",
+    "generation_ready": false,
+    "missing_requirements": [
+      {
+        "description": "Display exact dimensions and mounting hole placement",
+        "id": "display_exact_dimensions_and_mounting_hole_placement",
+        "importance": "critical",
+        "reason": "Display exact dimensions and mounting hole placement",
+        "source": "user"
+      },
+      {
+        "description": "HX711 electronics board dimensions and mounting details",
+        "id": "hx711_electronics_board_dimensions_and_mounting_details",
+        "importance": "critical",
+        "reason": "HX711 electronics board dimensions and mounting details",
+        "source": "user"
+      }
+    ],
+    "provider_calls": 1,
+    "requirement_ids": [],
+    "requirements": [],
+    "schema_invalid_responses": 0,
+    "schema_retries": 0,
+    "source_label_anomalies": {
+      "missing_or_clarification_labeled_user": [],
+      "model_assumption_labeled_user_required": [],
+      "user_explicit_lost_authority": []
+    }
+  },
+  "requirement_ledger": {
+    "project_id": "77b7db2f-f51b-4328-9553-d22169d8820f",
+    "requirements": [],
+    "schema_version": "requirement-ledger-v1",
+    "updated_at": "2026-08-08T11:39:21.612160+00:00"
+  },
+  "revision_id": null,
+  "schema_version": "external-cad-development-first-pass-v1-cell",
+  "semantic": {
+    "candidate_state": null,
+    "informational": 0,
+    "machine_fail": 0,
+    "machine_pass": 0,
+    "overall_status": null,
+    "review_required": 0,
+    "total_authoritative_requirements": 0,
+    "unsupported_verifier": 0,
+    "unverifiable": 0
+  },
+  "state": "awaiting_clarification",
+  "terminal_stage": "clarification_required",
+  "timing_seconds": 5.332335785002215,
+  "topology": {
+    "outputs": [],
+    "valid": null
+  },
+  "worker": {
+    "execution_count": 0,
+    "job_ids": [],
+    "outputs": [],
+    "reconciled_from_runtime_db": true,
+    "revision_execution_manifest_path": null
+  },
+  "worker_executions_reconciled": true,
+  "workflow_id": "37bd846c-1da0-41e6-b4c0-00775783f497"
+}
