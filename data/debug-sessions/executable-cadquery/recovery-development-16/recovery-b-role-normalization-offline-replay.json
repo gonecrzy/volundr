@@ -1,0 +1,94 @@
+{
+  "evidence_type": "recovery_b_role_normalization_offline_replay",
+  "status": "offline_gate_passed",
+  "historical_input": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-b-live-confirmation/raw-live-evidence.json",
+  "historical_evidence_mutated": false,
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "root_cause": {
+    "boundary": "application_policy_resolver",
+    "observed_loss": "classification=delegated_choice was overwritten as machine_required before semantic-role normalization",
+    "provider_intent_understood": true
+  },
+  "normalization": {
+    "helper": "normalized_semantic_role",
+    "vocabulary": [
+      "delegated_choice",
+      "model_choice",
+      "design_choice",
+      "qualitative_objective",
+      "design_context",
+      "structural_intent",
+      "hard_constraint"
+    ],
+    "completion_policy_values_excluded_from_roles": [
+      "machine_required",
+      "review_required",
+      "informational"
+    ],
+    "precedence": [
+      "top_level_semantic_role",
+      "normalized_persisted_role",
+      "recognized_top_level_classification",
+      "one_compatible_independent_semantic_part"
+    ],
+    "one_part_behavior": "corroborates role metadata and never triggers B5 splitting",
+    "conflict_behavior": "role or authority conflicts fail closed to machine_required"
+  },
+  "replayed_requirements": {
+    "body_depth_envelope": {
+      "semantic_role": null,
+      "explicit": true,
+      "authority": "explicit",
+      "protected": true,
+      "policy": "machine_required",
+      "expected_result": "hard A fact remains machine-required"
+    },
+    "wall_thickness_delegated": {
+      "semantic_role": "delegated_choice",
+      "normalized_semantic_role": "delegated_choice",
+      "provider_classification": "delegated_choice",
+      "explicit": false,
+      "authority": "flexible",
+      "protected": false,
+      "policy": "informational",
+      "expected_result": "delegated choice no longer blocks"
+    },
+    "lid_clearance_delegated": {
+      "semantic_role": "delegated_choice",
+      "normalized_semantic_role": "delegated_choice",
+      "provider_classification": "delegated_choice",
+      "explicit": false,
+      "authority": "flexible",
+      "protected": false,
+      "policy": "informational",
+      "expected_result": "delegated choice no longer blocks"
+    }
+  },
+  "contract_replay": {
+    "outputs": ["box_body", "box_lid"],
+    "delegated_requirements": {
+      "wall_thickness_delegated": {
+        "classification": "informational",
+        "authority": "flexible",
+        "protected": false,
+        "semantic_role": "delegated_choice"
+      },
+      "lid_clearance_delegated": {
+        "classification": "informational",
+        "authority": "flexible",
+        "protected": false,
+        "semantic_role": "delegated_choice"
+      }
+    },
+    "hard_facts_unchanged": true
+  },
+  "verification": {
+    "focused_tests": "35 passed",
+    "full_backend_command": "PYTHONPATH=.:backend backend/.venv/bin/python -m pytest -q backend/tests",
+    "full_backend_result": "1657 passed, 1 skipped, 1 warning",
+    "credentials_recorded": false,
+    "reference_data_used": false,
+    "corpus_contract_injection_used": false
+  }
+}

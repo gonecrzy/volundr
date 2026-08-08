@@ -4,6 +4,7 @@ from app.services.executable_cadquery.contract import build_executable_cadquery_
 from app.services.executable_cadquery.semantic_policy import evaluate_semantic_policy
 from app.services.requirements.policy import (
     REQUIREMENT_POLICY_VERSION,
+    normalized_semantic_role,
     resolve_product_requirement_policy,
 )
 from app.services.requirements.trace import normalize_composite_requirement_parts
@@ -46,6 +47,193 @@ def test_flexible_model_choice_is_informational_and_unprotected() -> None:
     assert result["authority"] == "flexible"
     assert result["protected"] is False
     assert result["policy_version"] == REQUIREMENT_POLICY_VERSION
+
+
+def test_top_level_classification_delegated_choice_normalizes_to_role() -> None:
+    requirement = _requirement(
+        requirement_id="wall_thickness_delegated",
+        source="user",
+        explicit=False,
+        authority="flexible",
+        protected=False,
+        kind="dimension",
+        operator="qualitative",
+        value=3.0,
+        classification="delegated_choice",
+    )
+
+    assert normalized_semantic_role(requirement) == "delegated_choice"
+    result = resolve_product_requirement_policy(requirement)
+
+    assert result["semantic_role"] == "delegated_choice"
+    assert result["normalized_semantic_role"] == "delegated_choice"
+    assert result["provider_classification"] == "delegated_choice"
+    assert result["policy"] == "informational"
+    assert result["authority"] == "flexible"
+    assert result["protected"] is False
+
+
+def test_one_compatible_nested_delegated_part_corroborates_parent_role() -> None:
+    result = resolve_product_requirement_policy(
+        _requirement(
+            requirement_id="lid_clearance_delegated",
+            source="user",
+            explicit=False,
+            authority="flexible",
+            protected=False,
+            kind="clearance",
+            operator="qualitative",
+            value=0.4,
+            semantic_parts=[
+                {
+                    "id": "clearance_part",
+                    "independent": True,
+                    "semantic_role": "delegated_choice",
+                    "delegated": True,
+                    "explicit": False,
+                    "authority": "flexible",
+                    "protected": False,
+                }
+            ],
+        )
+    )
+
+    assert result["semantic_role"] == "delegated_choice"
+    assert result["policy"] == "informational"
+
+
+def test_conflicting_nested_role_or_authority_fails_closed() -> None:
+    conflicting_role = resolve_product_requirement_policy(
+        _requirement(
+            semantic_role="delegated_choice",
+            explicit=False,
+            authority="flexible",
+            protected=False,
+            semantic_parts=[
+                {
+                    "id": "hard_part",
+                    "independent": True,
+                    "semantic_role": "hard_constraint",
+                    "explicit": True,
+                    "authority": "explicit",
+                    "protected": True,
+                }
+            ],
+        )
+    )
+    conflicting_authority = resolve_product_requirement_policy(
+        _requirement(
+            classification="delegated_choice",
+            explicit=True,
+            authority="explicit",
+            protected=True,
+            kind="dimension",
+            operator="exact",
+            value=2.0,
+            semantic_parts=[
+                {
+                    "id": "delegated_part",
+                    "independent": True,
+                    "semantic_role": "delegated_choice",
+                    "delegated": True,
+                    "explicit": False,
+                    "authority": "flexible",
+                    "protected": False,
+                }
+            ],
+        )
+    )
+
+    assert conflicting_role["policy"] == "machine_required"
+    assert conflicting_authority["policy"] == "machine_required"
+
+
+def test_unknown_classification_and_policy_values_are_not_roles() -> None:
+    unknown = resolve_product_requirement_policy(
+        _requirement(
+            classification="provider_invented_softening",
+            semantic_role=None,
+            kind="dimension",
+            operator="exact",
+            value=1.0,
+        )
+    )
+    policy_value = resolve_product_requirement_policy(
+        _requirement(classification="review_required", semantic_role=None)
+    )
+
+    assert normalized_semantic_role(unknown) is None
+    assert normalized_semantic_role(policy_value) is None
+    assert unknown["policy"] == "machine_required"
+    assert policy_value["policy"] == "review_required"
+
+
+def test_hard_numeric_fact_wins_over_delegated_role_signal() -> None:
+    for kind, value in (("dimension", 1.6), ("clearance", 2.0)):
+        result = resolve_product_requirement_policy(
+            _requirement(
+                requirement_id=f"explicit_{kind}",
+                classification="delegated_choice",
+                semantic_role="delegated_choice",
+                explicit=True,
+                authority="explicit",
+                protected=True,
+                kind=kind,
+                operator="minimum" if kind == "dimension" else "exact",
+                value=value,
+            )
+        )
+        assert result["policy"] == "machine_required"
+
+
+def test_classification_role_shapes_route_without_becoming_policy_values() -> None:
+    qualitative = resolve_product_requirement_policy(
+        _requirement(
+            requirement_id="qualitative_goal",
+            kind="qualitative",
+            classification="qualitative_objective",
+        )
+    )
+    context = resolve_product_requirement_policy(
+        _requirement(
+            requirement_id="design_context",
+            kind="design_context",
+            classification="design_context",
+        )
+    )
+
+    assert qualitative["semantic_role"] == "qualitative_objective"
+    assert qualitative["policy"] == "review_required"
+    assert context["semantic_role"] == "design_context"
+    assert context["policy"] == "informational"
+
+
+def test_one_semantic_part_is_role_metadata_not_a_composite_split() -> None:
+    source = _requirement(
+        requirement_id="delegated_parameter",
+        classification="delegated_choice",
+        explicit=False,
+        authority="flexible",
+        protected=False,
+        kind="dimension",
+        operator="qualitative",
+        value=3.0,
+        semantic_parts=[
+            {
+                "id": "parameter_part",
+                "independent": True,
+                "semantic_role": "delegated_choice",
+                "delegated": True,
+                "explicit": False,
+                "authority": "flexible",
+                "protected": False,
+            }
+        ],
+    )
+
+    assert [item["requirement_id"] for item in normalize_composite_requirement_parts([source])] == [
+        "delegated_parameter"
+    ]
 
 
 def test_explicit_numeric_and_structural_facts_have_a_machine_hard_floor() -> None:

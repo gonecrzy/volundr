@@ -30,7 +30,7 @@ from app.services.requirements.trace import (
     normalize_composite_requirement_parts,
     normalize_requirement_semantics,
 )
-from app.services.requirements.policy import resolve_product_requirement_policy
+from app.services.requirements.policy import normalized_semantic_role, resolve_product_requirement_policy
 
 
 REQUIREMENT_LEDGER_VERSION = "requirement-ledger-v1"
@@ -651,6 +651,8 @@ class RequirementLedgerStore:
                             "source_requirement_id",
                             "composite_part_id",
                             "semantic_role",
+                            "normalized_semantic_role",
+                            "provider_classification",
                         )
                         if item.get(key) is not None
                     },
@@ -676,6 +678,13 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
             if not isinstance(item, dict):
                 continue
             raw_value = item.get("value")
+            normalized_role = normalized_semantic_role(item)
+            provider_classification = item.get("provider_classification") or item.get("classification")
+            if provider_classification is None and normalized_role is not None:
+                provider_classification = normalized_role
+            explicit = item.get("explicit")
+            if explicit is None:
+                explicit = False if normalized_role in {"delegated_choice", "model_choice", "design_choice"} else item.get("source") == "user"
             items.append(
                 {
                     **{
@@ -701,6 +710,8 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
                             "source_requirement_id",
                             "composite_part_id",
                             "semantic_role",
+                            "normalized_semantic_role",
+                            "provider_classification",
                             "semantic_parts",
                             "provenance",
                         )
@@ -713,7 +724,10 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
                     "unit": item.get("unit"),
                     "tolerance": item.get("tolerance"),
                     "source": "initial_user" if item.get("source") == "user" else "volundr_proposal",
-                    "explicit": item.get("explicit", item.get("source") == "user"),
+                    "explicit": explicit,
+                    "semantic_role": item.get("semantic_role") or normalized_role,
+                    "normalized_semantic_role": item.get("normalized_semantic_role") or normalized_role,
+                    "provider_classification": provider_classification,
                 }
             )
     return normalize_composite_requirement_parts(items)
@@ -821,6 +835,8 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
                         "source_requirement_id": semantic.get("source_requirement_id"),
                         "composite_part_id": semantic.get("composite_part_id"),
                         "semantic_role": semantic.get("semantic_role"),
+                        "normalized_semantic_role": semantic.get("normalized_semantic_role"),
+                        "provider_classification": semantic.get("provider_classification"),
         "policy": semantic.get("policy"),
         "verification_policy": semantic.get("verification_policy"),
         "created_at": row.created_at.isoformat() if row.created_at else None,
@@ -924,6 +940,8 @@ def _normalize_requirement(
         "source_requirement_id",
         "composite_part_id",
         "semantic_role",
+        "normalized_semantic_role",
+        "provider_classification",
     ):
         if item.get(key) is not None:
             normalized[key] = item[key]

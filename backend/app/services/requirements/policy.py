@@ -15,6 +15,17 @@ from typing import Any
 
 REQUIREMENT_POLICY_VERSION = "product-requirement-policy-v1"
 REQUIREMENT_POLICIES = frozenset({"machine_required", "review_required", "informational"})
+SEMANTIC_ROLES = frozenset(
+    {
+        "delegated_choice",
+        "model_choice",
+        "design_choice",
+        "qualitative_objective",
+        "design_context",
+        "structural_intent",
+        "hard_constraint",
+    }
+)
 
 _FLEXIBLE_AUTHORITIES = frozenset({"flexible", "provisional", "proposed", "ai_assumption"})
 _MODEL_SOURCES = frozenset({"ai_assumption", "volundr_proposal", "product_default", "calculated"})
@@ -66,11 +77,18 @@ def resolve_product_requirement_policy(requirement: Mapping[str, Any]) -> dict[s
     """
 
     result = deepcopy(dict(requirement))
+    original_classification = result.get("classification")
+    if (
+        result.get("provider_classification") is None
+        and isinstance(original_classification, str)
+        and original_classification.strip()
+    ):
+        result["provider_classification"] = original_classification.strip().lower()
     explicit = _explicit(result)
     authority = _authority(result, explicit)
-    role = _role(result)
+    role = normalized_semantic_role(result)
     flexible = _is_flexible_choice(result, explicit, authority, role)
-    hard = _is_hard_structured_requirement(result, explicit, role, flexible)
+    hard = _semantic_role_conflict(result) or _is_hard_structured_requirement(result, explicit, role, flexible)
 
     if flexible and not hard:
         policy = "informational"
@@ -92,6 +110,9 @@ def resolve_product_requirement_policy(requirement: Mapping[str, Any]) -> dict[s
         reason = "fail_closed_default"
 
     result["authority"] = authority
+    if role is not None:
+        result["semantic_role"] = role
+        result["normalized_semantic_role"] = role
     result["policy"] = policy
     result["classification"] = policy
     result["policy_version"] = REQUIREMENT_POLICY_VERSION
@@ -119,7 +140,107 @@ def _authority(item: Mapping[str, Any], explicit: bool) -> str:
 
 
 def _role(item: Mapping[str, Any]) -> str:
-    return str(item.get("semantic_role") or "").strip().lower()
+    return normalized_semantic_role(item) or ""
+
+
+def normalized_semantic_role(requirement: Mapping[str, Any]) -> str | None:
+    """Resolve a closed semantic-role vocabulary before policy routing.
+
+    Extraction versions have used both ``semantic_role`` and the overloaded
+    ``classification`` field for role metadata.  This helper accepts only the
+    application-owned role vocabulary, keeps completion-policy values out of
+    that vocabulary, and uses one compatible structured part as corroborating
+    evidence without splitting it.
+    """
+
+    item = requirement
+    top_level_role = _top_level_role(item)
+    parts = item.get("semantic_parts")
+    if not isinstance(parts, list) or len(parts) != 1 or not isinstance(parts[0], Mapping):
+        return top_level_role
+
+    part = parts[0]
+    part_role = _part_role(part)
+    if part_role is None:
+        return top_level_role
+    if not _compatible_single_semantic_part(item, part):
+        return None
+    if top_level_role is not None and top_level_role != part_role:
+        return None
+    return part_role
+
+
+def _semantic_role_conflict(requirement: Mapping[str, Any]) -> bool:
+    parts = requirement.get("semantic_parts")
+    if not isinstance(parts, list) or len(parts) != 1 or not isinstance(parts[0], Mapping):
+        return False
+    part = parts[0]
+    part_role = _part_role(part)
+    if part_role is None:
+        return False
+    top_level_role = _top_level_role(requirement)
+    return not _compatible_single_semantic_part(requirement, part) or (
+        top_level_role is not None and top_level_role != part_role
+    )
+
+
+def _top_level_role(item: Mapping[str, Any]) -> str | None:
+    for field in ("semantic_role", "normalized_semantic_role"):
+        value = item.get(field)
+        if value is not None and str(value).strip():
+            return _recognized_role(value)
+    classification = item.get("classification")
+    if classification is not None and str(classification).strip():
+        recognized = _recognized_role(classification)
+        if recognized is not None:
+            return recognized
+    return None
+
+
+def _part_role(part: Mapping[str, Any]) -> str | None:
+    for field in ("semantic_role", "normalized_semantic_role", "classification"):
+        value = part.get(field)
+        if value is not None and str(value).strip():
+            recognized = _recognized_role(value)
+            if recognized is not None:
+                return recognized
+    return None
+
+
+def _recognized_role(value: Any) -> str | None:
+    role = str(value or "").strip().lower()
+    return role if role in SEMANTIC_ROLES and role not in REQUIREMENT_POLICIES else None
+
+
+def _compatible_single_semantic_part(
+    parent: Mapping[str, Any],
+    part: Mapping[str, Any],
+) -> bool:
+    if part.get("independent") is not True:
+        return False
+    for key in ("source_fact_id", "output_id", "component_id", "target", "subject"):
+        parent_value = parent.get(key)
+        part_value = part.get(key)
+        if parent_value not in (None, "", []) and part_value not in (None, "", []):
+            if _identity_text(parent_value) != _identity_text(part_value):
+                return False
+    for key in ("explicit", "protected"):
+        parent_value = parent.get(key)
+        part_value = part.get(key)
+        if isinstance(parent_value, bool) and isinstance(part_value, bool) and parent_value != part_value:
+            return False
+    parent_authority = str(parent.get("authority") or "").strip().lower()
+    part_authority = str(part.get("authority") or "").strip().lower()
+    if parent_authority and part_authority:
+        parent_flexible = parent_authority in _FLEXIBLE_AUTHORITIES
+        part_flexible = part_authority in _FLEXIBLE_AUTHORITIES
+        if parent_flexible != part_flexible:
+            return False
+    return True
+
+
+def _identity_text(value: Any) -> str:
+    return " ".join(str(value).strip().lower().replace("_", " ").split())
 
 
 def _is_flexible_choice(

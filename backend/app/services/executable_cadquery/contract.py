@@ -328,6 +328,9 @@ def _product_contract_requirement(
     }
     if isinstance(provider_policy, str) and provider_policy in REQUIREMENT_POLICIES and provider_policy != classification:
         requirement["provider_policy"] = provider_policy
+    for key in ("semantic_role", "normalized_semantic_role", "provider_classification"):
+        if item.get(key) is not None:
+            requirement[key] = str(item[key])
     if item.get("policy_reason") is not None:
         requirement["policy_reason"] = str(item["policy_reason"])
     if scope is not None:

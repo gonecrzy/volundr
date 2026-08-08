@@ -162,6 +162,66 @@ def test_ledger_preserves_contract_policy_fields_from_design_specification() -> 
         assert item["verification_policy"] == "review_only"
 
 
+def test_ledger_persists_normalized_role_and_provider_classification_for_delegated_part() -> None:
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+
+    specification = {
+        "functional_requirements": [
+            {
+                "id": "wall_thickness_delegated",
+                "description": "Choose a reasonable wall thickness.",
+                "source": "user",
+                "kind": "dimension",
+                "operator": "qualitative",
+                "classification": "delegated_choice",
+                "value": 3.0,
+                "semantic_parts": [
+                    {
+                        "id": "wall_part",
+                        "independent": True,
+                        "semantic_role": "delegated_choice",
+                        "classification": "delegated_choice",
+                        "delegated": True,
+                        "explicit": False,
+                        "authority": "flexible",
+                        "protected": False,
+                    }
+                ],
+            }
+        ]
+    }
+
+    with Session(engine) as session:
+        project = Project(name="Delegated", slug="delegated", original_intent="Choose a wall thickness")
+        session.add(project)
+        session.flush()
+        ledger = RequirementLedgerStore(session).ensure_from_specification(
+            project_id=project.id,
+            specification=specification,
+            originating_message="Choose a reasonable wall thickness.",
+        )
+        first = active_requirements(ledger)[0]
+        assert first["semantic_role"] == "delegated_choice"
+        assert first["normalized_semantic_role"] == "delegated_choice"
+        assert first["provider_classification"] == "delegated_choice"
+        assert first["policy"] == "informational"
+        assert first["authority"] == "flexible"
+        assert first["protected"] is False
+        project_id = project.id
+        session.commit()
+
+    with Session(engine) as session:
+        reloaded = active_requirements(RequirementLedgerStore(session).load(project_id))
+        assert len(reloaded) == 1
+        assert reloaded[0]["semantic_role"] == "delegated_choice"
+        assert reloaded[0]["normalized_semantic_role"] == "delegated_choice"
+        assert reloaded[0]["provider_classification"] == "delegated_choice"
+        assert reloaded[0]["policy"] == "informational"
+        assert reloaded[0]["authority"] == "flexible"
+        assert reloaded[0]["protected"] is False
+
+
 def test_ledger_reloads_source_fact_identity_and_evidence() -> None:
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
