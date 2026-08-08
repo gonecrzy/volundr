@@ -1,0 +1,363 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-geometry-owned-measured-discrepancy-reconstruction-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "checkpoint": "geometry_owned_measured_discrepancy",
+  "recorded_at": "2026-08-08T00:53:56Z",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "base_commit": "0e843be9cece8f90eea048196d6f0a68d4afc6e1",
+  "holdout_boundary": {
+    "phase_2_inspected": false,
+    "phase_2_accessed": false,
+    "notes": "Only authorized development-05 evidence, production implementations, and synthetic geometry were inspected. Similarly named seed/P5 artifacts were not used as development-05 evidence."
+  },
+  "evidence_sources_examined": [
+    "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/project-05-reconciled-first-pass.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/project-05-first-pass.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-subclusters.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-reconstruction.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-verifier-field-mismatch-replay.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/development-05-render.png",
+    "backend/app/services/executable_cadquery/semantic.py",
+    "backend/app/services/executable_cadquery/semantic_contract.py",
+    "backend/app/services/geometry/invariants.py",
+    "backend/app/services/geometry/feature_measurements.py",
+    "backend/app/services/geometry/feature_evidence.py",
+    "backend/app/services/executable_cadquery/package_review.py",
+    "backend/app/services/cad/topology_evidence.py",
+    "backend/tests/test_executable_cadquery_semantic_contract.py",
+    "backend/tests/test_executable_cadquery_semantic_measurements.py",
+    "backend/tests/test_feature_measurements.py",
+    "backend/tests/test_geometric_invariants.py",
+    "backend/tests/test_requirement_semantics_alignment.py"
+  ],
+  "artifact_availability": {
+    "authorized_development_source": false,
+    "authorized_development_step": false,
+    "authorized_development_brep": false,
+    "authorized_development_stl": false,
+    "authorized_development_neutral_package_measurement": false,
+    "authorized_development_topology_v2": true,
+    "authorized_development_render": true,
+    "current_database_contains_reconciled_revision": false,
+    "source_search_result": "No development-05 source path, STEP, STL, B-Rep, feature trace, or package measurement was persisted in the authorized development evidence directory or current repository database.",
+    "confidence_limit": "The historical physical hole count, cylindrical entities, and exact source construction cannot be established from the available evidence."
+  },
+  "authoritative_requirement": {
+    "project": "development-05",
+    "requirement_id": "organizer_wall_mount",
+    "origin": "user_explicit",
+    "authority": "required",
+    "classification": "machine_required",
+    "user_text": "Mount securely to a vertical wall using two 4 mm screw holes. Keep the mounting face flat.",
+    "contract_expected": {
+      "mounting_face": "flat",
+      "hole_count": 2,
+      "hole_diameter": 4.0,
+      "wall_mounted": true
+    },
+    "protected_facts": {
+      "hole_count": 2,
+      "hole_diameter": 4.0
+    },
+    "through_or_blind": "not explicitly specified; the persisted verifier result's through=true is an observation, not an authoritative requirement",
+    "placement_location": "vertical wall mounting and flat mounting face are stated; exact hole centers and spacing are not specified",
+    "output_scope": "cable_organizer",
+    "tolerance_mm": 0.25,
+    "canonical_normalized_representation": {
+      "hole_count": 2,
+      "hole_diameter": 4.0
+    },
+    "requirement_integrity": "The contract and protected facts preserve 2 and 4.0 mm. The prior field-normalization recovery corrected the verifier input from implicit count=1 to canonical hole_count=2 and from missing diameter to canonical hole_diameter=4.0."
+  },
+  "full_trace": {
+    "user_requirement_to_contract": {
+      "status": "intact",
+      "evidence": "corpus-manifest.json and design_contract_sha256 01d84183c9cbc79748c3e297f6a1ddd5f7dd0ec020b0b132d986fbe73f82a612"
+    },
+    "requirement_ledger": {
+      "status": "not separately persisted in the reconciled compact record",
+      "evidence_limit": "The authoritative frozen contract is available; no later ledger projection for this reconciled run is available."
+    },
+    "design_contract": {
+      "status": "intact",
+      "evidence": "scope cable_organizer; final_mesh_opening_profiles; hole_count=2; hole_diameter=4.0"
+    },
+    "plan_or_feature_trace": {
+      "status": "unavailable",
+      "evidence_limit": "No authorized feature_trace_json or source-level plan trace was persisted for development-05."
+    },
+    "provider_generation_obligation": {
+      "status": "initial complete-source generation reached execution and semantic measurement",
+      "evidence": "HTTP 200, primary slot, source_extracted=true, source_contract_valid=true, provider_repair_operations=0"
+    },
+    "generated_cadquery_source": {
+      "status": "unavailable",
+      "first_incorrect_owner": "cannot classify generated_source without the source"
+    },
+    "executed_brep": {
+      "status": "topology valid but feature-level evidence unavailable",
+      "evidence": {
+        "schema_version": "topology-evidence-v2",
+        "output_id": "cable_organizer",
+        "valid": true,
+        "overall_shape_valid": true,
+        "detected_solid_count": 1,
+        "shell_count": 1,
+        "face_count": 38,
+        "volume_mm3": 106105.52192913076,
+        "bounding_box_mm": {"size_x": 120.0, "size_y": 25.0, "size_z": 40.0}
+      },
+      "evidence_limit": "topology-evidence-v2 does not report hole/cylinder entities, circularity, or mounting-region membership"
+    },
+    "exported_artifact": {
+      "status": "artifact and visible model were recorded, but the authorized compact evidence does not retain an artifact path or hash for direct remeasurement",
+      "render": "development-05-render.png exists and was inspected only as presentation evidence"
+    },
+    "neutral_feature_detection": {
+      "status": "reported four raw candidate diameters",
+      "mechanism": "semantic.py::_verify_opening_requirement calls _detect_axis_aligned_holes(mesh, 'z', GeometricToleranceProfile()) on the final STL mesh"
+    },
+    "semantic_measurement": {
+      "status": "failed without PASS",
+      "historical_result": {
+        "expected_count_before_field_recovery": 1,
+        "raw_candidate_diameters_mm": [8.481, 8.481, 8.481, 8.481],
+        "matching_candidate_count_after_canonical_4mm_filter": 0,
+        "canonical_expected_count_after_field_recovery": 2,
+        "measurement_available": true,
+        "observed_status": "failed"
+      },
+      "important_correction": "The persisted result does not prove that four physical holes were measured. It contains four raw candidate diameter entries, while detected_count is the count after filtering candidates against the expected diameter and is therefore zero for the canonical 4.0 mm requirement."
+    }
+  },
+  "measurement_reconstruction": {
+    "original_measurement_function": "_detect_axis_aligned_holes",
+    "input_evidence": "final STL mesh, not persisted B-Rep/OCP entities",
+    "candidate_selection": [
+      "select faces whose normals are approximately perpendicular to the requested axis",
+      "group selected faces by mesh face adjacency",
+      "for each component, project vertices onto the two orthogonal axes",
+      "estimate center as the mean projected point",
+      "estimate radius as the mean radial distance from that center",
+      "report diameter=2*mean_radius rounded to 3 decimals",
+      "retain candidates using inward-score, coverage, circularity, and segment-confidence thresholds"
+    ],
+    "not_used": [
+      "OpenCascade cylindrical-face classification",
+      "STEP/B-Rep edge-loop identity",
+      "ray-based physical-hole identity",
+      "explicit mounting-region selection"
+    ],
+    "semantic_reporting": {
+      "raw_candidates": "holes",
+      "diameter_filter": "matching",
+      "reported_detected_count": "len(matching), not len(holes)",
+      "reported_diameters": "all raw hole candidates, including nonmatching candidates",
+      "diagnostic_risk": "A user or later repair policy could misread four candidate values as four physical holes even though the semantic detected_count is zero."
+    }
+  },
+  "eight_point_four_eight_one_explanation": {
+    "direct_code_meaning": "8.481 mm is the rounded diameter estimate produced from a mesh face component's mean radial distance; it is not directly a B-Rep cylinder diameter or a bounding-box diagonal in the implementation.",
+    "independent_synthetic_reproduction": {
+      "physical_synthetic_geometry": "two arbitrary 6 mm x 6 mm near-square rounded through openings with 0.004 mm corner radius",
+      "detector_output": {
+        "raw_candidate_count": 2,
+        "candidate_diameters_mm": [8.481, 8.481],
+        "confidence": [0.792, 0.792]
+      },
+      "independent_profile_measurement": {
+        "profile_count_including_outer_body": 3,
+        "opening_profile_spans_mm": [[6.0, 6.0], [6.0, 6.0]],
+        "interpretation": "The same STL contains near-square 6 x 6 profiles, while the hole detector labels them as approximately 8.481 mm circular candidates."
+      },
+      "inference": "The historical 8.481 value is consistent with a non-circular profile false positive, but historical geometry is unavailable and this synthetic result does not prove that the development-05 model contained the same profile."
+    },
+    "other_synthetic_controls": [
+      {
+        "geometry": "two clean arbitrary 6 mm circular through holes",
+        "detector": "two candidates at 6.0 mm",
+        "result": "correct on this control"
+      },
+      {
+        "geometry": "two arbitrary rectangular through slots",
+        "detector": "zero circular-hole candidates",
+        "result": "no false circular candidates on this simple control"
+      },
+      {
+        "geometry": "two arbitrary 6 mm holes with 10 mm counterbores",
+        "detector": "four candidates: two at 10.0 mm and two at 6.0 mm",
+        "result": "one physical hole can yield multiple cylindrical candidate measurements when stepped geometry exists"
+      },
+      {
+        "geometry": "four arbitrary 6 mm circular through holes",
+        "detector": "four candidates at 6.0 mm",
+        "result": "raw candidate count alone does not establish the intended mounting group"
+      }
+    ]
+  },
+  "independent_geometry_cross_check": {
+    "historical_artifact": "not possible; no authorized development-05 STEP/B-Rep/STL artifact is persisted",
+    "topology_cross_check": "confirms one valid solid and global bounds only; cannot confirm mounting-hole count or diameter",
+    "neutral_cross_check": "measure_opening_profiles independently reports projected profile spans, but no historical mesh is available to run it",
+    "synthetic_cross_check": "on the near-square control, measure_opening_profiles reports 6.0 x 6.0 spans while _detect_axis_aligned_holes reports 8.481 mm candidates",
+    "confidence": "historical physical geometry unresolved; generic measurement false-positive mechanism demonstrated"
+  },
+  "actual_physical_feature_count": {
+    "historical_count": "unknown",
+    "raw_candidate_count": 4,
+    "physical_count_not_proven_because": [
+      "candidate components are mesh-derived and not typed physical holes",
+      "multiple faces or stepped openings can produce multiple candidates per physical hole",
+      "non-circular profiles can pass the detector's confidence threshold",
+      "no B-Rep cylindrical entities or source construction are persisted"
+    ],
+    "possible_mechanisms_remaining": [
+      "four actual circular features",
+      "two physical holes with multiple stepped/cylindrical candidate surfaces",
+      "non-circular cable-channel profiles falsely classified as holes",
+      "unrelated vertical curved geometry entering the candidate set",
+      "a source construction error producing the wrong features"
+    ]
+  },
+  "generated_source_inspection": {
+    "performed": false,
+    "reason": "No authorized persisted development-05 source was available. Seed/P5 source artifacts with similar project numbering were deliberately excluded.",
+    "source_owner": "unresolved",
+    "cannot_determine": [
+      "number of source mounting cuts",
+      "source radius/diameter values",
+      "workplane/face selection",
+      "pattern count and spacing",
+      "duplicate cuts or radius/diameter confusion"
+    ]
+  },
+  "ownership_decision_matrix": [
+    {
+      "boundary": "requirement representation",
+      "expected": "2 holes at 4.0 mm",
+      "observed": "contract and protected facts preserve hole_count=2 and hole_diameter=4.0",
+      "correctness": "intact",
+      "owner": "not owner"
+    },
+    {
+      "boundary": "plan/feature trace",
+      "expected": "mounting-hole obligation linked to the intended output/region",
+      "observed": "feature trace absent from authorized persisted evidence",
+      "correctness": "unresolved",
+      "owner": "unresolved"
+    },
+    {
+      "boundary": "generated source",
+      "expected": "source constructs the requested mounting feature",
+      "observed": "authorized source absent",
+      "correctness": "unresolved",
+      "owner": "unresolved"
+    },
+    {
+      "boundary": "B-Rep geometry",
+      "expected": "two 4.0 mm mounting holes, subject to unspecified placement/through semantics",
+      "observed": "one valid solid; no hole/cylinder evidence",
+      "correctness": "unresolved",
+      "owner": "unresolved between generated_source and geometry_execution"
+    },
+    {
+      "boundary": "neutral measurement",
+      "expected": "physically identified mounting holes",
+      "observed": "four mesh face-component candidates at 8.481 mm; synthetic non-circular false positive is reproducible",
+      "correctness": "generic detector contract is insufficient for physical-hole identity; historical applicability unresolved",
+      "owner": "application_measurement for the generic false-positive subcluster"
+    },
+    {
+      "boundary": "semantic verifier",
+      "expected": "compare canonical 2 and 4.0 mm fields",
+      "observed": "after field normalization, zero candidates match 4.0 mm and the finding remains failed",
+      "correctness": "no false PASS; diagnostics should distinguish raw candidate count from matching count",
+      "owner": "application measurement diagnostics as a secondary generic issue"
+    }
+  ],
+  "ownership_conclusion": {
+    "historical_first_incorrect_owner": "unresolved; geometry ownership is not proven",
+    "historical_observed_stage": "semantic_measurement",
+    "historical_failure_class": "semantic_requirement_unverifiable / measured discrepancy",
+    "generic_measurement_subcluster": {
+      "id": "hole_detector_non_circular_profile_false_positive",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "measurement_false_positive",
+      "first_incorrect_owner": "application geometry measurement primitive",
+      "evidence": "independent synthetic near-square rounded profiles produce the historical 8.481 value while independent profile spans remain 6 x 6",
+      "historical_applicability": "not proven without the development-05 mesh/B-Rep/source"
+    },
+    "diagnostic_subcluster": {
+      "id": "raw_hole_candidate_count_vs_matching_count_ambiguity",
+      "first_incorrect_owner": "application measurement diagnostics",
+      "evidence": "persisted raw diameter list has four values while semantic detected_count is zero after the 4.0 mm filter"
+    }
+  },
+  "synthetic_reproduction": {
+    "production_code_changed": false,
+    "permanent_tests_added": false,
+    "synthetic_cadquery_fixture_executions": 28,
+    "synthetic_dimensions_are_unrelated_to_development_05": true,
+    "key_cases": [
+      "clean circular through holes",
+      "rectangular through slots",
+      "counterbored holes with multiple cylindrical candidate surfaces",
+      "near-square rounded openings reproducing 8.481 mm",
+      "four clean circular holes"
+    ],
+    "result": "The measurement primitive is correct for clean circular controls but not a sufficient physical-hole classifier for rounded non-circular profiles or stepped features."
+  },
+  "recovery_classification": {
+    "decision": "SPLIT",
+    "historical_geometry_owned_discrepancy": "NO-GO / insufficient evidence",
+    "generic_measurement_false_positive": "confirmed as an independent capability defect, but no production correction selected in this reconstruction cycle",
+    "existing_recovery_class": "none selected; do not authorize Gemini repair",
+    "repair_authorization": "none",
+    "reason": "The historical source and geometry are unavailable, while the same observed number can be produced by a generic measurement false positive. Repairing geometry would risk fixing an artifact rather than the CAD."
+  },
+  "product_path_assessment": {
+    "correct_user_diagnostic": "The mounting-hole requirement could not be verified: expected 2 holes at 4.0 mm; the neutral detector found four candidate profiles near 8.481 mm, but physical-hole identity is unconfirmed.",
+    "technical_details": [
+      "mesh face-component detector",
+      "raw candidate count",
+      "diameter-matching count",
+      "B-Rep evidence availability",
+      "source evidence availability"
+    ],
+    "revision_action": "Do not offer an automatic 'fix mounting holes' repair until the candidate geometry is physically identified; a future repair may target a generic repeated-hole or non-circular-feature classification only after the actual artifact is available."
+  },
+  "anti_overfitting": {
+    "project_id_logic": false,
+    "frozen_dimensions_in_production_behavior": false,
+    "source_name_matching": false,
+    "prompt_changes": false,
+    "model_settings_credentials_repair_ceiling_changes": false,
+    "holdout_access": false,
+    "seed_artifact_substitution": false,
+    "production_measurement_changes": false,
+    "conclusion": "The result is a generic detector characterization and an evidence-limited historical classification, not a development-05-specific repair."
+  },
+  "provider_operations": {
+    "gemini_calls": 0,
+    "repair_operations": 0
+  },
+  "worker_operations": {
+    "frozen_worker_executions": 0,
+    "frozen_worker_replays": 0,
+    "source_modifications": 0,
+    "synthetic_geometry_executions": 28
+  },
+  "tests_run": {
+    "focused_existing_suite": "61 passed",
+    "suite": [
+      "test_executable_cadquery_semantic_contract.py",
+      "test_executable_cadquery_semantic_measurements.py",
+      "test_feature_measurements.py",
+      "test_geometric_invariants.py",
+      "test_requirement_semantics_alignment.py"
+    ],
+    "synthetic_harness": "28 arbitrary CadQuery/STL characterization executions; no permanent production test file added"
+  },
+  "recommended_next_action": "Keep the historical development-05 geometry finding unresolved and do not call Gemini. If an authorized development-05 source plus STEP/B-Rep/STL artifact becomes available, rerun the same boundary audit. Separately, design a generic hole/profile measurement contract that distinguishes physical circular holes from non-circular profiles and stepped openings before implementing any detector correction."
+}

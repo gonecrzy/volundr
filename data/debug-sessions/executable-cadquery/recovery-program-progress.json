@@ -9,7 +9,7 @@
   "origin_experimental_head": "e193bf0 Recover topology-backed required output verification",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings reconstructed into one topology-policy route and three representation/reference-geometry subclusters",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 geometry discrepancy reconstructed as evidence-limited and split from a generic hole-detector false-positive subcluster",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -109,6 +109,7 @@
     ,"phase_1b_topology_required_output_policy_routing_recovered_generically"
     ,"full_backend_phase_1b_no_machine_measurement_definition_1491_passed"
     ,"alembic_phase_1b_no_machine_measurement_definition_checkpoint_clean"
+    ,"phase_1b_geometry_owned_measured_discrepancy_reconstructed_and_split"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -181,10 +182,10 @@
     "requires_first_blocker_survey_complete": true,
     "breadth_first_by_generic_failure_class": true,
     "target_eventual_independent_pass": "16/16",
-    "current_cluster": "requirement_has_no_machine_measurement_definition",
+    "current_cluster": "geometry_owned_measured_discrepancy",
     "current_cluster_projects": ["development-03","development-05","development-06","development-07","development-08","development-13","development-15","development-16"],
-    "current_cluster_status": "missing-machine-measurement-definition reconstructed into one topology-policy routing gap and three representation/reference-geometry subclusters; only the topology route was eligible for narrow generic recovery",
-    "current_hypothesis": "For explicit output identity plus connected-one-solid claims, route the centralized output resolver and authoritative topology-evidence-v2 records into semantic verification; do not invent geometry semantics for under-specified capacity, clearance, or interface claims.",
+    "current_cluster_status": "development-05 organizer_wall_mount reconstructed; requirement values are intact, historical physical geometry is unavailable, and a generic non-circular-profile hole-detector false positive was reproduced synthetically; no production correction selected",
+    "current_hypothesis": "Do not classify four mesh-derived candidate values as four physical holes without B-Rep/source evidence; distinguish raw candidates from diameter-matching candidates and keep the historical geometry owner unresolved.",
     "provider_calls_current_cluster": 0,
     "repair_operations_current_cluster": 0,
     "unsupported_findings_before": 26,
@@ -202,10 +203,10 @@
     },
     "new_rule_metric_assignment": "The one cluster-level generic rule is assigned to the first affected project order; it was not counted as eight project-specific rules.",
     "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
-    "remaining_subclusters": ["feature_profile_capability_gap","geometry_owned_measured_discrepancy","requirement_representation_insufficient","reference_geometry_clearance_undefined","reference_geometry_interface_undefined"],
+    "remaining_subclusters": ["feature_profile_capability_gap","hole_detector_non_circular_profile_false_positive","raw_hole_candidate_count_vs_matching_count_ambiguity","requirement_representation_insufficient","reference_geometry_clearance_undefined","reference_geometry_interface_undefined"],
     "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","slot_sample_dimension_aggregation_false_positive","topology_required_output_policy_routing"],
-    "completed_reconstructions": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition"],
-    "current_subcluster_status": "missing-machine-measurement-definition reconstructed and split; guide_output recovered through a generic topology-policy route; battery-holder representation, cable-clearance reference geometry, and clamp-interface reference geometry remain fail-closed NO-GO; feature-profile production recovery remains parked after NO-GO",
+    "completed_reconstructions": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
+    "current_subcluster_status": "development-05 geometry discrepancy reconstructed and split; historical owner remains unresolved, generic detector false-positive is proven synthetically but not yet recovered; feature-profile and reference-geometry production work remain parked",
     "feature_profile_capability_gap": {
       "affected_findings": 1,
       "projects": ["development-03"],
@@ -295,6 +296,26 @@
       "feature_profile_reopened": false,
       "next_action": "do not invent clearance/interface semantics; select the next generic Phase 1B target after validating the topology route"
     },
+    "geometry_owned_measured_discrepancy": {
+      "status": "reconstructed_split_historical_owner_unresolved",
+      "project": "development-05",
+      "requirement": "organizer_wall_mount",
+      "historical_label": "geometry",
+      "historical_observation": "raw candidate diameter list [8.481, 8.481, 8.481, 8.481]; semantic detected_count=0 after canonical 4.0 mm diameter filtering",
+      "corrected_conclusion": "The persisted evidence does not establish four physical holes or wrong generated geometry. A generic application hole-detector false positive was reproduced independently on near-square rounded profiles.",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable / measured discrepancy",
+      "historical_first_incorrect_owner": "unresolved between generated_source, geometry_execution, and application_measurement",
+      "generic_measurement_subclusters": ["hole_detector_non_circular_profile_false_positive","raw_hole_candidate_count_vs_matching_count_ambiguity"],
+      "source_inspection": "not possible; authorized development-05 source and feature trace are absent",
+      "brep_inspection": "not possible; only topology-evidence-v2 global one-solid evidence is persisted",
+      "decision": "SPLIT; no production change and no provider repair",
+      "provider_calls": 0,
+      "frozen_worker_executions": 0,
+      "synthetic_geometry_executions": 28,
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-geometry-owned-measured-discrepancy-reconstruction.json",
+      "next_action": "Obtain an authorized source plus STEP/B-Rep/STL artifact before assigning historical geometry ownership; separately develop a generic physical-hole/profile measurement contract."
+    },
     "verifier_field_mismatch": {
       "affected_findings": 4,
       "projects": ["development-03", "development-05", "development-07"],
@@ -354,7 +375,7 @@
     "per_project_tuning_allowed": false
   },
   "application_fix_count": 20,
-  "application_fix_count_since_previous_checkpoint": 1,
+  "application_fix_count_since_previous_checkpoint": 0,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
     "new_calls_in_current_checkpoint": 16,
@@ -375,6 +396,7 @@
     ,"phase_1b_feature_profile_evidence_acquisition_provider_calls": 0
     ,"phase_1b_slot_sample_aggregation_provider_calls": 0
     ,"phase_1b_requirement_no_machine_measurement_definition_provider_calls": 0
+    ,"phase_1b_geometry_owned_measured_discrepancy_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -457,6 +479,8 @@
     "phase_1b_slot_sample_aggregation_tests": "backend/tests/test_slot_sample_aggregation.py; 14 synthetic cases; RED 9 failures then GREEN 14 passed",
     "phase_1b_requirement_no_machine_measurement_definition_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-requirement-no-machine-measurement-definition-reconstruction.json",
     "phase_1b_topology_required_output_tests": "backend/tests/test_executable_cadquery_topology_policy.py; four project-independent topology-policy cases pass",
-    "verification_current_checkpoint": "backend 1491 passed, 1 skipped, 1 warning; focused topology-policy and executable-CadQuery semantic/workflow suite passed; Alembic no new upgrade operations; frontend unchanged; provider_calls=0; frozen_worker_executions=0"
+    "phase_1b_geometry_owned_measured_discrepancy_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-geometry-owned-measured-discrepancy-reconstruction.json",
+    "phase_1b_geometry_measurement_characterization": "28 synthetic CadQuery/STL executions; 61 focused existing geometry/semantic tests passed; no production files changed",
+    "verification_current_checkpoint": "backend 1491 passed, 1 skipped, 1 warning remains the latest full regression; focused geometry/semantic suite 61 passed; provider_calls=0; frozen_worker_executions=0; production_changes=0"
   }
 }
