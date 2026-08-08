@@ -1,0 +1,26 @@
+{
+  "schema_version": "phase-1b-envelope-source-identity-reconstruction-v1",
+  "status": "reconstructed_before_implementation",
+  "source_evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-a-live-synthetic-confirmation/raw-live-evidence.json",
+  "prompt": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+  "provider_response": {
+    "shared_source_fact_identity_present": false,
+    "shared_source_statement_present": false,
+    "shared_trace_or_parent_constraint_present": false,
+    "dimensions": [
+      {"id": "tray_width", "value": 80, "raw_evidence": "approximately 80 mm wide"},
+      {"id": "tray_depth", "value": 60, "raw_evidence": "60 mm deep"},
+      {"id": "tray_height", "value": 25, "raw_evidence": "25 mm high"}
+    ],
+    "full_source_statement_available_to_downstream": false
+  },
+  "accepted_parser_payload": {
+    "critical_dimensions": "three scalar entries; no source_fact_id, source_group_id, constraint_group_id, or provenance group",
+    "explicit_inventory": "empty for this sentence in persisted request defaults"
+  },
+  "design_specification": "three scalar protected user dimensions; no shared identity",
+  "ledger": "three scalar active entries; per-axis raw evidence only",
+  "loss_boundary": "requirement extraction contract/provenance, before canonicalizer grouping",
+  "ownership": "application requirement extraction/normalization boundary",
+  "decision": "introduce explicit generic source_fact_id plus source_fact_evidence; do not infer grouping from common message, subject, or dimension names"
+}

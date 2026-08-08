@@ -162,6 +162,94 @@ def test_ledger_preserves_contract_policy_fields_from_design_specification() -> 
         assert item["verification_policy"] == "review_only"
 
 
+def test_ledger_reloads_source_fact_identity_and_evidence() -> None:
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+
+    source_fact = "tray_envelope_fact"
+    source_evidence = "Keep the tray within approximately 80 x 60 x 25 mm."
+    dimensions = [
+        {
+            "id": "tray_width",
+            "label": "Tray width",
+            "value": 80,
+            "unit": "mm",
+            "source": "user",
+            "authority": "explicit",
+            "authority_rank": 1,
+            "importance": "critical",
+            "protected": True,
+            "kind": "dimension",
+            "type": "exact_dimension",
+            "operator": "approximately",
+            "target": "tray",
+            "raw_evidence": "approximately 80 mm wide",
+            "source_fact_id": source_fact,
+            "source_fact_type": "overall_envelope",
+            "source_fact_evidence": source_evidence,
+            "tolerance": 0.5,
+        },
+        {
+            "id": "tray_depth",
+            "label": "Tray depth",
+            "value": 60,
+            "unit": "mm",
+            "source": "user",
+            "authority": "explicit",
+            "authority_rank": 1,
+            "importance": "critical",
+            "protected": True,
+            "kind": "dimension",
+            "type": "exact_dimension",
+            "operator": "approximately",
+            "target": "tray",
+            "raw_evidence": "60 mm deep",
+            "source_fact_id": source_fact,
+            "source_fact_type": "overall_envelope",
+            "source_fact_evidence": source_evidence,
+            "tolerance": 0.5,
+        },
+        {
+            "id": "tray_height",
+            "label": "Tray height",
+            "value": 25,
+            "unit": "mm",
+            "source": "user",
+            "authority": "explicit",
+            "authority_rank": 1,
+            "importance": "critical",
+            "protected": True,
+            "kind": "dimension",
+            "type": "exact_dimension",
+            "operator": "approximately",
+            "target": "tray",
+            "raw_evidence": "25 mm high",
+            "source_fact_id": source_fact,
+            "source_fact_type": "overall_envelope",
+            "source_fact_evidence": source_evidence,
+            "tolerance": 0.5,
+        },
+    ]
+
+    with Session(engine) as session:
+        project = Project(name="Source fact tray", slug="source-fact-tray", original_intent="Make a tray")
+        session.add(project)
+        session.flush()
+        RequirementLedgerStore(session).ensure_from_specification(
+            project_id=project.id,
+            specification={"critical_dimensions": dimensions},
+            originating_message=source_evidence,
+        )
+        session.commit()
+        project_id = project.id
+
+    with Session(engine) as session:
+        active = active_requirements(RequirementLedgerStore(session).load(project_id))
+        assert len(active) == 1
+        assert active[0]["provenance"]["source_fact_id"] == source_fact
+        assert active[0]["provenance"]["source_fact_evidence"] == source_evidence
+
+
 def test_legacy_clarification_provenance_is_reconciled_and_reloaded() -> None:
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)

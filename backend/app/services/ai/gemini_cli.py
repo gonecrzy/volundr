@@ -1424,6 +1424,8 @@ class GeminiCliProvider:
                 "Preserve nominal hardware designations as strings, including the # prefix. A designation such as #8 is not an 8 mm dimension; use a semantic ID such as mounting_screw_designation and leave hole diameter to a later standard lookup proposal.",
                 "Preserve requirement meaning explicitly. Use kind and operator fields to distinguish exact, minimum, maximum, range, up_to, at_least, approximately, present, absent, and qualitative. For capacity, preserve the supported object type and maximum/minimum meaning; 'up to N' is not 'exactly N'.",
                 "Keep the user's raw wording in raw_evidence and retain subject, object_type, and target when they are present or can be read directly from the request. Do not turn a Volundr or provider proposal into an explicit user requirement.",
+                "When multiple normalized records are separate aspects of one explicit user constraint, assign the same opaque source_fact_id to each record, set source_fact_type to the semantic fact type (for example overall_envelope, xyz_location, or hole_pattern), and preserve the complete supporting user statement in source_fact_evidence. Do not reuse a source_fact_id for unrelated constraints merely because they appear in one message, share a subject, or share a provider response. Source-fact identity records relationship only; it does not change source, authority, protected, exact/approximate, or flexible semantics.",
+                "Use source_fact_type=overall_envelope only when the user clearly constrains the finished object's overall bounds; do not create an envelope tuple from three unrelated dimensions and do not require an envelope when the user did not state one.",
                 "When the request says wall-mounted, wall-mounted means a vertical planar wall mount unless the user states otherwise; propose ordinary screw spacing and orientation rather than asking for them.",
                 "When a moving-vehicle request requires secure retention and one-handed removal, do not ask the user to choose an implementation mechanism when a supported concrete proposal is reasonable; let the Design Plan propose one.",
                 "do not ask the user to convert a nominal designation such as #8 into a metric diameter.",
@@ -1451,6 +1453,9 @@ class GeminiCliProvider:
                     "object_type": "string|null",
                     "target": "string|null",
                     "raw_evidence": "string|null",
+                    "source_fact_id": "string|null",
+                    "source_fact_type": "overall_envelope|xyz_location|hole_pattern|other|null",
+                    "source_fact_evidence": "string|null",
                 }
             ],
             "parameters": [],
@@ -1470,6 +1475,9 @@ class GeminiCliProvider:
                     "object_type": "string|null",
                     "target": "string|null",
                     "raw_evidence": "string|null",
+                    "source_fact_id": "string|null",
+                    "source_fact_type": "string|null",
+                    "source_fact_evidence": "string|null",
                 }
             ],
             "print_requirements": {},

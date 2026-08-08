@@ -240,6 +240,9 @@ class DesignDimension(BaseModel):
     source: RequirementSource
     importance: RequirementImportance
     protected: bool = False
+    source_fact_id: str | None = None
+    source_fact_type: str | None = None
+    source_fact_evidence: str | None = None
 
 
 class DesignParameter(BaseModel):
@@ -264,6 +267,9 @@ class DesignFunctionalRequirement(BaseModel):
     source: RequirementSource
     importance: RequirementImportance
     protected: bool = False
+    source_fact_id: str | None = None
+    source_fact_type: str | None = None
+    source_fact_evidence: str | None = None
 
 
 class DesignAssumption(BaseModel):

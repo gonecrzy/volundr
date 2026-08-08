@@ -253,11 +253,25 @@ def _is_envelope_candidate(item: Mapping[str, Any]) -> bool:
         float(value)
     except (TypeError, ValueError):
         return False
+    source_fact_type = item.get("source_fact_type")
+    provenance = item.get("provenance")
+    if source_fact_type is None and isinstance(provenance, Mapping):
+        source_fact_type = provenance.get("source_fact_type")
+    source_fact_type = str(source_fact_type or "").lower()
     text = " ".join(
         str(item.get(key) or "")
-        for key in ("requirement_id", "id", "label", "raw_evidence", "description")
+        for key in (
+            "requirement_id",
+            "id",
+            "label",
+            "raw_evidence",
+            "description",
+            "source_fact_evidence",
+        )
     ).lower()
-    return any(marker in text for marker in ("envelope", "bounding box", "bounding_box", "overall dimensions"))
+    return source_fact_type in {"overall_envelope", "bounds", "bounding_box"} or any(
+        marker in text for marker in ("envelope", "bounding box", "bounding_box", "overall dimensions")
+    )
 
 
 def _envelope_axis(item: Mapping[str, Any]) -> str | None:
@@ -277,8 +291,12 @@ def _envelope_axis(item: Mapping[str, Any]) -> str | None:
 
 
 def _envelope_source_identity(item: Mapping[str, Any]) -> str | None:
+    provenance = item.get("provenance")
+    provenance = provenance if isinstance(provenance, Mapping) else {}
     for key in ("envelope_group_id", "source_group_id", "constraint_group_id", "source_fact_id"):
         value = item.get(key)
+        if value is None:
+            value = provenance.get(key)
         if value is not None and str(value).strip():
             return f"group:{str(value).strip()}"
     raw_evidence = item.get("raw_evidence")
@@ -359,8 +377,27 @@ def _canonical_envelope(members: list[tuple[int, str, dict[str, Any]]]) -> dict[
             "source_statement_identity": _envelope_source_identity(first),
         }
     )
+    source_fact_id = _source_fact_value(first, "source_fact_id")
+    source_fact_type = _source_fact_value(first, "source_fact_type")
+    source_fact_evidence = _source_fact_value(first, "source_fact_evidence")
+    if source_fact_id is not None:
+        provenance["source_fact_id"] = str(source_fact_id)
+    if source_fact_type is not None:
+        provenance["source_fact_type"] = str(source_fact_type)
+    if source_fact_evidence is not None:
+        provenance["source_fact_evidence"] = str(source_fact_evidence)
     first["provenance"] = provenance
     return first
+
+
+def _source_fact_value(item: Mapping[str, Any], key: str) -> Any:
+    value = item.get(key)
+    if value is not None:
+        return value
+    provenance = item.get("provenance")
+    if isinstance(provenance, Mapping):
+        return provenance.get(key)
+    return None
 
 
 def _envelope_base_id(source_ids: list[str]) -> str:
@@ -820,7 +857,7 @@ def _dimension_component_names(key: str, count: int) -> list[str]:
 
 def _dimension_from_item(item: dict[str, Any]) -> dict[str, Any]:
     normalized = normalize_requirement_semantics(item)
-    return {
+    result = {
         "id": item["requirement_id"],
         "requirement_id": item["requirement_id"],
         "label": item["label"],
@@ -839,11 +876,17 @@ def _dimension_from_item(item: dict[str, Any]) -> dict[str, Any]:
         "target": normalized.get("target"),
         "raw_evidence": normalized.get("raw_evidence"),
     }
+    for key in ("source_fact_id", "source_fact_type", "source_fact_evidence"):
+        if item.get(key) is not None:
+            result[key] = item[key]
+    if item.get("provenance") is not None:
+        result["provenance"] = deepcopy(item["provenance"])
+    return result
 
 
 def _functional_requirement_from_item(item: dict[str, Any]) -> dict[str, Any]:
     normalized = normalize_requirement_semantics(item)
-    return {
+    result = {
         "id": item["requirement_id"],
         "requirement_id": item["requirement_id"],
         "description": item.get("label") or f"{item['label']} {'enabled' if item.get('value') else 'disabled'}",
@@ -862,6 +905,12 @@ def _functional_requirement_from_item(item: dict[str, Any]) -> dict[str, Any]:
         "target": normalized.get("target"),
         "raw_evidence": normalized.get("raw_evidence"),
     }
+    for key in ("source_fact_id", "source_fact_type", "source_fact_evidence"):
+        if item.get(key) is not None:
+            result[key] = item[key]
+    if item.get("provenance") is not None:
+        result["provenance"] = deepcopy(item["provenance"])
+    return result
 
 
 def _normalize_item(item: dict[str, Any]) -> dict[str, Any]:
