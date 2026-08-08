@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import ast
 from dataclasses import dataclass
+from copy import deepcopy
 import hashlib
 import json
 import re
@@ -24,6 +25,20 @@ from app.services.cad.cadquery_contract import (
 DESIGN_CONTRACT_SCHEMA_VERSION = "executable-cadquery-design-contract-v1"
 RESPONSE_SCHEMA_VERSION = "executable-cadquery-complete-source-v2"
 SOURCE_CONTRACT_VERSION = "cadquery-v1"
+PRODUCT_CONTRACT_MATERIALIZATION_VERSION = "executable-cadquery-product-contract-v1"
+_REQUIREMENT_POLICIES = frozenset({"machine_required", "review_required", "informational"})
+_QUALITATIVE_REQUIREMENT_TYPES = frozenset(
+    {
+        "qualitative_behavior",
+        "orientation",
+        "support",
+        "retention",
+        "access",
+        "removal_access",
+        "relationship",
+        "process_constraint",
+    }
+)
 
 
 class ExecutableCadQueryContractError(ValueError):
@@ -146,6 +161,201 @@ def validate_executable_cadquery_design_contract(
                 )
 
     return json.loads(json.dumps(dict(contract), sort_keys=True, default=str))
+
+
+def build_executable_cadquery_product_contract(
+    *,
+    project_id: str,
+    workflow_id: str,
+    revision_id: str,
+    specification: Mapping[str, Any],
+    active_requirements: list[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Materialize an executable contract from authoritative product state.
+
+    This is the production/user contract source.  Frozen replay uses the
+    separate corpus loader and does not pass through this function.  The
+    materializer preserves requirement provenance and policy while only
+    selecting a verifier when the canonical requirement fields make that
+    choice defensible.
+    """
+
+    if not isinstance(specification, Mapping):
+        raise ExecutableCadQueryContractError(
+            "product design specification is required",
+            failure_kind="requirement_state_missing",
+            boundary="requirements",
+        )
+    requirements = [
+        item
+        for item in active_requirements
+        if isinstance(item, Mapping) and str(item.get("requirement_id") or item.get("id") or "").strip()
+    ]
+    if not requirements:
+        raise ExecutableCadQueryContractError(
+            "product contract requires authoritative requirements; refusing an empty requirement set",
+            failure_kind="requirement_state_missing",
+            boundary="requirements",
+        )
+
+    outputs = _product_contract_outputs(specification)
+    output_ids = {str(item["output_id"]) for item in outputs}
+    contract_requirements: list[dict[str, Any]] = []
+    protected_facts: list[dict[str, Any]] = []
+    for item in sorted(requirements, key=lambda value: str(value.get("requirement_id") or value.get("id"))):
+        requirement = _product_contract_requirement(item, output_ids, outputs[0]["output_id"])
+        contract_requirements.append(requirement)
+        if requirement["authority"] == "required":
+            protected_facts.append(
+                {
+                    "requirement_id": requirement["requirement_id"],
+                    "authoritative_value": deepcopy(requirement["expected"]),
+                    "origin": requirement["origin"],
+                    "authority": requirement["authority"],
+                }
+            )
+
+    relationships = specification.get("relationships")
+    relationships = deepcopy(relationships) if isinstance(relationships, list) else []
+    contract = {
+        "schema_version": DESIGN_CONTRACT_SCHEMA_VERSION,
+        "contract_source": "production_requirement_ledger",
+        "contract_materialization_version": PRODUCT_CONTRACT_MATERIALIZATION_VERSION,
+        "project_id": project_id,
+        "workflow_id": workflow_id,
+        "revision_id": revision_id,
+        "units": str(specification.get("units") or "mm"),
+        "outputs": outputs,
+        "requirements": contract_requirements,
+        "relationships": relationships,
+        "protected_facts": protected_facts,
+        "product_state": {
+            "design_specification_schema": specification.get("schema_version"),
+            "purpose": specification.get("purpose"),
+            "object_type": specification.get("object_type"),
+        },
+    }
+    return validate_executable_cadquery_design_contract(contract)
+
+
+def _product_contract_outputs(specification: Mapping[str, Any]) -> list[dict[str, Any]]:
+    declared = specification.get("outputs") or specification.get("printable_outputs")
+    raw_outputs = declared if isinstance(declared, list) else []
+    if not raw_outputs:
+        raw_outputs = [{"output_id": specification.get("object_type") or "primary_output"}]
+    outputs: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for index, raw in enumerate(raw_outputs):
+        if not isinstance(raw, Mapping):
+            raise ExecutableCadQueryContractError(
+                f"product output {index + 1} is not an object",
+                failure_kind="requirement_state_invalid",
+                boundary="requirements",
+            )
+        output_id = _stable_contract_id(
+            raw.get("output_id") or raw.get("id") or raw.get("component_id"),
+            fallback=f"primary_output_{index + 1}",
+        )
+        if output_id in seen:
+            raise ExecutableCadQueryContractError(
+                f"duplicate product output identity: {output_id}",
+                failure_kind="requirement_state_invalid",
+                boundary="requirements",
+            )
+        seen.add(output_id)
+        expected_solid_count = raw.get("expected_solid_count", raw.get("solid_count", 1))
+        if not isinstance(expected_solid_count, int) or expected_solid_count < 1:
+            raise ExecutableCadQueryContractError(
+                f"product output {output_id} has an invalid expected solid count",
+                failure_kind="requirement_state_invalid",
+                boundary="requirements",
+            )
+        output = {
+            "output_id": output_id,
+            "required": bool(raw.get("required", True)),
+            "output_type": str(raw.get("output_type") or "printable_component"),
+            "expected_solid_count": expected_solid_count,
+        }
+        aliases = raw.get("aliases")
+        if isinstance(aliases, list):
+            output["aliases"] = [str(alias) for alias in aliases if str(alias).strip()]
+        outputs.append(output)
+    return outputs
+
+
+def _product_contract_requirement(
+    item: Mapping[str, Any],
+    output_ids: set[str],
+    default_output_id: str,
+) -> dict[str, Any]:
+    requirement_id = _stable_contract_id(item.get("requirement_id") or item.get("id"), fallback="requirement")
+    raw_value = item.get("expected", item.get("value"))
+    expected = _expected_contract_value(raw_value)
+    source = str(item.get("source") or "initial_user")
+    explicit = bool(item.get("explicit", source in {"initial_user", "clarification_user", "revision_user", "physical_test_feedback"}))
+    authority = "required" if explicit else "flexible"
+    classification = _resolve_product_classification(item)
+    scope = item.get("scope") or item.get("target") or default_output_id
+    if isinstance(scope, str) and scope not in output_ids and scope.lower() not in {"assembly", "global"}:
+        scope = default_output_id
+    requirement: dict[str, Any] = {
+        "requirement_id": requirement_id,
+        "scope": scope,
+        "expected": expected,
+        "classification": classification,
+        "origin": "user_explicit" if explicit else "model_design_choice",
+        "authority": authority,
+        "source": source,
+    }
+    if item.get("tolerance") is not None:
+        requirement["tolerance"] = item["tolerance"]
+    verification_policy = item.get("verification_policy")
+    if verification_policy:
+        requirement["verification_policy"] = str(verification_policy)
+    elif _is_bounds_expectation(expected):
+        requirement["verification_policy"] = "final_mesh_bounds"
+    for key in ("kind", "operator", "subject", "object_type", "raw_evidence"):
+        if item.get(key) is not None:
+            requirement[key] = deepcopy(item[key])
+    return requirement
+
+
+def _expected_contract_value(value: Any) -> dict[str, Any]:
+    if isinstance(value, Mapping):
+        expected = deepcopy(dict(value))
+        if {"x", "y", "z"}.issubset(expected) and not {"width", "depth", "height"}.issubset(expected):
+            return {
+                "width": expected["x"],
+                "depth": expected["y"],
+                "height": expected["z"],
+            }
+        return expected
+    if value is None:
+        return {}
+    return {"value": deepcopy(value)}
+
+
+def _is_bounds_expectation(expected: Mapping[str, Any]) -> bool:
+    return (
+        {"width", "depth", "height"}.issubset(expected)
+        or {"width", "depth", "thickness"}.issubset(expected)
+    )
+
+
+def _resolve_product_classification(item: Mapping[str, Any]) -> str:
+    for key in ("policy", "classification"):
+        value = item.get(key)
+        if isinstance(value, str) and value in _REQUIREMENT_POLICIES:
+            return value
+    kind = str(item.get("kind") or item.get("type") or "").lower()
+    if kind in _QUALITATIVE_REQUIREMENT_TYPES:
+        return "review_required"
+    return "machine_required"
+
+
+def _stable_contract_id(value: Any, *, fallback: str) -> str:
+    normalized = re.sub(r"[^a-zA-Z0-9]+", "_", str(value or "").lower()).strip("_")
+    return normalized or fallback
 
 
 def parse_executable_cadquery_response(

@@ -17,7 +17,12 @@ from app.core.config import settings
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
-from app.services.ai.provider import ModelGenerationRequest, ModelGenerationResult
+from app.services.ai.provider import (
+    ModelGenerationRequest,
+    ModelGenerationResult,
+    RequirementExtractionRequest,
+    RequirementExtractionResult,
+)
 from app.services.cad.cadquery_runner import CadQueryCliRunner
 from app.services.executable_cadquery.fixtures import (
     FROZEN_MOUNTING_BRACKET_CONTRACT,
@@ -31,8 +36,106 @@ from app.services.executable_cadquery.workflow import complete_executable_semant
 class CompleteSourceFixtureProvider:
     provider_id = "gemini_api"
 
-    def __init__(self) -> None:
+    def __init__(self, *, clarification: bool = False) -> None:
         self.requests: list[ModelGenerationRequest] = []
+        self.requirement_requests: list[RequirementExtractionRequest] = []
+        self.clarification = clarification
+
+    async def extract_requirements(self, request: RequirementExtractionRequest) -> RequirementExtractionResult:
+        self.requirement_requests.append(request)
+        if self.clarification:
+            payload = {
+                "schema_version": "1.0",
+                "object_type": "wall_mount",
+                "purpose": request.user_instruction,
+                "units": "mm",
+                "supported_scope": True,
+                "critical_dimensions": [],
+                "parameters": [],
+                "functional_requirements": [],
+                "print_requirements": {},
+                "assumptions": [],
+                "conflicts": [],
+                "missing_requirements": [
+                    {"id": "mounting_surface", "description": "Mounting surface dimensions"}
+                ],
+                "clarification_required": True,
+                "clarification_questions": [
+                    {
+                        "id": "mounting_surface",
+                        "question": "What mounting surface dimensions should this fit?",
+                        "reason": "The fit depends on the mounting surface.",
+                        "related_requirement_id": "mounting_surface",
+                    }
+                ],
+                "generation_ready": False,
+                "outcome": "clarification_required",
+            }
+        else:
+            payload = {
+                "schema_version": "1.0",
+                "object_type": "mounting_bracket",
+                "purpose": request.user_instruction,
+                "units": "mm",
+                "supported_scope": True,
+                "critical_dimensions": [
+                    {
+                        "id": "overall_width",
+                        "label": "Overall width",
+                        "value": 80.0,
+                        "unit": "mm",
+                        "tolerance": 0.25,
+                        "source": "user",
+                        "importance": "critical",
+                        "protected": True,
+                    },
+                    {
+                        "id": "overall_depth",
+                        "label": "Overall depth",
+                        "value": 50.0,
+                        "unit": "mm",
+                        "tolerance": 0.25,
+                        "source": "user",
+                        "importance": "critical",
+                        "protected": True,
+                    },
+                    {
+                        "id": "overall_height",
+                        "label": "Overall height",
+                        "value": 8.0,
+                        "unit": "mm",
+                        "tolerance": 0.25,
+                        "source": "user",
+                        "importance": "critical",
+                        "protected": True,
+                    }
+                ],
+                "parameters": [],
+                "functional_requirements": [
+                    {
+                        "id": "secure_attachment",
+                        "description": "Keep the attached object secure during ordinary use.",
+                        "source": "user",
+                        "importance": "critical",
+                        "protected": True,
+                        "type": "qualitative_behavior",
+                        "classification": "review_required",
+                    }
+                ],
+                "print_requirements": {},
+                "assumptions": [],
+                "conflicts": [],
+                "missing_requirements": [],
+                "clarification_required": False,
+                "clarification_questions": [],
+                "generation_ready": True,
+                "outcome": "generation_ready",
+            }
+        return RequirementExtractionResult(
+            raw_output=json.dumps(payload),
+            provider="fixture",
+            provider_model="fixture-model",
+        )
 
     async def generate_cadquery_model(self, request: ModelGenerationRequest) -> ModelGenerationResult:
         self.requests.append(request)
@@ -82,7 +185,7 @@ def test_executable_flow_rejects_missing_contract_instead_of_using_a_fixture(tmp
 
     service = ExecutableCadQueryWorkflowService(db=None, data_dir=tmp_path)
 
-    with pytest.raises(ValueError, match="explicit persisted design contract"):
+    with pytest.raises(ValueError, match="authoritative product requirements"):
         service._materialize_contract(
             "database-project",
             "workflow-id",
@@ -790,6 +893,115 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             assert recovery_decision["observation"]["failure_class"] == "semantic_requirement_failed"
             assert recovery_decision["recommended_action"] == "gemini_semantic_repair"
             assert recovery_decision["restart_stage"] == "source_contract"
+    finally:
+        settings.executable_cadquery_flow_enabled = previous_executable
+        settings.validated_cadquery_flow_enabled = previous_validated
+        settings.executable_cadquery_corpus_manifest_path = previous_manifest
+        app.dependency_overrides.clear()
+
+
+def test_executable_flow_derives_contract_from_product_requirements_without_manifest(tmp_path: Path) -> None:
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+    Base.metadata.create_all(engine)
+    provider = CompleteSourceFixtureProvider()
+
+    def override_db() -> Generator[Session, None, None]:
+        with sessions() as db:
+            yield db
+
+    previous_executable = settings.executable_cadquery_flow_enabled
+    previous_validated = settings.validated_cadquery_flow_enabled
+    previous_manifest = settings.executable_cadquery_corpus_manifest_path
+    settings.executable_cadquery_flow_enabled = True
+    settings.validated_cadquery_flow_enabled = False
+    settings.executable_cadquery_corpus_manifest_path = None
+    app.dependency_overrides[get_db] = override_db
+    app.dependency_overrides[get_data_dir] = lambda: tmp_path / "data"
+    app.dependency_overrides[get_workflow_ai_provider] = lambda: provider
+    app.dependency_overrides[get_cad_runner] = lambda: CadQueryCliRunner(
+        workspace_root=tmp_path / "cad-workspace",
+        timeout_seconds=45,
+    )
+    try:
+        with TestClient(app) as client:
+            client.headers.update({"X-Volundr-Internal-Actor": "volundr-single-user"})
+            response = client.post(
+                "/api/validated-cadquery/designs",
+                json={
+                    "name": "Product path holder",
+                    "intent": "Design a useful mounting bracket with secure attachment.",
+                },
+            )
+            assert response.status_code == 201, response.text
+            payload = response.json()
+            # The fixture deliberately supplies scalar dimensions without a
+            # deterministic verifier policy.  The product path must preserve
+            # them and fail closed, rather than dropping them or inventing a
+            # PASS.
+            assert payload["state"] == "verification_failed"
+            contract = payload["provenance"]["executable_design_contract"]
+            assert len(provider.requirement_requests) == 1
+            assert len(provider.requests) == 1
+            assert contract["contract_source"] == "production_requirement_ledger"
+            assert contract["requirements"]
+            assert {item["requirement_id"] for item in contract["requirements"]} == {
+                "overall_width",
+                "overall_depth",
+                "overall_height",
+                "secure_attachment",
+            }
+            assert next(
+                item for item in contract["requirements"] if item["requirement_id"] == "secure_attachment"
+            )["classification"] == "review_required"
+            assert payload["outputs"][0]["output_id"] == "mounting_bracket"
+    finally:
+        settings.executable_cadquery_flow_enabled = previous_executable
+        settings.validated_cadquery_flow_enabled = previous_validated
+        settings.executable_cadquery_corpus_manifest_path = previous_manifest
+        app.dependency_overrides.clear()
+
+
+def test_executable_flow_preserves_product_clarification_before_generation(tmp_path: Path) -> None:
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+    Base.metadata.create_all(engine)
+    provider = CompleteSourceFixtureProvider(clarification=True)
+
+    def override_db() -> Generator[Session, None, None]:
+        with sessions() as db:
+            yield db
+
+    previous_executable = settings.executable_cadquery_flow_enabled
+    previous_validated = settings.validated_cadquery_flow_enabled
+    previous_manifest = settings.executable_cadquery_corpus_manifest_path
+    settings.executable_cadquery_flow_enabled = True
+    settings.validated_cadquery_flow_enabled = False
+    settings.executable_cadquery_corpus_manifest_path = None
+    app.dependency_overrides[get_db] = override_db
+    app.dependency_overrides[get_data_dir] = lambda: tmp_path / "data"
+    app.dependency_overrides[get_workflow_ai_provider] = lambda: provider
+    app.dependency_overrides[get_cad_runner] = lambda: CadQueryCliRunner(
+        workspace_root=tmp_path / "cad-workspace",
+        timeout_seconds=45,
+    )
+    try:
+        with TestClient(app) as client:
+            client.headers.update({"X-Volundr-Internal-Actor": "volundr-single-user"})
+            response = client.post(
+                "/api/validated-cadquery/designs",
+                json={
+                    "name": "Needs a fit detail",
+                    "intent": "Design a wall-mounted tool holder.",
+                },
+            )
+            assert response.status_code == 201, response.text
+            payload = response.json()
+            assert payload["state"] == "awaiting_clarification"
+            assert payload["requirements"]["clarification_required"] is True
+            assert payload["requirements"]["clarification_questions"]
+            assert len(provider.requirement_requests) == 1
+            assert provider.requests == []
     finally:
         settings.executable_cadquery_flow_enabled = previous_executable
         settings.validated_cadquery_flow_enabled = previous_validated

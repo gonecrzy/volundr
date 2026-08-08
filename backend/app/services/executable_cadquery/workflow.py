@@ -13,11 +13,12 @@ from app.core.config import settings
 from app.models.project import Project
 from app.models.revision import Revision
 from app.models.validated_cadquery_workflow import ValidatedCadQueryWorkflow
-from app.schemas.project import ProjectCreate
+from app.schemas.project import ProjectCreate, RequirementExtractionCreate
 from app.schemas.validated_cadquery import ValidatedBoundedRevision, ValidatedCadQueryStart
 from app.services.ai.provider import ModelGenerationRequest
 from app.services.executable_cadquery.contract import (
     ExecutableCadQueryContractError,
+    build_executable_cadquery_product_contract,
     parse_executable_cadquery_response,
     validate_executable_cadquery_design_contract,
 )
@@ -49,6 +50,7 @@ from app.services.executable_cadquery.semantic_policy import (
     evaluate_semantic_policy,
 )
 from app.services.projects.service import ProjectService
+from app.services.projects.requirement_ledger import RequirementLedgerStore, active_requirements
 from app.services.validated_cadquery_security import safe_relative_artifact_path
 from app.services.validated_cadquery_workflow import ValidatedCadQueryWorkflowService, safe_diagnostic
 
@@ -273,16 +275,6 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             )
             self.db.add(workflow)
             self.db.flush()
-            contract = self._materialize_contract(
-                project.id,
-                workflow.id,
-                ordinal=1,
-                prompt=workflow.user_instruction,
-            )
-            workflow.plan_json = json.dumps(self._execution_plan(contract), sort_keys=True)
-            provenance = self._json(workflow.provenance_json)
-            provenance["executable_design_contract"] = contract
-            workflow.provenance_json = json.dumps(provenance, sort_keys=True)
             operation.project_id = project.id
             operation.workflow_id = workflow.id
             operation.status = "running"
@@ -293,6 +285,51 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
 
         self._active_workflow_id = workflow.id
         try:
+            if settings.executable_cadquery_corpus_manifest_path is not None:
+                contract = self._materialize_contract(
+                    project.id,
+                    workflow.id,
+                    ordinal=1,
+                    prompt=workflow.user_instruction,
+                )
+            else:
+                specification = await project_service.extract_requirements(
+                    project.id,
+                    RequirementExtractionCreate(user_instruction=workflow.user_instruction),
+                )
+                if specification is None:
+                    raise ValueError("requirements could not be created")
+                workflow.design_specification_id = specification.id
+                workflow.requirements_json = json.dumps(
+                    specification.specification,
+                    sort_keys=True,
+                    default=str,
+                )
+                workflow.state = "awaiting_clarification" if specification.clarification_required else "requirements_ready"
+                self.db.commit()
+                if specification.clarification_required:
+                    self._complete_operation(operation)
+                    self.db.commit()
+                    return self.read(workflow.id)
+                ledger = RequirementLedgerStore(self.db).ensure_from_specification(
+                    project_id=project.id,
+                    specification=specification.specification,
+                    originating_message=workflow.user_instruction,
+                )
+                contract = self._materialize_contract(
+                    project.id,
+                    workflow.id,
+                    ordinal=1,
+                    prompt=workflow.user_instruction,
+                    specification=specification.specification,
+                    active_requirements=active_requirements(ledger),
+                )
+            workflow.plan_json = json.dumps(self._execution_plan(contract), sort_keys=True)
+            provenance = self._json(workflow.provenance_json)
+            provenance["executable_design_contract"] = contract
+            provenance["contract_source"] = contract.get("contract_source")
+            workflow.provenance_json = json.dumps(provenance, sort_keys=True)
+            self.db.commit()
             result = await self._generate_with_repair_ladder(
                 workflow,
                 contract,
@@ -1491,15 +1528,27 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
         *,
         ordinal: int,
         prompt: str,
+        specification: Mapping[str, Any] | None = None,
+        active_requirements: list[Mapping[str, Any]] | None = None,
     ) -> dict[str, Any]:
         if settings.executable_cadquery_corpus_manifest_path is not None:
-            _corpus_project_id, contract = load_repeatability_contract(
+            corpus_project_id, contract = load_repeatability_contract(
                 settings.executable_cadquery_corpus_manifest_path,
                 prompt=prompt,
             )
+            contract["contract_source"] = "repeatability_corpus"
+            contract["repeatability_corpus_project_id"] = corpus_project_id
+        elif specification is not None and active_requirements is not None:
+            contract = build_executable_cadquery_product_contract(
+                project_id=project_id,
+                workflow_id=workflow_id,
+                revision_id=f"{workflow_id}:candidate:{ordinal}",
+                specification=specification,
+                active_requirements=active_requirements,
+            )
         else:
             raise ValueError(
-                "executable CadQuery flow requires an explicit persisted design contract"
+                "executable CadQuery flow requires authoritative product requirements or an explicit repeatability contract"
             )
         contract.update(
             {

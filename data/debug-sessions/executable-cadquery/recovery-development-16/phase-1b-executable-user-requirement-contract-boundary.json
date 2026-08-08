@@ -1,0 +1,125 @@
+{
+  "schema_version": "executable-cadquery-user-requirement-contract-boundary-v1",
+  "recorded_at": "2026-08-08",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "base_commit": "63f577ffa3c38534abb0c639f1bcdc44508910cd",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "decision": "offline_product_path_connected",
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "requirement_flow_map": [
+    {
+      "boundary": "user_intent",
+      "owner": "validated_cadquery_workflow",
+      "behavior": "Create the project/workflow and preserve the original request."
+    },
+    {
+      "boundary": "requirement_extraction",
+      "owner": "ProjectService.extract_requirements",
+      "behavior": "Use the shared requirement-extraction provider contract; persist a DesignSpecification and clarification questions."
+    },
+    {
+      "boundary": "clarification_gate",
+      "owner": "ExecutableCadQueryWorkflowService",
+      "behavior": "Return awaiting_clarification with persisted questions before source generation when the shared specification is not generation-ready."
+    },
+    {
+      "boundary": "requirement_ledger",
+      "owner": "RequirementLedgerStore",
+      "behavior": "Persist active requirement identity, value, provenance, authority, classification/policy, tolerance, and verification policy."
+    },
+    {
+      "boundary": "design_contract_materialization",
+      "owner": "build_executable_cadquery_product_contract",
+      "behavior": "Convert authoritative product state into the existing executable contract schema without deleting qualitative or unsupported obligations."
+    },
+    {
+      "boundary": "executable_cadquery_generation",
+      "owner": "ExecutableCadQueryWorkflowService",
+      "behavior": "Send the materialized contract through the existing generation, execution, topology, semantic, artifact, and bounded-recovery path."
+    }
+  ],
+  "old_executable_route": {
+    "observed_stage": "executable_contract_materialization",
+    "failure_class": "explicit_contract_required",
+    "first_incorrect_owner": "executable_workflow_product_contract_integration",
+    "cause": "The executable subclass bypassed ProjectService.extract_requirements and RequirementLedgerStore, then only accepted load_repeatability_contract when a corpus manifest was configured.",
+    "not_provider_failure": true,
+    "not_requirement_parser_failure": true
+  },
+  "contract_sources": {
+    "production_user_source": "ProjectService.extract_requirements -> DesignSpecification -> RequirementLedgerStore -> build_executable_cadquery_product_contract",
+    "repeatability_replay_source": "load_repeatability_contract from VOLUNDR_EXECUTABLE_CADQUERY_CORPUS_MANIFEST_PATH",
+    "source_selection": "The corpus manifest is an explicit opt-in replay source; ordinary user-originated executable runs use the production source when the variable is unset.",
+    "replay_support_preserved": true
+  },
+  "premise_only": {
+    "empty_requirement_set_allowed": false,
+    "qualitative_obligations_preserved": true,
+    "unsupported_or_qualitative_not_silently_passed": true,
+    "clarification_can_stop_before_generation": true,
+    "hidden_reference_geometry_used": false
+  },
+  "reference_specification": {
+    "entry_path": "same production requirement extraction and ledger path as premise_only",
+    "explicit_numeric_values_authoritative": true,
+    "benchmark_contract_injection": false,
+    "hidden_reference_geometry_used": false
+  },
+  "historical_smoke": {
+    "classification": "contract_injected_smoke",
+    "evidence_path": "data/debug-sessions/external-benchmarks/mounting-brackets-v1/smoke-001/",
+    "preserved": true,
+    "valid_for": [
+      "Gemini source generation",
+      "CadQuery execution",
+      "B-Rep/topology",
+      "artifact persistence",
+      "reference comparison",
+      "controlled envelope influence"
+    ],
+    "not_valid_for": [
+      "user requirement extraction",
+      "clarification",
+      "requirement-ledger completeness"
+    ]
+  },
+  "benchmark_harness": {
+    "normal_runs_unset_corpus_manifest": true,
+    "runner": "frontend/scripts/run-live-external-benchmark.sh",
+    "single_mode_selection": "VOLUNDR_EXTERNAL_BENCHMARK_MODE=premise_only|reference_specification",
+    "reference_geometry_sent_to_provider": false
+  },
+  "verification": {
+    "product_contract_unit_tests": "backend/tests/test_executable_cadquery_product_contract.py",
+    "ledger_policy_persistence_test": "backend/tests/test_requirement_ledger_persistence.py::test_ledger_preserves_contract_policy_fields_from_design_specification",
+    "workflow_integration_tests": [
+      "test_executable_flow_derives_contract_from_product_requirements_without_manifest",
+      "test_executable_flow_preserves_product_clarification_before_generation",
+      "test_opt_in_repeatability_manifest_selects_the_exact_prompt_contract",
+      "test_executable_flow_rejects_missing_contract_instead_of_using_a_fixture"
+    ],
+    "focused_result": "product-contract and workflow boundary tests passed: 4 product/ledger tests; 4 executable workflow boundary tests; 21 combined workflow/ledger/product tests",
+    "frontend_harness_result": "8 live-harness tests passed; frontend production build/typecheck passed",
+    "backend_full_result": "1562 passed, 1 skipped, 1 warning with repository-root PYTHONPATH",
+    "initial_backend_invocation_note": "A root invocation without PYTHONPATH failed during collection in test_reset_nonproduction_database.py; the corrected repository-root invocation passed.",
+    "fail_closed_boundary": "A scalar requirement without a deterministic verifier remains preserved and verification_failed; it is not dropped or converted to PASS."
+  },
+  "anti_overfitting": {
+    "project_specific_production_rules": false,
+    "benchmark_specific_requirement_parser": false,
+    "mounting_bracket_semantics_in_production_logic": false,
+    "prompt_changes": false,
+    "model_or_settings_changes": false,
+    "credential_changes": false,
+    "repair_ceiling_changes": false,
+    "holdout_access": false
+  },
+  "next_live_smoke": {
+    "mode": "mounting-bracket-001 premise_only",
+    "command": "VOLUNDR_RUN_LIVE_E2E=true VOLUNDR_LIVE_EXECUTABLE_CADQUERY_FLOW_ENABLED=true VOLUNDR_EXTERNAL_BENCHMARK_MODE=premise_only frontend/scripts/run-live-external-benchmark.sh e2e/live/external-benchmark-mounting-bracket-001-smoke.live.spec.ts",
+    "provider_calls_expected": "normal requirement extraction plus normal executable-CAD generation/recovery as configured",
+    "must_not_set": ["VOLUNDR_EXECUTABLE_CADQUERY_CORPUS_MANIFEST_PATH"],
+    "review_gate": "Run only after this offline checkpoint is reviewed and committed."
+  }
+}

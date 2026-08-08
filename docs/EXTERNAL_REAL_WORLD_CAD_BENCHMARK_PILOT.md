@@ -27,7 +27,10 @@ involved angled/curved/multi-feature mount.
 ## Two modes
 
 Each imported project will support two independent runs through the ordinary
-Volundr CAD workflow:
+Volundr CAD workflow. Run live benchmark tests through
+`frontend/scripts/run-live-external-benchmark.sh`; this wrapper removes the
+repeatability corpus-contract environment variable so external requests cannot
+accidentally use an injected frozen contract.
 
 1. `premise_only`: a neutral user-like request. The reference geometry, title,
    URL, creator, and hidden exact dimensions are not sent to Gemini. Normal
@@ -150,6 +153,16 @@ prompt hashes, provider-attempt IDs, source hash, worker/topology/semantic
 results, artifact hashes, reference metrics, failure stage/class, and first
 incorrect owner. It is a record around the existing workflow, not a second CAD
 generation system.
+
+## Historical smoke scope
+
+The original `mounting-bracket-001` two-mode smoke is preserved as
+`contract_injected_smoke`. Its evidence remains valid for source generation,
+CadQuery execution, topology, artifact persistence, reference comparison, and
+controlled envelope influence. Because that run supplied
+`VOLUNDR_EXECUTABLE_CADQUERY_CORPUS_MANIFEST_PATH`, it is not evidence for
+normal user requirement extraction, clarification, or requirement-ledger
+completeness. Future external runs use the production requirement path.
 
 Deferred metrics include rigidly aligned surface distance, Chamfer,
 Hausdorff/P95, volumetric IoU, silhouette/profile similarity, and feature

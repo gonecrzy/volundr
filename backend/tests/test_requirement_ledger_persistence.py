@@ -132,6 +132,36 @@ def test_existing_ledger_semantics_are_reconciled_without_rewriting_history() ->
         assert any(row.status == "superseded" for row in rows)
 
 
+def test_ledger_preserves_contract_policy_fields_from_design_specification() -> None:
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+
+    with Session(engine) as session:
+        project = Project(name="Policy holder", slug="policy-holder", original_intent="Make a holder")
+        session.add(project)
+        session.flush()
+        ledger = RequirementLedgerStore(session).ensure_from_specification(
+            project_id=project.id,
+            specification={
+                "functional_requirements": [
+                    {
+                        "id": "secure_retention",
+                        "description": "Keep the object secure during use.",
+                        "source": "user",
+                        "type": "qualitative_behavior",
+                        "classification": "review_required",
+                        "verification_policy": "review_only",
+                    }
+                ]
+            },
+            originating_message="Keep the object secure during use.",
+        )
+
+        item = active_requirements(ledger)[0]
+        assert item["classification"] == "review_required"
+        assert item["verification_policy"] == "review_only"
+
+
 def test_legacy_clarification_provenance_is_reconciled_and_reloaded() -> None:
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)

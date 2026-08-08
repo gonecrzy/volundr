@@ -13,6 +13,16 @@ const evidenceRoot = path.resolve(
 );
 const liveDataDir = process.env.VOLUNDR_LIVE_DATA_DIR ?? "/tmp/volundr-live-e2e-unconfigured";
 const manifestPath = path.resolve("..", "benchmarks", "external", "mounting-brackets-v1", "manifest.json");
+const selectedMode = process.env.VOLUNDR_EXTERNAL_BENCHMARK_MODE;
+
+if (process.env.VOLUNDR_EXECUTABLE_CADQUERY_CORPUS_MANIFEST_PATH) {
+  throw new Error(
+    "External benchmark runs must use the production requirement path; use the external benchmark runner, not a corpus contract manifest.",
+  );
+}
+if (selectedMode && !["premise_only", "reference_specification"].includes(selectedMode)) {
+  throw new Error(`Unsupported VOLUNDR_EXTERNAL_BENCHMARK_MODE: ${selectedMode}`);
+}
 
 type JsonObject = Record<string, any>;
 
@@ -247,30 +257,33 @@ async function runSmoke(page: any, mode: "premise_only" | "reference_specificati
 test("runs the two mounting-bracket-001 smoke modes sequentially", async ({ page }) => {
   test.setTimeout(3_600_000);
   const { project } = await readManifestProject();
-  const premise = await runSmoke(
-    page,
-    "premise_only",
-    project.premise,
-    "mounting-bracket-001-premise-only",
-  );
+  const premise = selectedMode === "reference_specification"
+    ? null
+    : await runSmoke(page, "premise_only", project.premise, "mounting-bracket-001-premise-only");
   await fs.mkdir(evidenceRoot, { recursive: true });
-  await fs.writeFile(path.join(evidenceRoot, "premise-only-raw.json"), `${JSON.stringify(premise, null, 2)}\n`, "utf8");
+  if (premise) {
+    await fs.writeFile(path.join(evidenceRoot, "premise-only-raw.json"), `${JSON.stringify(premise, null, 2)}\n`, "utf8");
+  }
 
-  const referenceSpecification = await runSmoke(
-    page,
-    "reference_specification",
-    project.reference_spec.prompt,
-    "mounting-bracket-001-reference-specification",
-  );
-  await fs.writeFile(path.join(evidenceRoot, "reference-specification-raw.json"), `${JSON.stringify(referenceSpecification, null, 2)}\n`, "utf8");
+  const referenceSpecification = selectedMode === "premise_only"
+    ? null
+    : await runSmoke(
+        page,
+        "reference_specification",
+        project.reference_spec.prompt,
+        "mounting-bracket-001-reference-specification",
+      );
+  if (referenceSpecification) {
+    await fs.writeFile(path.join(evidenceRoot, "reference-specification-raw.json"), `${JSON.stringify(referenceSpecification, null, 2)}\n`, "utf8");
+  }
   await fs.writeFile(
     path.join(evidenceRoot, "smoke-order.json"),
     `${JSON.stringify({
       schema_version: "external-cad-benchmark-smoke-order-v1",
       benchmark_project_id: "mounting-bracket-001",
       sequential: true,
-      modes: ["premise_only", "reference_specification"],
-      provider_calls_requested_by_harness: 2,
+      modes: selectedMode ? [selectedMode] : ["premise_only", "reference_specification"],
+      provider_calls_requested_by_harness: selectedMode ? 1 : 2,
       reference_geometry_sent_to_provider: false,
       live_data_dir: liveDataDir,
     }, null, 2)}\n`,

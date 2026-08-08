@@ -626,7 +626,16 @@ class RequirementLedgerStore:
                     "evidence": item.get("verification_evidence"),
                     "semantic": {
                         key: item.get(key)
-                        for key in ("kind", "operator", "subject", "object_type", "raw_evidence")
+                        for key in (
+                            "kind",
+                            "operator",
+                            "subject",
+                            "object_type",
+                            "raw_evidence",
+                            "classification",
+                            "policy",
+                            "verification_policy",
+                        )
                         if item.get(key) is not None
                     },
                     "provenance": item.get("provenance"),
@@ -647,6 +656,7 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
         for item in specification.get(collection_name, []) or []:
             if not isinstance(item, dict):
                 continue
+            raw_value = item.get("value")
             items.append(
                 {
                     **{
@@ -657,13 +667,16 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
                             "subject",
                             "object_type",
                             "raw_evidence",
+                            "classification",
+                            "policy",
+                            "verification_policy",
                         )
                         if item.get(key) is not None
                     },
                     "requirement_id": item.get("requirement_id") or item.get("id"),
                     "target": item.get("target") or item.get("component_id"),
                     "type": item.get("type") or default_type,
-                    "value": item.get("value") or item.get("description"),
+                    "value": raw_value if raw_value is not None else item.get("description"),
                     "unit": item.get("unit"),
                     "tolerance": item.get("tolerance"),
                     "source": "initial_user" if item.get("source") == "user" else "volundr_proposal",
@@ -762,6 +775,9 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
         "subject": semantic.get("subject"),
         "object_type": semantic.get("object_type"),
         "raw_evidence": semantic.get("raw_evidence"),
+        "classification": semantic.get("classification"),
+        "policy": semantic.get("policy"),
+        "verification_policy": semantic.get("verification_policy"),
         "created_at": row.created_at.isoformat() if row.created_at else None,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
     })
@@ -842,7 +858,16 @@ def _normalize_requirement(
         "created_at": item.get("created_at") or now,
         "updated_at": now,
     }
-    for key in ("kind", "operator", "subject", "object_type", "raw_evidence"):
+    for key in (
+        "kind",
+        "operator",
+        "subject",
+        "object_type",
+        "raw_evidence",
+        "classification",
+        "policy",
+        "verification_policy",
+    ):
         if item.get(key) is not None:
             normalized[key] = item[key]
     if item.get("provenance") is not None:
