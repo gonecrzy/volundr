@@ -5,18 +5,25 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "7bb5a6f Implement first-class logical output identity",
-  "origin_experimental_head": "7bb5a6f Implement first-class logical output identity",
+  "experimental_head": "ff75651 Isolate Recovery C live rerun evidence",
+  "origin_experimental_head": "ff75651 Isolate Recovery C live rerun evidence",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete; the 30-project development first-pass survey is complete on frozen code checkpoint 8dd0d8d with 60 preserved cells, 54 live workflows, and 6 replacement exclusions; no validation or holdout work has started",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete; the 30-project development first-pass survey is complete on frozen code checkpoint 8dd0d8d with 60 preserved cells, 54 live workflows, and 6 replacement exclusions; Recovery C subject-only scope live confirmation completed with two required named outputs and a passed body-bounds finding; no validation or holdout work has started",
   "current_recovery_checkpoint": {
     "name": "recovery_c_first_class_logical_output_identity",
-    "status": "implemented_with_live_scope_defect_corrected_offline",
-    "decision": "RECOVERY_C_PIPELINE_DEFECT",
-    "live_confirmation_count": 1,
-    "second_live_confirmation_in_this_checkpoint": false,
-    "next_action": "separately authorize one live confirmation after reviewing the subject-only scope correction; do not begin Recovery B or E"
+    "status": "live_confirmed",
+    "decision": "RECOVERY_C_LIVE_CONFIRMED",
+    "live_confirmation_count": 2,
+    "second_live_confirmation_in_this_checkpoint": true,
+    "current_run_provider_calls": 2,
+    "current_run_requirement_extraction_calls": 1,
+    "current_run_cad_generation_calls": 1,
+    "current_run_cad_repair_calls": 0,
+    "current_run_fallback_calls": 0,
+    "current_run_worker_executions": 1,
+    "current_run_evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-c-live-two-output-confirmation-rerun/post-run-validation.json",
+    "next_action": "Stop for review; do not begin Recovery B or E"
   },
   "completed_gates": [
     "branch_and_main_divergence_verified",
@@ -134,6 +141,7 @@
     ,"external_real_world_cad_50_v1_1_development_first_pass_evidence_reconciled_offline_without_new_provider_or_worker_calls"
     ,"phase_1b_recovery_c_output_identity_offline_tests_and_full_backend_passed"
     ,"phase_1b_recovery_c_single_live_confirmation_completed"
+    ,"phase_1b_recovery_c_subject_only_scope_live_confirmation_passed"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -877,9 +885,9 @@
     ,"external_real_world_cad_50_v1_1_development_first_pass_cad_repair_operations": 23
     ,"external_real_world_cad_50_v1_1_development_first_pass_fallback_calls": 1
     ,"external_real_world_cad_50_v1_1_development_first_pass_worker_executions": 61
-    ,"phase_1b_recovery_c_provider_calls": 3
-    ,"phase_1b_recovery_c_worker_executions": 2
-    ,"phase_1b_recovery_c_live_confirmations": 1
+    ,"phase_1b_recovery_c_provider_calls": 5
+    ,"phase_1b_recovery_c_worker_executions": 3
+    ,"phase_1b_recovery_c_live_confirmations": 2
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -983,5 +991,6 @@
     ,"phase_1b_output_identity_scope_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-identity-scope-reconstruction.json; seven development multi-output cases; 43 C requirements; C-CONTRACT fallback proven; container-case-002 omission kept separate; provider_calls=0; worker_executions=0; no implementation"
     ,"phase_1b_recovery_c_first_class_logical_output_identity": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-c-offline-counterfactual.json; first-class DesignSpecification outputs/relationships, production contract routing, source prompt propagation, fail-closed scope resolution, and output-count policy implemented; seven historical cases replayed read-only; provider_calls=3 for one authorized live confirmation; worker_executions=2; live result preserved as RECOVERY_C_PIPELINE_DEFECT because subject-only scope was exposed and corrected offline"
     ,"phase_1b_recovery_c_live_confirmation": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-c-live-two-output-confirmation/; one synthetic two-output normal-product-path run; both named outputs and per-output STEP/STL/BREP artifacts persisted; no corpus/reference data; post-live subject-only scope correction was offline-tested without a second live call"
+    ,"phase_1b_recovery_c_subject_only_scope_live_confirmation": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-c-live-two-output-confirmation-rerun/post-run-validation.json; one new synthetic normal-product-path run after offline scope correction; subject=box body uniquely resolved to box_body; body bounds 80x60x30 passed final_mesh_bounds; two required logical outputs completed with independent STEP/STL/BREP artifacts; provider_calls=2 (requirements=1, CAD=1); worker_executions=1; candidate remains blocked only by the existing qualitative wall/clearance verifier gap and final review"
   }
 }

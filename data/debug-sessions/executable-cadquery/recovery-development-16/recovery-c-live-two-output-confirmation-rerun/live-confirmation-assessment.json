@@ -1,0 +1,185 @@
+{
+  "schema_version": "recovery-c-live-two-output-confirmation-v1",
+  "decision": "RECOVERY_C_LIVE_CONFIRMED",
+  "prompt": "Design a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid. Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high. Choose a reasonable printable wall thickness and lid clearance.",
+  "corpus_manifest": "unset",
+  "contract_source": "production_requirement_ledger",
+  "contract_output_ids": [
+    "box_body",
+    "box_lid"
+  ],
+  "logical_output_count": 2,
+  "generated_output_ids": [
+    "box_body",
+    "box_lid"
+  ],
+  "semantic_counts": {
+    "total": 2,
+    "passed": [
+      "body"
+    ],
+    "failed": [],
+    "unverifiable": [
+      "req_printable_wall_and_clearance"
+    ],
+    "review_required": [],
+    "unsupported": [],
+    "status": "unsupported_verifier"
+  },
+  "provider_attempts": [
+    {
+      "operation_id": "885fc472-cb68-466f-8d2b-99603bf6e425:attempt:1",
+      "repair_level": "initial",
+      "observed_stage": "semantic_measurement",
+      "failure_boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "source_hash": "206b647c050247a6e1631f20136037f5205c0cc0246fe305cb162a6347705000",
+      "result_hash": "d5889e0ee03ff1dd7d494e25d1c5cf35c39fe953e4fc55ac5cc94288401392dd",
+      "normalized_error": null,
+      "provider_attempt": {
+        "attempt_id": "d8d0380a-0a9a-4da9-8380-c4bcb62a8099",
+        "logical_operation_id": "e3924b91-21de-4664-8413-c2b66abc881b",
+        "credential_slot": "primary",
+        "status_code": 200,
+        "transport_retry_classification": "none",
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "86dbf28ee7f84e2231061669c9d82df2d138d36a2d97c66d32b943597eb56174"
+      },
+      "worker_result": {
+        "job_id": null,
+        "success": null,
+        "output_ids": [
+          "box_body",
+          "box_lid"
+        ],
+        "result_hash": null
+      },
+      "topology_result": {
+        "valid": true,
+        "detected_solid_count": null,
+        "expected_solid_count": null,
+        "schema_version": null
+      },
+      "semantic_result": {
+        "status": "unsupported_verifier",
+        "passed": [
+          "body"
+        ],
+        "failed": [],
+        "unverifiable": [
+          "req_printable_wall_and_clearance"
+        ],
+        "review_required": [],
+        "unsupported": []
+      }
+    },
+    {
+      "operation_id": "885fc472-cb68-466f-8d2b-99603bf6e425:recovery-recheck:1",
+      "repair_level": "initial",
+      "observed_stage": null,
+      "failure_boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": null,
+      "source_hash": "206b647c050247a6e1631f20136037f5205c0cc0246fe305cb162a6347705000",
+      "result_hash": "d5889e0ee03ff1dd7d494e25d1c5cf35c39fe953e4fc55ac5cc94288401392dd",
+      "normalized_error": null,
+      "provider_attempt": {
+        "attempt_id": null,
+        "logical_operation_id": null,
+        "credential_slot": null,
+        "status_code": null,
+        "transport_retry_classification": null,
+        "rate_limit_429_classification": null,
+        "raw_response_hash": null
+      },
+      "worker_result": {
+        "job_id": null,
+        "success": null,
+        "output_ids": [
+          "box_body",
+          "box_lid"
+        ],
+        "result_hash": null
+      },
+      "topology_result": {
+        "valid": true,
+        "detected_solid_count": null,
+        "expected_solid_count": null,
+        "schema_version": null
+      },
+      "semantic_result": {
+        "status": "unsupported_verifier",
+        "passed": [
+          "body"
+        ],
+        "failed": [],
+        "unverifiable": [
+          "req_printable_wall_and_clearance"
+        ],
+        "review_required": [],
+        "unsupported": []
+      }
+    }
+  ],
+  "provider_call_count": 1,
+  "requirement_extraction_call_count": 1,
+  "cad_generation_call_count": 1,
+  "cad_repair_call_count": 0,
+  "fallback_call_count": 0,
+  "total_provider_call_count": 2,
+  "worker_executions": 1,
+  "worker_execution_id": "77c6d4fa-9038-49d9-8f3e-9bf10e079c06",
+  "downloaded_artifacts": [
+    {
+      "artifact_id": "box_body:step",
+      "output_id": "box_body",
+      "kind": "step",
+      "sha256": "50cea8923858a08e578dbdee82b55cda0b8fd31485d080967a7510b931e8adad",
+      "size_bytes": 29169
+    },
+    {
+      "artifact_id": "box_body:stl",
+      "output_id": "box_body",
+      "kind": "stl",
+      "sha256": "4578045e6ddc88a279807ec67fd43e5ab66dbd950c33d74fb01c9d697d8905cc",
+      "size_bytes": 1484
+    },
+    {
+      "artifact_id": "box_body:brep",
+      "output_id": "box_body",
+      "kind": "brep",
+      "sha256": "f03067467919d12b1bd4731a61a1077250933265a75f227d191f3bdb82583898",
+      "size_bytes": 7256
+    },
+    {
+      "artifact_id": "box_lid:step",
+      "output_id": "box_lid",
+      "kind": "step",
+      "sha256": "4cd478c8fe9ba1415cbf0c055db14953d1b6ab6026f18ca4c0b9625f3671485a",
+      "size_bytes": 57423
+    },
+    {
+      "artifact_id": "box_lid:stl",
+      "output_id": "box_lid",
+      "kind": "stl",
+      "sha256": "252dfc8ec725b2e536d05c1137cef3668194dcc6f5158fca0bed8375fb5f23d9",
+      "size_bytes": 3084
+    },
+    {
+      "artifact_id": "box_lid:brep",
+      "output_id": "box_lid",
+      "kind": "brep",
+      "sha256": "47947ab8e207e8069db95e82afcd9266bafa3cb874e6721db632387ffee7bee4",
+      "size_bytes": 16955
+    }
+  ],
+  "reference_isolation": {
+    "reference_geometry_supplied": false,
+    "request_body": {
+      "name": "synthetic-two-piece-storage-box",
+      "intent_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683"
+    }
+  },
+  "note": "A generated source that omits a declared required output remains a geometry/source failure; this assessment only treats the identity path as confirmed when the contract preserves both IDs."
+}

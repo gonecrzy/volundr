@@ -1,0 +1,212 @@
+{
+  "schema_version": "recovery-c-live-two-output-confirmation-post-run-v1",
+  "decision": "RECOVERY_C_LIVE_CONFIRMED",
+  "executed_live_runs_in_this_checkpoint": 1,
+  "prompt": {
+    "text": "Design a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid. Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high. Choose a reasonable printable wall thickness and lid clearance.",
+    "sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683"
+  },
+  "product_path": {
+    "corpus_manifest": "unset",
+    "reference_geometry_used": false,
+    "requirements_extraction": "completed",
+    "design_specification_persisted": true,
+    "requirement_ledger_materialized": true,
+    "contract_source": "production_requirement_ledger",
+    "contract_materialization_version": "executable-cadquery-product-contract-v2",
+    "clarification_required": false,
+    "generation_ready": true
+  },
+  "design_specification_outputs": {
+    "count": 2,
+    "outputs": [
+      {
+        "id": "box_body",
+        "aliases": ["box body", "body"],
+        "label": "Box Body",
+        "required": true,
+        "authority": "explicit",
+        "source": "user",
+        "protected": true
+      },
+      {
+        "id": "box_lid",
+        "aliases": ["lid", "box lid"],
+        "label": "Box Lid",
+        "required": true,
+        "authority": "explicit",
+        "source": "user",
+        "protected": true,
+        "identity_note": "The provider used the neutral canonical ID box_lid; the user-intended lid identity is preserved by the explicit lid alias."
+      }
+    ],
+    "relationships": [
+      {
+        "relationship": "mates_with",
+        "source_output_id": "box_lid",
+        "target_output_id": "box_body",
+        "authority": "explicit",
+        "source": "user",
+        "protected": true
+      }
+    ]
+  },
+  "ledger": {
+    "canonical_bounds_requirement_id": "body",
+    "canonical_bounds": {
+      "expected": {"width": 80, "depth": 60, "height": 30},
+      "operator": "approximately",
+      "subject": "box body",
+      "source": "initial_user",
+      "origin": "user_explicit",
+      "authority": "required",
+      "protected": true,
+      "source_fact_id": "fact_body_dimensions",
+      "source_fact_type": "overall_envelope"
+    },
+    "other_active_requirement_ids": ["req_printable_wall_and_clearance"],
+    "assumptions": [
+      {"id": "assumption_wall_thickness", "source": "product_default", "authority": "model_choice", "protected": false},
+      {"id": "assumption_lid_clearance", "source": "product_default", "authority": "model_choice", "protected": false}
+    ]
+  },
+  "executable_contract": {
+    "contract_source": "production_requirement_ledger",
+    "fallback_used": false,
+    "outputs": [
+      {"output_id": "box_body", "required": true, "expected_solid_count": 1, "authority": "explicit", "protected": true},
+      {"output_id": "box_lid", "required": true, "expected_solid_count": 1, "authority": "explicit", "protected": true}
+    ],
+    "body_requirement": {
+      "requirement_id": "body",
+      "expected": {"width": 80, "depth": 60, "height": 30},
+      "operator": "approximately",
+      "scope": "box_body",
+      "scope_kind": "output_local",
+      "verification_policy": "final_mesh_bounds"
+    }
+  },
+  "subject_only_scope_resolution": {
+    "input_subject": "box body",
+    "target_or_scope_input": null,
+    "unique_matching_output_id": "box_body",
+    "matching_basis": {"output_id": "box_body", "alias": "box body"},
+    "available_output_ids": ["box_body", "box_lid"],
+    "resolved_scope": "box_body",
+    "resolved_scope_kind": "output_local",
+    "unsafe_first_output_fallback": false,
+    "ambiguous_subject_fallback": false,
+    "assembly_prose_fallback": false
+  },
+  "provider_requests": {
+    "requirement_extraction": {
+      "calls": 1,
+      "attempt_id": "52f5c695-da83-45f7-9ce9-6969051a7ac2",
+      "logical_operation_id": "c69f2e62-4648-4009-8c5b-2afa80361756",
+      "credential_slot": "primary",
+      "status_code": 200,
+      "rate_limit_429": false,
+      "response_hash": "b4207acf5d8ffa814685b12a572605a8c880f6698ea05d7768e3ad0cc8eb5a5d"
+    },
+    "cad_generation": {
+      "initial_calls": 1,
+      "repair_calls": 0,
+      "fallback_calls": 0,
+      "requested_output_ids": ["box_body", "box_lid"],
+      "attempt_id": "d8d0380a-0a9a-4da9-8380-c4bcb62a8099",
+      "logical_operation_id": "e3924b91-21de-4664-8413-c2b66abc881b",
+      "credential_slot": "primary",
+      "status_code": 200,
+      "rate_limit_429": false,
+      "response_hash": "86dbf28ee7f84e2231061669c9d82df2d138d36a2d97c66d32b943597eb56174"
+    },
+    "total_provider_calls": 2,
+    "provider_model": "gemini-3.5-flash-lite"
+  },
+  "worker": {
+    "executions": 1,
+    "job_id": "77c6d4fa-9038-49d9-8f3e-9bf10e079c06",
+    "worker_version": "cad-worker-v1",
+    "execution_manifest_sha256": "8fdae12d3d188ba4410a64fc9498864350101f59a305342881215a761d6dd93e",
+    "source_hash": "206b647c050247a6e1631f20136037f5205c0cc0246fe305cb162a6347705000",
+    "requested_output_ids": ["box_body", "box_lid"],
+    "completed_output_ids": ["box_body", "box_lid"]
+  },
+  "generated_outputs": [
+    {
+      "output_id": "box_body",
+      "solid_count": 1,
+      "topology_schema": "topology-evidence-v2",
+      "topology_valid": true,
+      "bounds_mm": {"x": 80.0, "y": 60.0, "z": 30.0},
+      "volume_mm3": 29088.0,
+      "artifacts": {
+        "step_sha256": "50cea8923858a08e578dbdee82b55cda0b8fd31485d080967a7510b931e8adad",
+        "stl_sha256": "4578045e6ddc88a279807ec67fd43e5ab66dbd950c33d74fb01c9d697d8905cc",
+        "brep_sha256": "f03067467919d12b1bd4731a61a1077250933265a75f227d191f3bdb82583898"
+      }
+    },
+    {
+      "output_id": "box_lid",
+      "solid_count": 1,
+      "topology_schema": "topology-evidence-v2",
+      "topology_valid": true,
+      "bounds_mm": {"x": 80.0, "y": 60.0, "z": 8.0},
+      "volume_mm3": 18029.4,
+      "artifacts": {
+        "step_sha256": "4cd478c8fe9ba1415cbf0c055db14953d1b6ab6026f18ca4c0b9625f3671485a",
+        "stl_sha256": "252dfc8ec725b2e536d05c1137cef3668194dcc6f5158fca0bed8375fb5f23d9",
+        "brep_sha256": "47947ab8e207e8069db95e82afcd9266bafa3cb874e6721db632387ffee7bee4"
+      }
+    }
+  ],
+  "semantic_verification": {
+    "body_bounds": {
+      "requirement_id": "body",
+      "result": "verified",
+      "observed_status": "passed",
+      "expected": {"width": 80, "depth": 60, "height": 30},
+      "measured": {"width": 80, "depth": 60, "height": 30},
+      "verification_policy": "final_mesh_bounds",
+      "scope": "box_body"
+    },
+    "counts": {
+      "machine_required": 2,
+      "passed": 1,
+      "failed": 0,
+      "unverifiable": 1,
+      "review_required": 0,
+      "unsupported_verifier": ["req_printable_wall_and_clearance"],
+      "status": "unsupported_verifier"
+    },
+    "output_identity_note": "No separate output-count requirement was extracted; deterministic output structure was verified by required contract IDs and exact worker completion ID set, independently of solid count."
+  },
+  "state": {
+    "concept_state": "concept_available",
+    "candidate_state": "candidate_blocked",
+    "revision_capable": true,
+    "remaining_blockers": ["req_printable_wall_and_clearance", "independent_final_review"]
+  },
+  "design_freedom_audit": {
+    "wall_thickness": "product_default/model choice; not protected user fact",
+    "lid_thickness": "not user-specified; no protected user fact",
+    "clearance": "product_default/model choice; not protected user fact",
+    "fillet_and_chamfer_dimensions": "not user-specified; no protected user fact",
+    "new_clarification": false,
+    "qualitative_policy_changed": false
+  },
+  "isolation": {
+    "reference_geometry": false,
+    "reference_specification": false,
+    "development_data": false,
+    "validation_data": false,
+    "holdout_data": false,
+    "corpus_contract": false
+  },
+  "historical_run_preservation": "The prior RECOVERY_C_PIPELINE_DEFECT run remains at ../recovery-c-live-two-output-confirmation/ and was not overwritten.",
+  "tests": {
+    "live_test": "1 passed",
+    "offline_recovery_c_focused_tests_before_live": "43 passed",
+    "production_behavior_changed_between_runs": false
+  }
+}

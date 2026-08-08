@@ -1,0 +1,43 @@
+{
+  "schema_version": "recovery-c-live-two-output-confirmation-validation-summary-v1",
+  "decision": "RECOVERY_C_LIVE_CONFIRMED",
+  "live_run_count": 1,
+  "corpus_manifest": "unset",
+  "reference_or_holdout_data_used": false,
+  "design_specification_output_ids": ["box_body", "box_lid"],
+  "lid_identity_alias": "lid",
+  "contract_output_ids": ["box_body", "box_lid"],
+  "provider_request_output_ids": ["box_body", "box_lid"],
+  "worker_completed_output_ids": ["box_body", "box_lid"],
+  "body_scope": {
+    "subject": "box body",
+    "unique_match": "box_body",
+    "scope": "box_body",
+    "scope_kind": "output_local",
+    "verification_policy": "final_mesh_bounds",
+    "result": "passed",
+    "measured_mm": [80, 60, 30]
+  },
+  "output_count": {
+    "required_logical_outputs": 2,
+    "completed_logical_outputs": 2,
+    "detected_solid_counts": {"box_body": 1, "box_lid": 1},
+    "identity_and_solid_count_kept_separate": true,
+    "unsafe_first_output_fallback": false
+  },
+  "states": {
+    "concept_state": "concept_available",
+    "candidate_state": "candidate_blocked",
+    "remaining_blocker": "req_printable_wall_and_clearance is unsupported under the unopened Recovery-B/E policy"
+  },
+  "provider_calls": {
+    "requirement_extraction": 1,
+    "cad_generation": 1,
+    "cad_repairs": 0,
+    "fallback": 0,
+    "total": 2
+  },
+  "worker_executions": 1,
+  "historical_failed_run_preserved": true,
+  "production_behavior_changed_between_runs": false
+}
