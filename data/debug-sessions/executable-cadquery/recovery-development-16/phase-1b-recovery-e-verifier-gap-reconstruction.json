@@ -1,0 +1,620 @@
+{
+  "schema_version": "external-cad-recovery-e-verifier-gap-reconstruction-v1",
+  "checkpoint": "reconstruct_current_deterministic_verifier_gaps_after_a_c_b",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "code_head_at_reconstruction": "682c0f0",
+  "source_evidence": [
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-semantic-unverifiable-reconstruction.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b-policy-boundary-reconstruction.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b1-b4-policy-routing.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-b-role-normalization-offline-replay.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-c-offline-counterfactual.json",
+    "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/"
+  ],
+  "historical_e_count": 11,
+  "current_e_count_after_a_c_b": 11,
+  "historical_e_reclassification": {
+    "removed_from_e": [],
+    "reason": "All eleven remain authoritative machine-required claims after envelope canonicalization, logical output routing, composite normalization, and application-owned policy routing. None has a current deterministic finding, and none is a flexible or qualitative-only record after the A/C/B corrections."
+  },
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "validation_access": false,
+  "holdout_access": false,
+  "historical_evidence_mutated": false,
+  "per_requirement_inventory": [
+    {
+      "benchmark_project_id": "adapter-coupler-002",
+      "category": "adapter_coupler",
+      "mode": "premise_only",
+      "requirement_id": "hose_connection_diameter",
+      "raw_evidence": "35 mm dust-extraction hose",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "dimension",
+        "operator": "exact",
+        "expected": {"value": 35.0},
+        "scope": "vacuum_adapter",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "user_explicit/required",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["vacuum_adapter"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_mating_data": false
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E2_NEW_LOCAL_GEOMETRY_VERIFIER_FEASIBLE",
+      "classification_basis": "A narrow analytic B-Rep cylindrical-opening/connection-diameter measurement is technically feasible from the authoritative STEP/BREP, but no such requirement-specific evidence is currently persisted. The parked narrow cylindrical-opening capability must be re-evaluated before implementation."
+    },
+    {
+      "benchmark_project_id": "adapter-coupler-002",
+      "category": "adapter_coupler",
+      "mode": "premise_only",
+      "requirement_id": "req_connection",
+      "raw_evidence": "Design a vacuum adapter that connects a Dyson V-series accessory interface to a 35 mm dust-extraction hose.",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "feature",
+        "operator": "present",
+        "expected": {"value": true},
+        "scope": "vacuum_adapter",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "user_explicit/required",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["vacuum_adapter"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_mating_data": false,
+        "external_interface": "Dyson V-series accessory interface not represented by authoritative mating geometry"
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E3_REQUIRES_EXTERNAL_REFERENCE_OR_MATING_SPEC",
+      "classification_basis": "The combined connection claim includes a proprietary external interface. The CAD output alone cannot establish compatibility without authoritative Dyson-side mating geometry or dimensions. The 35 mm hose subclaim could become an E2 measurement after generic semantic splitting, but the current composite claim cannot."
+    },
+    {
+      "benchmark_project_id": "container-case-001",
+      "category": "container_cases",
+      "mode": "comparison_specification",
+      "requirement_id": "req_battery_type",
+      "raw_evidence": "battery_type: 26650 cell descriptive",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "capacity",
+        "operator": "qualitative",
+        "expected": {"value": "26650 cell descriptive"},
+        "scope": "battery_case",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "comparison-specification/user-supplied required fact",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["battery_case"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_mating_data": false,
+        "missing": "authoritative 26650 cell envelope/terminal/interface specification"
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E3_REQUIRES_EXTERNAL_REFERENCE_OR_MATING_SPEC",
+      "classification_basis": "A product/type description does not provide an authoritative battery envelope or interface. Geometry-only evidence cannot prove the case fits a real cell."
+    },
+    {
+      "benchmark_project_id": "electronics-enclosure-002",
+      "category": "electronics_enclosures",
+      "mode": "comparison_specification",
+      "requirement_id": "req_fit_instrument",
+      "raw_evidence": "It should fit the instrument",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "capacity",
+        "operator": "present",
+        "expected": {"value": true},
+        "scope": "lcr_meter_housing",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "comparison-specification/user-supplied required fact",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["lcr_meter_housing"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_mating_data": false,
+        "missing": "instrument envelope, insertion direction, and clearance/tolerance"
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E3_REQUIRES_EXTERNAL_REFERENCE_OR_MATING_SPEC",
+      "classification_basis": "Fit is a relation between the enclosure and an external instrument. The generated enclosure and generic topology cannot prove that relation without authoritative instrument dimensions and fit policy."
+    },
+    {
+      "benchmark_project_id": "holder-organizer-001",
+      "category": "holders_organizers",
+      "mode": "comparison_specification",
+      "requirement_id": "req_supported_tool",
+      "raw_evidence": "supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "capacity",
+        "operator": "qualitative",
+        "expected": {"value": "Stihl FS91 or FS31"},
+        "scope": "trimmer_wall_mount",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "comparison-specification/user-supplied required fact",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["trimmer_wall_mount"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_mating_data": false,
+        "missing": "FS91/FS31 mounting interface and clearance envelope"
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E3_REQUIRES_EXTERNAL_REFERENCE_OR_MATING_SPEC",
+      "classification_basis": "A tool name is not a mating specification. The application must not certify compatibility from CAD text, bounds, or topology alone."
+    },
+    {
+      "benchmark_project_id": "jig-guide-003",
+      "category": "jig_guides",
+      "mode": "comparison_specification",
+      "requirement_id": "req_interchangeable_templates",
+      "raw_evidence": "template_family: interchangeable radius templates descriptive",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "feature",
+        "operator": "present",
+        "expected": {"value": true},
+        "scope": "router_jig",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "comparison-specification/user-supplied required fact",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["router_jig"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_template_outputs": false,
+        "missing": "template count, logical identities, interchange interface, and acceptance dimensions"
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E6_INSUFFICIENT_EVIDENCE",
+      "classification_basis": "The historical contract has one router_jig output and no explicit template declarations. Existing topology cannot distinguish interchangeable templates from arbitrary features. A future output/specification boundary must establish the target before a local verifier can be justified."
+    },
+    {
+      "benchmark_project_id": "jig-guide-003",
+      "category": "jig_guides",
+      "mode": "comparison_specification",
+      "requirement_id": "req_stable_jig_body",
+      "raw_evidence": "It should include a stable jig body and interchangeable templates for different radius sizes.",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "feature",
+        "operator": "present",
+        "expected": {"value": true},
+        "scope": "router_jig",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "comparison-specification/user-supplied required fact",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["router_jig"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_load/support_conditions": false
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E4_REQUIRES_PHYSICAL_OR_USER_REVIEW_EVIDENCE",
+      "classification_basis": "Static valid CAD can show a body exists, but stability is a performance claim without load, support, material, and allowable-motion criteria. This is evidence that the B policy for such language may need later review, not permission to pass it now."
+    },
+    {
+      "benchmark_project_id": "mounting-bracket-002",
+      "category": "mounting_brackets",
+      "mode": "comparison_specification",
+      "requirement_id": "req_screw_head_clearance",
+      "raw_evidence": "provide enough clearance around the screw heads for typical M4 hex-head fasteners.",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "clearance",
+        "operator": "present",
+        "expected": {"value": true},
+        "scope": "mounting_bracket",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "comparison-specification/user-supplied required fact",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["mounting_bracket"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_fastener_data": false,
+        "missing": "hex-head dimensions and required radial/axial clearance tolerance"
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E3_REQUIRES_EXTERNAL_REFERENCE_OR_MATING_SPEC",
+      "classification_basis": "‘Typical M4’ does not supply an authoritative head geometry or clearance tolerance in the persisted requirement. Do not invent a fastener standard. With those facts supplied, a B-Rep local clearance measurement may become an E2 candidate."
+    },
+    {
+      "benchmark_project_id": "mounting-bracket-003",
+      "category": "mounting_brackets",
+      "mode": "comparison_specification",
+      "requirement_id": "cable_tie_point",
+      "raw_evidence": "connection point for a cable tie to manage the sensor wiring",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "feature",
+        "operator": "present",
+        "expected": {"value": true},
+        "scope": "ultrasonic_sensor_mount",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "comparison-specification/user-supplied required fact",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["ultrasonic_sensor_mount"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "feature_target": "no size, location, orientation, or accepted cable-tie interface shape persisted"
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E6_INSUFFICIENT_EVIDENCE",
+      "classification_basis": "A generic feature detector cannot safely prove an unspecified cable-tie point at the correct interface. The requirement needs a more explicit feature contract or reviewable acceptance definition before an E2 verifier is justified."
+    },
+    {
+      "benchmark_project_id": "stand-support-003",
+      "category": "stand_supports",
+      "mode": "comparison_specification",
+      "requirement_id": "folio_case",
+      "raw_evidence": "without a folio case",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "feature",
+        "operator": "absent",
+        "expected": {"value": false},
+        "scope": "stand",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "comparison-specification/user-supplied required fact",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["stand"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_mating_data": false,
+        "missing": "folio-case geometry/interface and definition of the prohibited interaction"
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E3_REQUIRES_EXTERNAL_REFERENCE_OR_MATING_SPEC",
+      "classification_basis": "Absence of a folio-case conflict cannot be established from the stand alone without an authoritative folio-case envelope/interface or a defined forbidden geometry."
+    },
+    {
+      "benchmark_project_id": "stand-support-003",
+      "category": "stand_supports",
+      "mode": "comparison_specification",
+      "requirement_id": "folio_case_compatibility",
+      "raw_evidence": "usable with or without a folio case",
+      "original_extracted_requirement_persisted": false,
+      "ledger_and_contract": {
+        "kind": "feature",
+        "operator": "present",
+        "expected": {"value": true},
+        "scope": "stand",
+        "authority": "required",
+        "classification": "machine_required",
+        "verification_policy": null
+      },
+      "authority": "comparison-specification/user-supplied required fact",
+      "protected_state": "authoritative required fact; protected boolean not separately persisted in the selected reconstruction record",
+      "available_evidence": {
+        "step": true,
+        "brep": true,
+        "stl": true,
+        "output_ids": ["stand"],
+        "solid_count": 1,
+        "topology_valid": true,
+        "analytic_face_edge_measurement": false,
+        "requirement_specific_finding": false,
+        "authoritative_mating_data": false,
+        "missing": "folio-case envelope, interface, insertion/removal path, and tolerance"
+      },
+      "semantic_finding": "aggregate unsupported_verifier; no requirement-specific measurement persisted",
+      "final_blocker": "semantic_requirement_unverifiable",
+      "classification": "E3_REQUIRES_EXTERNAL_REFERENCE_OR_MATING_SPEC",
+      "classification_basis": "Compatibility is a relation with an external object. The stand’s bounds and topology cannot certify it; after mating facts exist, some geometry checks may be E2 while final usability may still require review."
+    }
+  ],
+  "classification_counts": {
+    "E1_EXISTING_DETERMINISTIC_EVIDENCE_ROUTING_GAP": 0,
+    "E2_NEW_LOCAL_GEOMETRY_VERIFIER_FEASIBLE": 1,
+    "E3_REQUIRES_EXTERNAL_REFERENCE_OR_MATING_SPEC": 7,
+    "E4_REQUIRES_PHYSICAL_OR_USER_REVIEW_EVIDENCE": 1,
+    "E5_TRUE_GEOMETRY_OR_GENERATION_FAILURE": 0,
+    "E6_INSUFFICIENT_EVIDENCE": 2
+  },
+  "category_breadth": {
+    "affected_requirement_count": 11,
+    "affected_cell_count": 8,
+    "affected_categories": 7,
+    "categories": [
+      "adapter_coupler",
+      "container_cases",
+      "electronics_enclosures",
+      "holders_organizers",
+      "jig_guides",
+      "mounting_brackets",
+      "stand_supports"
+    ]
+  },
+  "existing_verifier_inventory": [
+    {
+      "name": "final_mesh_bounds",
+      "accepted_requirement_shape": "expected width/depth/height bounds with tolerance",
+      "evidence_source": "generated final STL mesh; topology and artifact state are separate evidence",
+      "scope_support": "single output",
+      "outcomes": ["PASS", "FAIL", "UNVERIFIABLE"],
+      "current_e_relevance": "none of the eleven current E records has canonical bounds semantics"
+    },
+    {
+      "name": "required_output_identity / required_output_artifact / topology_and_required_output",
+      "accepted_requirement_shape": "explicit output IDs/count/required artifact and connected-output expectations",
+      "evidence_source": "executable output registry plus topology-evidence-v2",
+      "scope_support": "logical output IDs; topology per output",
+      "outcomes": ["PASS", "FAIL", "UNVERIFIABLE"],
+      "current_e_relevance": "generic output/topology facts do not prove any current feature, fit, capacity, or mating claim; no E1 route is present"
+    },
+    {
+      "name": "final_mesh_opening_profiles / final_mesh_opening_centers",
+      "accepted_requirement_shape": "explicit opening count/diameter/center or profile expectations",
+      "evidence_source": "derived STL mesh profiles/candidates",
+      "scope_support": "single output",
+      "outcomes": ["PASS", "FAIL", "UNVERIFIABLE"],
+      "quality_limit": "mesh candidate evidence is not authoritative proof of physical cylindrical openings; no B-Rep feature evidence is consumed"
+    },
+    {
+      "name": "final_mesh_axisymmetric_profiles / final_mesh_axial_sections / final_mesh_recess_profile / final_mesh_wall_profile / final_mesh_feature_profiles",
+      "accepted_requirement_shape": "structured mesh profile, section, recess, wall, or feature expectations",
+      "evidence_source": "derived STL mesh measurements and probes",
+      "scope_support": "single output",
+      "outcomes": ["PASS", "FAIL", "UNVERIFIABLE"],
+      "quality_limit": "not a general interface-aware B-Rep verifier; a generic feature somewhere is insufficient for the current E claims"
+    },
+    {
+      "name": "cross_output_envelope / cross_output_clearance / cross_output_alignment",
+      "accepted_requirement_shape": "explicit relational geometry between named outputs",
+      "evidence_source": "generated STL meshes keyed by logical output IDs",
+      "scope_support": "cross-output",
+      "outcomes": ["PASS", "FAIL", "UNVERIFIABLE"],
+      "current_e_relevance": "not applicable to the current single-output E records and cannot establish external-object compatibility"
+    },
+    {
+      "name": "measure_when_supported",
+      "accepted_requirement_shape": "supported chamfer/fillet size or radius fields",
+      "evidence_source": "derived mesh measurement path",
+      "scope_support": "single output",
+      "outcomes": ["PASS", "FAIL", "UNVERIFIABLE"],
+      "current_e_relevance": "none"
+    },
+    {
+      "name": "topology_evidence_v2 structural measurements",
+      "accepted_requirement_shape": "validity, solid count, shell/face counts, bounds, volumes, centroids, pair relations",
+      "evidence_source": "CadQuery/OpenCascade shape topology at worker stage",
+      "scope_support": "per output and solid pairs",
+      "outcomes": ["measured", "invalid", "unavailable"],
+      "current_e_relevance": "available for all eleven, but generic validity/solid data cannot prove the requirement-specific semantics"
+    }
+  ],
+  "available_evidence_audit": {
+    "all_current_e_requirements_have_individual_step_brep_stl_artifacts": true,
+    "all_current_e_requirement_outputs_have_valid_topology_records": true,
+    "all_current_e_requirement_outputs_are_single_logical_outputs": true,
+    "requirement_specific_analytic_face_edge_facts_persisted": false,
+    "requirement_specific_semantic_findings_persisted": false,
+    "authoritative_external_mating_or_reference_facts_available": false,
+    "generic_topology_is_not_treated_as_functional_proof": true,
+    "distinction_from_e1": "The application has structural evidence, but no current requirement maps to a registered deterministic policy that consumes enough of it. This is not an E1 routing gap."
+  },
+  "topic_assessments": {
+    "airflow_path": {
+      "current_inventory": "not one of the eleven current E records; remains a separate B4 hard requirement in adapter-coupler-002",
+      "assessment": "Topology validity, volume, shell count, and a cavity do not prove a continuous airflow passage. A trustworthy test would need an explicitly scoped passage/opening definition and an authoritative geometric path analysis. Do not infer flow performance from volume or generic openings."
+    },
+    "opening_and_feature_presence": {
+      "assessment": "Existing mesh opening/feature policies accept structured expectations, but current E records lack the required interface-specific shape, size, location, or output declarations. STL candidate holes are explicitly non-authoritative where physical-hole proof is required. No general feature detector should be revived from this report."
+    },
+    "connection_and_mating_diameter": {
+      "assessment": "The 35 mm hose diameter is the strongest E2 candidate. A narrow analytic B-Rep cylindrical-opening measurement could be generic if it verifies the correct interface and reports tolerance/axis/ambiguity. The current code does not persist that evidence. Proprietary Dyson compatibility remains E3."
+    },
+    "clearance": {
+      "assessment": "Explicit numeric clearance remains machine-required. Existing cross-output clearance is not applicable to the single-output M4-head claim. ‘Typical M4’ lacks authoritative head dimensions and tolerance, so the current blocker is primarily specification/mating-data E3; only after those facts exist should a local B-Rep clearance verifier be considered E2."
+    },
+    "fit_and_compatibility": {
+      "assessment": "Instrument, battery, trimmer, Dyson, and folio-case compatibility require authoritative external envelope/interface facts. Product names and provider prose are not geometry evidence."
+    },
+    "structural_relationships": {
+      "assessment": "Output-to-output relationships can use existing named-output cross-output policies when both outputs and expectations are explicit. None of the current eleven has such a complete contract. External-object relationships remain E3; static stability remains E4."
+    }
+  },
+  "geometry_failure_cases": {
+    "current_e5_count": 0,
+    "note": "No current E requirement has persisted PASS/FAIL evidence proving that generated geometry is objectively absent or wrong. container-case-002 has a historically proven missing lid, but it is a Recovery-C2 geometry omission outside the current eleven and remains separately blocked."
+  },
+  "specification_missing_cases": [
+    "req_connection: proprietary Dyson interface",
+    "req_battery_type: authoritative 26650 envelope/interface",
+    "req_fit_instrument: instrument envelope and tolerance",
+    "req_supported_tool: FS91/FS31 mounting interface",
+    "req_screw_head_clearance: fastener head geometry and clearance tolerance",
+    "folio_case: folio-case envelope/interface and forbidden-interaction definition",
+    "folio_case_compatibility: folio-case envelope, insertion path, and tolerance"
+  ],
+  "current_16_cell_counterfactual": {
+    "method": "Use the persisted A/C/B counterfactual and add no hypothetical E verifier or geometry PASS. Every generated cell retains its persisted valid-artifact concept gate.",
+    "concept_available": 16,
+    "concept_unavailable": 0,
+    "candidate_blocked_by_current_e": 8,
+    "candidate_blocked_by_genuine_geometry_failure": 1,
+    "candidate_ready_for_review": 7,
+    "candidate_fully_verified": 0,
+    "e_blocked_cells": [
+      "adapter-coupler-002/premise_only",
+      "container-case-001/comparison_specification",
+      "electronics-enclosure-002/comparison_specification",
+      "holder-organizer-001/comparison_specification",
+      "jig-guide-003/comparison_specification",
+      "mounting-bracket-002/comparison_specification",
+      "mounting-bracket-003/comparison_specification",
+      "stand-support-003/comparison_specification"
+    ],
+    "geometry_blocked_cell": "container-case-002/comparison_specification",
+    "ready_for_review_cells": [
+      "clamp-clip-001/comparison_specification",
+      "electronics-enclosure-001/comparison_specification",
+      "functional-assembly-001/comparison_specification",
+      "functional-assembly-003/comparison_specification",
+      "holder-organizer-003/comparison_specification",
+      "replacement-part-003/comparison_specification",
+      "stand-support-001/comparison_specification"
+    ],
+    "overlap_note": "adapter-coupler-002 also retains a separate B4 airflow hard blocker; the E count describes its current E requirements, not an assertion that E is its only blocker."
+  },
+  "future_owner_mapping": {
+    "E1": "local deterministic evidence routing; no current instance proven",
+    "E2": "new generic B-Rep verifier with explicit tolerance, PASS/FAIL/UNVERIFIABLE, and interface scope",
+    "E3": "specification/intake boundary for authoritative mating or external reference facts before geometry certification",
+    "E4": "review/physical evidence policy reassessment; do not silently downgrade in this checkpoint",
+    "E5": "geometry/source revision and normal recovery, not verifier development",
+    "E6": "requirement normalization/specification clarification before verifier design"
+  },
+  "ranked_verifier_opportunities": [
+    {
+      "rank": 1,
+      "candidate": "narrow analytic B-Rep cylindrical-opening/connection diameter measurement",
+      "coverage": "directly one current requirement; potentially hose/pipe/shaft interface dimensions after correct scope and fact normalization",
+      "confidence": "medium-high if interface selection and ambiguity handling are explicit",
+      "evidence_available": "authoritative generated STEP/BREP artifacts exist, but analytic face/edge facts are not persisted",
+      "false_positive_risk": "high unless it distinguishes true through/opening interface geometry from decorative or blind cylindrical faces; must not use STL heuristics when B-Rep exists",
+      "owner": "E2 verifier/evidence, after specification and parked-capability review"
+    },
+    {
+      "rank": 2,
+      "candidate": "authoritative mating-envelope/clearance measurement",
+      "coverage": "fit/clearance claims once external device/fastener envelopes are explicitly supplied",
+      "confidence": "medium after E3 specification facts exist",
+      "evidence_available": "generated BREP and named output state; external mating facts currently absent",
+      "false_positive_risk": "medium-high without insertion direction, tolerance, and interface scope",
+      "owner": "E3 specification first, then E2 verifier"
+    },
+    {
+      "rank": 3,
+      "candidate": "explicit multi-output template/feature contract verification",
+      "coverage": "interchangeable templates and cable-tie/interface features only after output/feature identity is explicit",
+      "confidence": "low on current records",
+      "evidence_available": "valid single-output topology only",
+      "false_positive_risk": "high if implemented as generic feature-somewhere detection",
+      "owner": "E6/C normalization and specification first; E2 only after a defensible target exists"
+    }
+  ],
+  "proposed_first_recovery_e_implementation": {
+    "scope": "Do not implement in this checkpoint. The first candidate for a later Recovery-E implementation is a narrowly specified analytic B-Rep connection-opening measurement, beginning with evidence characterization and synthetic positive/negative/ambiguous cases.",
+    "preconditions": [
+      "preserve the parked NO-GO until the new evidence contract is approved",
+      "define authoritative interface selection and orientation/tolerance semantics",
+      "prove PASS, FAIL, and UNVERIFIABLE outcomes",
+      "keep external mating/specification gaps separate from local geometry verification",
+      "do not use reference geometry or STL heuristics as certification evidence"
+    ]
+  },
+  "router_implications": {
+    "E1": "local state/evidence routing, no provider geometry repair",
+    "E2": "future deterministic verifier/evidence work; do not ask Gemini to blindly rewrite geometry",
+    "E3": "request or preserve authoritative mating/specification facts; remain fail-closed",
+    "E4": "review/physical evidence obligation or future B policy reassessment",
+    "E5": "geometry revision through normal recovery",
+    "E6": "normalize or clarify the acceptance definition before routing"
+  },
+  "decision": "RECOVERY_E_MULTIPLE_BOUNDARIES",
+  "decision_basis": "The eleven current E requirements separate into a local analytic-geometry opportunity, multiple missing external/mating specifications, a physical/review stability claim, and under-specified feature/output claims. They cannot safely share one verifier or one recovery owner."
+}
