@@ -1,0 +1,34 @@
+{
+  "schema_version": "recovery-a-live-synthetic-preflight-v1",
+  "prompt": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+  "prompt_sha256": "3c5417fd111b146940eb04417a7008d45ccbbeb3b8a8ef956b5a284f12861414",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "git_head": "7c0ed59a6270d73e8b3faf5a1473d5c0edef3d47",
+  "origin_branch_head": "7c0ed59a6270d73e8b3faf5a1473d5c0edef3d47",
+  "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "worktree_clean": false,
+  "provider": "gemini_api",
+  "configured_models": {
+    "requirement_extraction": "gemini-3.5-flash-lite (configured default unless routing overrides)",
+    "executable_cad": "gemini-3.5-flash-lite (configured default unless routing overrides)"
+  },
+  "repair_limits": {
+    "automatic_provider_operation_budget": 9,
+    "level_budgets": {
+      "L0": 3,
+      "L1": 3,
+      "L2": 2,
+      "L3": 4
+    }
+  },
+  "credential_slots_present_by_name_only": {
+    "GEMINI_API_KEY": false,
+    "GEMINI_API_KEY_2": false,
+    "VOLUNDR_GEMINI_PRIMARY_API_KEY": false,
+    "VOLUNDR_GEMINI_FALLBACK_API_KEY": false
+  },
+  "corpus_manifest_environment": "unset",
+  "corpus_manifest_source": "not supplied by synthetic run; no benchmark/repeatability contract",
+  "reference_geometry": "not used",
+  "benchmark_manifest": "not used"
+}

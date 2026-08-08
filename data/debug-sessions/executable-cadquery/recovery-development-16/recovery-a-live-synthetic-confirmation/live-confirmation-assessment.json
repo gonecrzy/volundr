@@ -1,0 +1,104 @@
+{
+  "schema_version": "recovery-a-live-synthetic-assessment-v1",
+  "decision": "RECOVERY_A_PIPELINE_DEFECT",
+  "exact_prompt": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+  "product_path": {
+    "requirement_extraction": "executed",
+    "design_specification": "persisted",
+    "requirement_ledger": "materialized",
+    "contract_source": "production_requirement_ledger",
+    "corpus_contract_injection": false,
+    "clarification_required": false,
+    "generation_ready": true
+  },
+  "earliest_canonicalization_loss": {
+    "boundary": "requirement_extraction_inventory_and_accepted_design_specification",
+    "evidence": [
+      "The persisted requirement-extraction request contains an empty explicit_requirements inventory.",
+      "The provider DesignSpecification contains three scalar protected dimensions: tray_width=80, tray_depth=60, tray_height=25.",
+      "With no inventory group identity, the extraction trace did not canonicalize those provider scalars.",
+      "The ledger and executable contract inherited the three scalar requirements, so contract materialization could not select final_mesh_bounds."
+    ],
+    "first_incorrect_owner": "requirement_normalization",
+    "failure_class": "live_envelope_source_identity_not_preserved",
+    "observed_stage": "semantic_measurement"
+  },
+  "design_specification_envelope": {
+    "representation": [
+      {"id": "tray_width", "value": 80, "operator": "approximately", "source": "user", "protected": true, "raw_evidence": "approximately 80 mm wide"},
+      {"id": "tray_depth", "value": 60, "operator": "approximately", "source": "user", "protected": true, "raw_evidence": "60 mm deep"},
+      {"id": "tray_height", "value": 25, "operator": "approximately", "source": "user", "protected": true, "raw_evidence": "25 mm high"}
+    ],
+    "expected_canonical_representation": {"value": {"width": 80, "depth": 60, "height": 25}, "operator": "approximately", "source": "user", "protected": true}
+  },
+  "ledger_and_contract": {
+    "ledger_representation": "three scalar user-explicit entries preserved independently",
+    "contract_representation": "three scalar approximately requirements scoped to desktop_parts_tray",
+    "final_mesh_bounds_policy": "absent",
+    "protected_fact_count_for_envelope": 3,
+    "expected_protected_fact_count": 1
+  },
+  "generated_geometry": {
+    "workflow_state": "verification_failed",
+    "source_hash": "ec8d785211bdd5e5c53c0f4c49df0dd9c62a77f407553d5d6286904e821a4e2d",
+    "output_id": "desktop_parts_tray",
+    "solid_count": 1,
+    "topology_status": "passed",
+    "bounds_mm": {"x": 80.0, "y": 60.0, "z": 25.0},
+    "volume_mm3": 22112.000000000022,
+    "surface_area_mm2": null,
+    "artifact_hashes": {
+      "step": "7029e185d3494a458ba26c13c03bc610399792e5e0d5ca701eba3ecbdaed3c93",
+      "stl": "c16cee2056edb2c27dd33a5b52388006f502569ef3f175f99b50e8e98c63b08c",
+      "brep": "7ee1dd7739683dfa33bfd8cbbfeb41f14b5cdbcc28f4a301e67a79cadb76f39f"
+    }
+  },
+  "concept_quality_observation": {
+    "classification": "usable_first_concept",
+    "basis": "one valid solid, open-top tray construction in generated source, exact requested outer envelope; observational only"
+  },
+  "semantic_result": {
+    "authoritative_requirement_count": 5,
+    "machine_pass": 0,
+    "machine_fail": 0,
+    "unverifiable": 5,
+    "review_required": 0,
+    "informational": 0,
+    "unsupported_verifier": 5,
+    "candidate_state": "candidate_blocked",
+    "envelope_result": "unsupported_verifier, not a geometric FAIL",
+    "soft_policy_observation": {
+      "easy_to_print": "preserved but incorrectly machine_required and unsupported; Recovery B evidence only",
+      "compact": "not represented as a hard numeric requirement",
+      "practical": "not represented as a hard numeric requirement",
+      "open_top": "preserved as a feature but incorrectly machine_required and unsupported; Recovery B evidence only"
+    }
+  },
+  "design_freedom_audit": {
+    "user_hard_requirements_matching_freedom_terms": [],
+    "generated_model_choice": {"wall_thickness_mm": 2.0, "authority": "model_design_choice", "user_required": false},
+    "additional_hard_user_facts_synthesized": false,
+    "flexible_model_choice_became_protected": false
+  },
+  "concept_vs_final_guardrail_audit": {
+    "recovery_a_changed_concept_generation_eligibility": false,
+    "recovery_a_changed_clarification_behavior": false,
+    "new_hard_requirement_synthesized": false,
+    "premise_only_behavior_changed_by_policy": false,
+    "final_verification_remained_fail_closed": true,
+    "candidate_policy_conflates_useful_concept_with_fully_verified_design": true,
+    "separate_future_policy_item": "candidate state blocked by unsupported qualitative/feature requirements even though valid concept geometry exists"
+  },
+  "calls_and_execution": {
+    "requirement_extraction_calls": 1,
+    "requirement_schema_retries": 0,
+    "initial_cad_generation_calls": 1,
+    "cad_repair_calls": 1,
+    "fallback_calls": 0,
+    "total_provider_calls": 3,
+    "worker_executions": 1,
+    "corpus_manifest": "unset",
+    "references_used": false
+  },
+  "interpretation": "The generated geometry satisfies the hard envelope numerically, but Recovery A could not establish the canonical contract representation in this real product path. No PASS is claimed."
+}

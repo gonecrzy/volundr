@@ -1,0 +1,350 @@
+{
+  "ledger": {
+    "status": 200,
+    "ok": true,
+    "body": {
+      "schema_version": "requirement-ledger-v1",
+      "project_id": "7ef55e6f-77f2-4987-8cb5-b1ca9721e9d5",
+      "requirements": [
+        {
+          "record_id": "18cd78ff-46aa-486d-8cc9-ea1c8c46df99",
+          "requirement_id": "tray_width",
+          "source": "initial_user",
+          "target": null,
+          "type": "exact_dimension",
+          "value": 80,
+          "unit": "mm",
+          "tolerance": null,
+          "explicit": true,
+          "status": "active",
+          "originating_message": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+          "originating_revision_id": null,
+          "supersedes_requirement_id": null,
+          "superseded_by": null,
+          "verification_evidence": null,
+          "provenance": null,
+          "kind": "dimension",
+          "operator": "approximately",
+          "subject": "desktop parts tray",
+          "object_type": "desktop parts tray",
+          "raw_evidence": "approximately 80 mm wide",
+          "classification": null,
+          "policy": null,
+          "verification_policy": null,
+          "created_at": "2026-08-08T14:47:54.208825",
+          "updated_at": "2026-08-08T14:47:54.208828"
+        },
+        {
+          "record_id": "750c3c33-f087-4d7b-9e20-64afa46c5792",
+          "requirement_id": "tray_depth",
+          "source": "initial_user",
+          "target": null,
+          "type": "exact_dimension",
+          "value": 60,
+          "unit": "mm",
+          "tolerance": null,
+          "explicit": true,
+          "status": "active",
+          "originating_message": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+          "originating_revision_id": null,
+          "supersedes_requirement_id": null,
+          "superseded_by": null,
+          "verification_evidence": null,
+          "provenance": null,
+          "kind": "dimension",
+          "operator": "approximately",
+          "subject": "desktop parts tray",
+          "object_type": "desktop parts tray",
+          "raw_evidence": "60 mm deep",
+          "classification": null,
+          "policy": null,
+          "verification_policy": null,
+          "created_at": "2026-08-08T14:47:54.208829",
+          "updated_at": "2026-08-08T14:47:54.208830"
+        },
+        {
+          "record_id": "7602bcf3-d672-4273-a3d7-b8b25b991a99",
+          "requirement_id": "tray_height",
+          "source": "initial_user",
+          "target": null,
+          "type": "exact_dimension",
+          "value": 25,
+          "unit": "mm",
+          "tolerance": null,
+          "explicit": true,
+          "status": "active",
+          "originating_message": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+          "originating_revision_id": null,
+          "supersedes_requirement_id": null,
+          "superseded_by": null,
+          "verification_evidence": null,
+          "provenance": null,
+          "kind": "dimension",
+          "operator": "approximately",
+          "subject": "desktop parts tray",
+          "object_type": "desktop parts tray",
+          "raw_evidence": "25 mm high",
+          "classification": null,
+          "policy": null,
+          "verification_policy": null,
+          "created_at": "2026-08-08T14:47:54.208831",
+          "updated_at": "2026-08-08T14:47:54.208831"
+        },
+        {
+          "record_id": "6eff0758-e077-428d-9b2e-bc87e88b2e0b",
+          "requirement_id": "req_open_top",
+          "source": "initial_user",
+          "target": null,
+          "type": "feature_presence",
+          "value": true,
+          "unit": null,
+          "tolerance": null,
+          "explicit": true,
+          "status": "active",
+          "originating_message": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+          "originating_revision_id": null,
+          "supersedes_requirement_id": null,
+          "superseded_by": null,
+          "verification_evidence": null,
+          "provenance": null,
+          "kind": "feature",
+          "operator": "present",
+          "subject": "desktop parts tray",
+          "object_type": "desktop parts tray",
+          "raw_evidence": "simple open-top desktop parts tray",
+          "classification": null,
+          "policy": null,
+          "verification_policy": null,
+          "created_at": "2026-08-08T14:47:54.208832",
+          "updated_at": "2026-08-08T14:47:54.208832"
+        },
+        {
+          "record_id": "2b8ff8cc-9690-4905-8007-dd15005e85e8",
+          "requirement_id": "req_easy_to_print",
+          "source": "initial_user",
+          "target": null,
+          "type": "qualitative_behavior",
+          "value": "printable without complex supports",
+          "unit": null,
+          "tolerance": null,
+          "explicit": true,
+          "status": "active",
+          "originating_message": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+          "originating_revision_id": null,
+          "supersedes_requirement_id": null,
+          "superseded_by": null,
+          "verification_evidence": null,
+          "provenance": null,
+          "kind": "qualitative",
+          "operator": "qualitative",
+          "subject": "desktop parts tray",
+          "object_type": "desktop parts tray",
+          "raw_evidence": "easy to print",
+          "classification": null,
+          "policy": null,
+          "verification_policy": null,
+          "created_at": "2026-08-08T14:47:54.208833",
+          "updated_at": "2026-08-08T14:47:54.208833"
+        }
+      ]
+    }
+  },
+  "contract": {
+    "contract_materialization_version": "executable-cadquery-product-contract-v1",
+    "contract_source": "production_requirement_ledger",
+    "outputs": [
+      {
+        "expected_solid_count": 1,
+        "output_id": "desktop_parts_tray",
+        "output_type": "printable_component",
+        "required": true
+      }
+    ],
+    "product_state": {
+      "design_specification_schema": "1.0",
+      "object_type": "desktop parts tray",
+      "purpose": "Hold small desktop parts conveniently and practically."
+    },
+    "project_id": "7ef55e6f-77f2-4987-8cb5-b1ca9721e9d5",
+    "protected_facts": [
+      {
+        "authoritative_value": {
+          "value": "printable without complex supports"
+        },
+        "authority": "required",
+        "origin": "user_explicit",
+        "requirement_id": "req_easy_to_print"
+      },
+      {
+        "authoritative_value": {
+          "value": true
+        },
+        "authority": "required",
+        "origin": "user_explicit",
+        "requirement_id": "req_open_top"
+      },
+      {
+        "authoritative_value": {
+          "value": 60
+        },
+        "authority": "required",
+        "origin": "user_explicit",
+        "requirement_id": "tray_depth"
+      },
+      {
+        "authoritative_value": {
+          "value": 25
+        },
+        "authority": "required",
+        "origin": "user_explicit",
+        "requirement_id": "tray_height"
+      },
+      {
+        "authoritative_value": {
+          "value": 80
+        },
+        "authority": "required",
+        "origin": "user_explicit",
+        "requirement_id": "tray_width"
+      }
+    ],
+    "relationships": [],
+    "requirements": [
+      {
+        "authority": "required",
+        "classification": "machine_required",
+        "expected": {
+          "value": "printable without complex supports"
+        },
+        "kind": "qualitative",
+        "object_type": "desktop parts tray",
+        "operator": "qualitative",
+        "origin": "user_explicit",
+        "raw_evidence": "easy to print",
+        "requirement_id": "req_easy_to_print",
+        "scope": "desktop_parts_tray",
+        "source": "initial_user",
+        "subject": "desktop parts tray"
+      },
+      {
+        "authority": "required",
+        "classification": "machine_required",
+        "expected": {
+          "value": true
+        },
+        "kind": "feature",
+        "object_type": "desktop parts tray",
+        "operator": "present",
+        "origin": "user_explicit",
+        "raw_evidence": "simple open-top desktop parts tray",
+        "requirement_id": "req_open_top",
+        "scope": "desktop_parts_tray",
+        "source": "initial_user",
+        "subject": "desktop parts tray"
+      },
+      {
+        "authority": "required",
+        "classification": "machine_required",
+        "expected": {
+          "value": 60
+        },
+        "kind": "dimension",
+        "object_type": "desktop parts tray",
+        "operator": "approximately",
+        "origin": "user_explicit",
+        "raw_evidence": "60 mm deep",
+        "requirement_id": "tray_depth",
+        "scope": "desktop_parts_tray",
+        "source": "initial_user",
+        "subject": "desktop parts tray"
+      },
+      {
+        "authority": "required",
+        "classification": "machine_required",
+        "expected": {
+          "value": 25
+        },
+        "kind": "dimension",
+        "object_type": "desktop parts tray",
+        "operator": "approximately",
+        "origin": "user_explicit",
+        "raw_evidence": "25 mm high",
+        "requirement_id": "tray_height",
+        "scope": "desktop_parts_tray",
+        "source": "initial_user",
+        "subject": "desktop parts tray"
+      },
+      {
+        "authority": "required",
+        "classification": "machine_required",
+        "expected": {
+          "value": 80
+        },
+        "kind": "dimension",
+        "object_type": "desktop parts tray",
+        "operator": "approximately",
+        "origin": "user_explicit",
+        "raw_evidence": "approximately 80 mm wide",
+        "requirement_id": "tray_width",
+        "scope": "desktop_parts_tray",
+        "source": "initial_user",
+        "subject": "desktop parts tray"
+      }
+    ],
+    "revision_id": "c7d22e3c-f63a-4dbe-9ac2-1a16c22561e8:candidate:1",
+    "schema_version": "executable-cadquery-design-contract-v1",
+    "units": "mm",
+    "workflow_id": "c7d22e3c-f63a-4dbe-9ac2-1a16c22561e8"
+  },
+  "envelope_contract_requirements": [],
+  "protected_facts": [
+    {
+      "id": "tray_width",
+      "importance": "important",
+      "kind": "dimension",
+      "label": "tray width",
+      "object_type": "desktop parts tray",
+      "operator": "approximately",
+      "protected": true,
+      "raw_evidence": "approximately 80 mm wide",
+      "source": "user",
+      "subject": "desktop parts tray",
+      "target": null,
+      "tolerance": null,
+      "unit": "mm",
+      "value": 80
+    },
+    {
+      "id": "tray_depth",
+      "importance": "important",
+      "kind": "dimension",
+      "label": "tray depth",
+      "object_type": "desktop parts tray",
+      "operator": "approximately",
+      "protected": true,
+      "raw_evidence": "60 mm deep",
+      "source": "user",
+      "subject": "desktop parts tray",
+      "target": null,
+      "tolerance": null,
+      "unit": "mm",
+      "value": 60
+    },
+    {
+      "id": "tray_height",
+      "importance": "important",
+      "kind": "dimension",
+      "label": "tray height",
+      "object_type": "desktop parts tray",
+      "operator": "approximately",
+      "protected": true,
+      "raw_evidence": "25 mm high",
+      "source": "user",
+      "subject": "desktop parts tray",
+      "target": null,
+      "tolerance": null,
+      "unit": "mm",
+      "value": 25
+    }
+  ]
+}

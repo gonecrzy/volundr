@@ -1,0 +1,11 @@
+{
+  "schema_version": "recovery-a-live-provider-attempt-forensics-v1",
+  "provider": "gemini_api",
+  "requirement_extraction": {"calls": 1, "schema_retries": 0, "model": "gemini-3.5-flash-lite", "status": "succeeded", "fallback": false},
+  "cad_generation": {"initial_calls": 1, "repair_calls": 1, "repair_level": "L0", "model": "gemini-3.5-flash-lite", "fallback": false},
+  "total_provider_calls": 3,
+  "first_cad_blocker": {"stage": "source_contract", "failure_class": "source_contract_violation", "repair": "normal L0 contract repair"},
+  "terminal_cad_observation": {"stage": "semantic_measurement", "failure_class": "semantic_requirement_unverifiable", "first_incorrect_owner": "requirement_normalization"},
+  "credential_values_recorded": false,
+  "transport_attempts": "persisted safely in raw workflow/provider evidence; no secret values included"
+}

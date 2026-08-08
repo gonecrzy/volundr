@@ -1,0 +1,11 @@
+{
+  "schema_version": "recovery-a-live-not-benchmark-run-v1",
+  "benchmark_run": false,
+  "synthetic_recovery_confirmation": true,
+  "benchmark_manifest": null,
+  "reference_geometry": null,
+  "reference_comparison": "not applicable",
+  "production_workflow_project_id": "7ef55e6f-77f2-4987-8cb5-b1ca9721e9d5",
+  "workflow_id": "c7d22e3c-f63a-4dbe-9ac2-1a16c22561e8",
+  "contract_source": "production_requirement_ledger"
+}

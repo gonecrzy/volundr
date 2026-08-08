@@ -392,7 +392,7 @@
     "next_action": "Stop for review; do not implement fixes or begin validation/holdout work."
   },
   "external_cad_envelope_canonicalization_recovery_status": {
-    "status": "offline_recovered_pending_live_confirmation",
+    "status": "live_confirmation_pipeline_defect",
     "recovery_category": "A_canonicalization_failure_only",
     "implementation": "shared envelope tuple canonicalization before ledger/contract materialization",
     "a_requirements_recovered_offline": 9,
@@ -401,8 +401,8 @@
     "remaining_b_after": 41,
     "remaining_c_after": 43,
     "remaining_e_after": 11,
-    "provider_calls": 0,
-    "worker_executions": 0,
+    "provider_calls": 3,
+    "worker_executions": 1,
     "production_behavior_scope": "no clarification, concept eligibility, candidate policy, B, C, D, E, F, or G changes",
     "concept_vs_final_guardrail": "verified; flexible envelopes remain unprotected and final verification remains fail-closed",
     "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-envelope-canonicalization-recovery.json",
@@ -417,7 +417,22 @@
     ],
     "validation_access": false,
     "holdout_access": false,
-    "next_action": "review offline evidence and authorize at most one minimal live confirmation; do not begin Recovery C"
+    "live_confirmation": {
+      "decision": "RECOVERY_A_PIPELINE_DEFECT",
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-a-live-synthetic-confirmation/live-confirmation-assessment.json",
+      "requirement_extraction_calls": 1,
+      "requirement_schema_retries": 0,
+      "cad_generation_calls": 1,
+      "cad_repair_calls": 1,
+      "fallback_calls": 0,
+      "worker_executions": 1,
+      "corpus_manifest": "unset",
+      "canonical_envelope_preserved": false,
+      "generated_bounds_mm": {"width": 80, "depth": 60, "height": 25},
+      "semantic_envelope_result": "unsupported_verifier; no PASS claimed",
+      "separate_policy_observation": "qualitative/feature obligations remained machine_required and unsupported; no Recovery B change"
+    },
+    "next_action": "reconstruct and fix the generic live envelope source-identity/normalization gap before any further confirmation; do not begin Recovery B or C"
   },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",

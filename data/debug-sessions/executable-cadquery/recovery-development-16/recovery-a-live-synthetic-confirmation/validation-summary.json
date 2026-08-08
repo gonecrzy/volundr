@@ -1,0 +1,408 @@
+{
+  "schema_version": "recovery-a-live-synthetic-validation-summary-v1",
+  "decision": "RECOVERY_A_PIPELINE_DEFECT",
+  "clarification_required": false,
+  "generation_ready": true,
+  "workflow_state": "verification_failed",
+  "contract_source": "production_requirement_ledger",
+  "envelope_expectations": {
+    "expected_canonical": {
+      "value": {"width": 80, "depth": 60, "height": 25},
+      "operator": "approximately",
+      "source": "user",
+      "protected": true,
+      "verification_policy": "final_mesh_bounds"
+    },
+    "observed": [
+      {"id": "tray_width", "value": 80, "operator": "approximately", "protected": true, "verification_policy": null},
+      {"id": "tray_depth", "value": 60, "operator": "approximately", "protected": true, "verification_policy": null},
+      {"id": "tray_height", "value": 25, "operator": "approximately", "protected": true, "verification_policy": null}
+    ],
+    "route_result": "not_routed_to_final_mesh_bounds"
+  },
+  "semantic_verification": {
+    "status": 200,
+    "ok": true,
+    "body": {
+      "workflow_id": "c7d22e3c-f63a-4dbe-9ac2-1a16c22561e8",
+      "state": "verification_failed",
+      "verification": {
+        "candidate_policy": {
+          "blockers": [
+            "output:desktop_parts_tray:state:semantic_verification_failed",
+            "req_easy_to_print",
+            "req_open_top",
+            "tray_depth",
+            "tray_height",
+            "tray_width"
+          ],
+          "candidate_policy_version": "executable-cadquery-candidate-policy-v1",
+          "candidate_state": "candidate_blocked",
+          "eligible_for_review": false,
+          "fully_verified": false,
+          "independent_review_verdict": null,
+          "review_obligations": [
+            "independent_final_review"
+          ],
+          "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+          "state": "candidate_blocked"
+        },
+        "output_states": {
+          "desktop_parts_tray": "semantic_verification_failed"
+        },
+        "revision_id": "f234418d-f583-443b-b227-a3720bfbb572",
+        "semantic_verification": {
+          "failed": [],
+          "findings": [
+            {
+              "evidence_source": "none",
+              "expected_value": {
+                "value": "printable without complex supports"
+              },
+              "measured_value": {
+                "reason": "no generic verifier registered",
+                "scope_resolution": {
+                  "available_output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "reason": "explicit_scope_resolved",
+                  "requested_identities": [
+                    {
+                      "field": "scope",
+                      "values": [
+                        "desktop_parts_tray"
+                      ]
+                    }
+                  ],
+                  "scope_kind": "output_local",
+                  "status": "resolved"
+                },
+                "verification_policy": ""
+              },
+              "measurement_available": false,
+              "observed_status": "unverifiable",
+              "policy": "machine_required",
+              "requirement_id": "req_easy_to_print",
+              "result": "unsupported_verifier",
+              "semantic_contract": {
+                "canonical_fields": [],
+                "shadowed_legacy_fields": [],
+                "status": "normalized",
+                "version": "executable-cadquery-semantic-contract-v1"
+              },
+              "tolerance": null,
+              "verification_policy": null
+            },
+            {
+              "evidence_source": "none",
+              "expected_value": {
+                "value": true
+              },
+              "measured_value": {
+                "reason": "no generic verifier registered",
+                "scope_resolution": {
+                  "available_output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "reason": "explicit_scope_resolved",
+                  "requested_identities": [
+                    {
+                      "field": "scope",
+                      "values": [
+                        "desktop_parts_tray"
+                      ]
+                    }
+                  ],
+                  "scope_kind": "output_local",
+                  "status": "resolved"
+                },
+                "verification_policy": ""
+              },
+              "measurement_available": false,
+              "observed_status": "unverifiable",
+              "policy": "machine_required",
+              "requirement_id": "req_open_top",
+              "result": "unsupported_verifier",
+              "semantic_contract": {
+                "canonical_fields": [],
+                "shadowed_legacy_fields": [],
+                "status": "normalized",
+                "version": "executable-cadquery-semantic-contract-v1"
+              },
+              "tolerance": null,
+              "verification_policy": null
+            },
+            {
+              "evidence_source": "none",
+              "expected_value": {
+                "value": 60
+              },
+              "measured_value": {
+                "reason": "no generic verifier registered",
+                "scope_resolution": {
+                  "available_output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "reason": "explicit_scope_resolved",
+                  "requested_identities": [
+                    {
+                      "field": "scope",
+                      "values": [
+                        "desktop_parts_tray"
+                      ]
+                    }
+                  ],
+                  "scope_kind": "output_local",
+                  "status": "resolved"
+                },
+                "verification_policy": ""
+              },
+              "measurement_available": false,
+              "observed_status": "unverifiable",
+              "policy": "machine_required",
+              "requirement_id": "tray_depth",
+              "result": "unsupported_verifier",
+              "semantic_contract": {
+                "canonical_fields": [],
+                "shadowed_legacy_fields": [],
+                "status": "normalized",
+                "version": "executable-cadquery-semantic-contract-v1"
+              },
+              "tolerance": null,
+              "verification_policy": null
+            },
+            {
+              "evidence_source": "none",
+              "expected_value": {
+                "value": 25
+              },
+              "measured_value": {
+                "reason": "no generic verifier registered",
+                "scope_resolution": {
+                  "available_output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "reason": "explicit_scope_resolved",
+                  "requested_identities": [
+                    {
+                      "field": "scope",
+                      "values": [
+                        "desktop_parts_tray"
+                      ]
+                    }
+                  ],
+                  "scope_kind": "output_local",
+                  "status": "resolved"
+                },
+                "verification_policy": ""
+              },
+              "measurement_available": false,
+              "observed_status": "unverifiable",
+              "policy": "machine_required",
+              "requirement_id": "tray_height",
+              "result": "unsupported_verifier",
+              "semantic_contract": {
+                "canonical_fields": [],
+                "shadowed_legacy_fields": [],
+                "status": "normalized",
+                "version": "executable-cadquery-semantic-contract-v1"
+              },
+              "tolerance": null,
+              "verification_policy": null
+            },
+            {
+              "evidence_source": "none",
+              "expected_value": {
+                "value": 80
+              },
+              "measured_value": {
+                "reason": "no generic verifier registered",
+                "scope_resolution": {
+                  "available_output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "output_ids": [
+                    "desktop_parts_tray"
+                  ],
+                  "reason": "explicit_scope_resolved",
+                  "requested_identities": [
+                    {
+                      "field": "scope",
+                      "values": [
+                        "desktop_parts_tray"
+                      ]
+                    }
+                  ],
+                  "scope_kind": "output_local",
+                  "status": "resolved"
+                },
+                "verification_policy": ""
+              },
+              "measurement_available": false,
+              "observed_status": "unverifiable",
+              "policy": "machine_required",
+              "requirement_id": "tray_width",
+              "result": "unsupported_verifier",
+              "semantic_contract": {
+                "canonical_fields": [],
+                "shadowed_legacy_fields": [],
+                "status": "normalized",
+                "version": "executable-cadquery-semantic-contract-v1"
+              },
+              "tolerance": null,
+              "verification_policy": null
+            }
+          ],
+          "load_errors": {},
+          "output_ids": [
+            "desktop_parts_tray"
+          ],
+          "passed": [],
+          "policy_summary": {
+            "failed": 0,
+            "informational": 0,
+            "machine_required": 5,
+            "review_required": 0,
+            "unsupported_verifier": 5,
+            "verified": 0,
+            "version": "executable-cadquery-semantic-policy-v1"
+          },
+          "review_required": [],
+          "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+          "status": "unsupported_verifier",
+          "unsupported_verifier": [
+            "req_easy_to_print",
+            "req_open_top",
+            "tray_depth",
+            "tray_height",
+            "tray_width"
+          ],
+          "unverifiable": [
+            "req_easy_to_print",
+            "req_open_top",
+            "tray_depth",
+            "tray_height",
+            "tray_width"
+          ]
+        },
+        "status": "failed"
+      },
+      "candidate_policy": {
+        "blockers": [
+          "output:desktop_parts_tray:state:semantic_verification_failed",
+          "req_easy_to_print",
+          "req_open_top",
+          "tray_depth",
+          "tray_height",
+          "tray_width"
+        ],
+        "candidate_policy_version": "executable-cadquery-candidate-policy-v1",
+        "candidate_state": "candidate_blocked",
+        "eligible_for_review": false,
+        "fully_verified": false,
+        "independent_review_verdict": null,
+        "review_obligations": [
+          "independent_final_review"
+        ],
+        "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+        "state": "candidate_blocked"
+      },
+      "outputs": [
+        {
+          "output_id": "desktop_parts_tray",
+          "required": true,
+          "generation_status": "completed",
+          "worker_status": "completed",
+          "state": "semantic_verification_failed",
+          "solid_count": 1,
+          "topology_status": "passed",
+          "semantic_verification": "failed",
+          "artifact_available": true,
+          "failure_owner": "verification",
+          "safe_diagnostic": "Semantic verification did not pass.",
+          "artifact_metadata": {
+            "stl_hash": "c16cee2056edb2c27dd33a5b52388006f502569ef3f175f99b50e8e98c63b08c",
+            "step_hash": "7029e185d3494a458ba26c13c03bc610399792e5e0d5ca701eba3ecbdaed3c93",
+            "brep_hash": "7ee1dd7739683dfa33bfd8cbbfeb41f14b5cdbcc28f4a301e67a79cadb76f39f"
+          }
+        }
+      ]
+    }
+  },
+  "outputs": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "output_id": "desktop_parts_tray",
+        "required": true,
+        "generation_status": "completed",
+        "worker_status": "completed",
+        "state": "semantic_verification_failed",
+        "solid_count": 1,
+        "topology_status": "passed",
+        "semantic_verification": "failed",
+        "artifact_available": true,
+        "failure_owner": "verification",
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "artifact_metadata": {
+          "stl_hash": "c16cee2056edb2c27dd33a5b52388006f502569ef3f175f99b50e8e98c63b08c",
+          "step_hash": "7029e185d3494a458ba26c13c03bc610399792e5e0d5ca701eba3ecbdaed3c93",
+          "brep_hash": "7ee1dd7739683dfa33bfd8cbbfeb41f14b5cdbcc28f4a301e67a79cadb76f39f"
+        }
+      }
+    ]
+  },
+  "artifact_downloads": [
+    {
+      "artifact_id": "desktop_parts_tray:step",
+      "filename": "desktop_parts_tray.step",
+      "bytes": 29161,
+      "sha256": "7029e185d3494a458ba26c13c03bc610399792e5e0d5ca701eba3ecbdaed3c93",
+      "declared_sha256": "7029e185d3494a458ba26c13c03bc610399792e5e0d5ca701eba3ecbdaed3c93"
+    },
+    {
+      "artifact_id": "desktop_parts_tray:stl",
+      "filename": "desktop_parts_tray.stl",
+      "bytes": 1484,
+      "sha256": "c16cee2056edb2c27dd33a5b52388006f502569ef3f175f99b50e8e98c63b08c",
+      "declared_sha256": "c16cee2056edb2c27dd33a5b52388006f502569ef3f175f99b50e8e98c63b08c"
+    },
+    {
+      "artifact_id": "desktop_parts_tray:brep",
+      "filename": "desktop_parts_tray.brep",
+      "bytes": 7965,
+      "sha256": "7ee1dd7739683dfa33bfd8cbbfeb41f14b5cdbcc28f4a301e67a79cadb76f39f",
+      "declared_sha256": "7ee1dd7739683dfa33bfd8cbbfeb41f14b5cdbcc28f4a301e67a79cadb76f39f"
+    }
+  ],
+  "concept_quality_observation": "not_assessed_by_deterministic_harness",
+  "reference_isolation": {
+    "reference_geometry_used": false,
+    "benchmark_manifest_used": false,
+    "corpus_contract_used": false
+  },
+  "model_choice_audit": {
+    "freedom_terms_checked": [
+      "wall",
+      "floor",
+      "corner",
+      "cavity",
+      "fillet",
+      "chamfer"
+    ],
+    "hard_user_entries_matching_freedom_terms": []
+  }
+}

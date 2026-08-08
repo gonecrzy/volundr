@@ -1,0 +1,175 @@
+{
+  "exact_prompt": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+  "design_specification": {
+    "status": 200,
+    "ok": true,
+    "body": {
+      "id": "36635c13-255e-4f79-bbf5-9acc1ec36372",
+      "project_id": "7ef55e6f-77f2-4987-8cb5-b1ca9721e9d5",
+      "generation_attempt_id": "d7b87892-1687-4155-94a2-a67dc65bbd40",
+      "superseded_specification_id": null,
+      "version_number": 1,
+      "schema_version": "1.0",
+      "prompt_template_version": "requirements-v4",
+      "ruleset_version": "gemini-ruleset-v1",
+      "provider": "gemini_api",
+      "provider_model": "gemini-3.5-flash-lite",
+      "user_instruction": "Design a simple open-top desktop parts tray. Keep the finished tray within approximately 80 mm wide by 60 mm deep by 25 mm high. Make it compact, practical, and easy to print.",
+      "raw_response_path": "projects/7ef55e6f-77f2-4987-8cb5-b1ca9721e9d5/generation-runs/d7b87892-1687-4155-94a2-a67dc65bbd40/raw-output.txt",
+      "specification_path": "projects/7ef55e6f-77f2-4987-8cb5-b1ca9721e9d5/generation-runs/d7b87892-1687-4155-94a2-a67dc65bbd40/parsed-design-spec.json",
+      "content_hash": "d3885da302addf2e571d78630691ed5ee1d89732f64eeb63310e76eebbc730fa",
+      "outcome": "generation_ready",
+      "supported_scope": true,
+      "clarification_required": false,
+      "generation_ready": true,
+      "created_at": "2026-08-08T14:47:54.186832",
+      "specification": {
+        "assumptions": [
+          {
+            "description": "Desktop tray does not require mounting hardware or complex fastening.",
+            "id": "assumption_desktop_tray",
+            "kind": "qualitative",
+            "object_type": "desktop parts tray",
+            "operator": "qualitative",
+            "raw_evidence": "simple open-top desktop parts tray",
+            "requires_approval": false,
+            "source": "ai_assumption",
+            "subject": "desktop parts tray",
+            "target": null,
+            "value": "freestanding"
+          }
+        ],
+        "clarification_questions": [],
+        "clarification_required": false,
+        "conflicts": [],
+        "critical_dimensions": [
+          {
+            "id": "tray_width",
+            "importance": "important",
+            "kind": "dimension",
+            "label": "tray width",
+            "object_type": "desktop parts tray",
+            "operator": "approximately",
+            "protected": true,
+            "raw_evidence": "approximately 80 mm wide",
+            "source": "user",
+            "subject": "desktop parts tray",
+            "target": null,
+            "tolerance": null,
+            "unit": "mm",
+            "value": 80
+          },
+          {
+            "id": "tray_depth",
+            "importance": "important",
+            "kind": "dimension",
+            "label": "tray depth",
+            "object_type": "desktop parts tray",
+            "operator": "approximately",
+            "protected": true,
+            "raw_evidence": "60 mm deep",
+            "source": "user",
+            "subject": "desktop parts tray",
+            "target": null,
+            "tolerance": null,
+            "unit": "mm",
+            "value": 60
+          },
+          {
+            "id": "tray_height",
+            "importance": "important",
+            "kind": "dimension",
+            "label": "tray height",
+            "object_type": "desktop parts tray",
+            "operator": "approximately",
+            "protected": true,
+            "raw_evidence": "25 mm high",
+            "source": "user",
+            "subject": "desktop parts tray",
+            "target": null,
+            "tolerance": null,
+            "unit": "mm",
+            "value": 25
+          }
+        ],
+        "functional_requirements": [
+          {
+            "description": "Open-top layout for easy access to parts",
+            "id": "req_open_top",
+            "importance": "important",
+            "kind": "feature",
+            "object_type": "desktop parts tray",
+            "operator": "present",
+            "protected": true,
+            "raw_evidence": "simple open-top desktop parts tray",
+            "source": "user",
+            "subject": "desktop parts tray",
+            "target": null,
+            "type": "feature_presence",
+            "unit": null,
+            "value": true
+          },
+          {
+            "description": "Easy to print geometry",
+            "id": "req_easy_to_print",
+            "importance": "important",
+            "kind": "qualitative",
+            "object_type": "desktop parts tray",
+            "operator": "qualitative",
+            "protected": true,
+            "raw_evidence": "easy to print",
+            "source": "user",
+            "subject": "desktop parts tray",
+            "target": null,
+            "type": "qualitative_behavior",
+            "unit": null,
+            "value": "printable without complex supports"
+          }
+        ],
+        "generation_attempt_id": "d7b87892-1687-4155-94a2-a67dc65bbd40",
+        "generation_ready": true,
+        "missing_requirements": [],
+        "object_type": "desktop parts tray",
+        "outcome": "generation_ready",
+        "parameters": [],
+        "print_requirements": {
+          "supports_assumed_allowed": false
+        },
+        "project_id": "7ef55e6f-77f2-4987-8cb5-b1ca9721e9d5",
+        "purpose": "Hold small desktop parts conveniently and practically.",
+        "schema_version": "1.0",
+        "supported_scope": true,
+        "units": "mm"
+      },
+      "clarification_questions": []
+    }
+  },
+  "envelope_entries": [],
+  "soft_objective_entries": [
+    {
+      "description": "Easy to print geometry",
+      "id": "req_easy_to_print",
+      "importance": "important",
+      "kind": "qualitative",
+      "object_type": "desktop parts tray",
+      "operator": "qualitative",
+      "protected": true,
+      "raw_evidence": "easy to print",
+      "source": "user",
+      "subject": "desktop parts tray",
+      "target": null,
+      "type": "qualitative_behavior",
+      "unit": null,
+      "value": "printable without complex supports"
+    }
+  ],
+  "design_freedom_entries": [],
+  "provider_call_counts": {
+    "requirement_extraction_calls": 1,
+    "requirement_schema_retries": 0,
+    "initial_cad_generation_calls": 0,
+    "cad_repair_calls": 0,
+    "fallback_calls": 0,
+    "total_provider_attempt_records": 1
+  }
+}
