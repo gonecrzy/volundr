@@ -1,0 +1,26 @@
+{
+  "schema_version": "external-cad-benchmark-rate-limit-audit-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "provider_calls": 2,
+  "request_start_timestamps": [
+    "2026-08-08 03:27:47.635954",
+    "2026-08-08 03:27:55.649049"
+  ],
+  "concurrency": 1,
+  "minimum_observed_start_gap_seconds": 8.013095,
+  "policy": {
+    "requests_per_minute": 12,
+    "hard_max_requests_per_window": 15,
+    "minimum_gap_seconds": 5.0,
+    "window_seconds": 60.0,
+    "fallback_policy": "primary remains primary; fallback only after HTTP 429"
+  },
+  "rolling_window": {
+    "window_seconds": 60.0,
+    "maximum_observed_starts": 2
+  },
+  "http_429_count": 0,
+  "fallback_calls": 0,
+  "transport_retry_calls": 0,
+  "result": "sequential start gap and rolling-window policy respected"
+}

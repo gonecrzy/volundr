@@ -1,0 +1,1138 @@
+{
+  "premise_only": {
+    "execution_manifest": {
+      "diagnostics": {
+        "active_phase": "metadata_generation",
+        "cadquery_version": "2.8.0",
+        "cadquery_worker_version": "cadquery-cli-runner-v1",
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "completed_output_ids": [
+          "sensor_bracket"
+        ],
+        "exit_code": 0,
+        "incomplete_output_ids": [],
+        "last_completed_operation": {
+          "after": null,
+          "before": null,
+          "elapsed_ms": 2.099,
+          "name": "translate"
+        },
+        "last_started_incomplete_operation": {
+          "before": null,
+          "name": "translate",
+          "started_at_monotonic": 48569.133398779
+        },
+        "message": null,
+        "partial_diagnostic_state_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/diagnostic-state.json",
+        "partial_stderr_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/stderr.log",
+        "partial_stdout_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/stdout.log",
+        "partial_timing_record_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/diagnostic-state.json",
+        "per_output_results": {
+          "sensor_bracket": {
+            "compile_error": null,
+            "required": true,
+            "started_at_monotonic": 48569.121413026,
+            "status": "completed",
+            "timing": {
+              "export_ms": 52.531
+            },
+            "updated_at_monotonic": 48569.1740872
+          }
+        },
+        "process_rss_kb": 552036,
+        "source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+        "started_at_monotonic": 48566.663625184,
+        "subprocess_exit_status": 0,
+        "subprocess_pid": 680701,
+        "timed_out": false,
+        "timeout_deadline_monotonic": 48626.663625184,
+        "timeout_seconds": 60
+      },
+      "duration_seconds": 3.039449,
+      "failure_class": null,
+      "job_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+      "output_ids": [
+        "sensor_bracket"
+      ],
+      "outputs": [
+        {
+          "brep_hash": "c68643d1024d19cbce8ab2d0a4306f10067bdf776bdf1d33150e189a3ef44c4b",
+          "brep_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.brep",
+          "compile_error": null,
+          "entrypoint": "sensor_bracket",
+          "metadata_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.metadata.json",
+          "output_id": "sensor_bracket",
+          "required": true,
+          "source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+          "step_hash": "20b35754da036083075063f5f37b752049b80dd855d0b80ac8652041a0b5f000",
+          "step_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.step",
+          "stl_hash": "c800511643e8579e59f7037f9d51b0c9fab4529f1e6f728f095bb07238a7a57c",
+          "stl_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.stl",
+          "stl_size_bytes": 71684,
+          "success": true,
+          "topology_metadata": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 16,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 15.0,
+              "z_min": -15.0
+            },
+            "outcome": "valid",
+            "output_id": "sensor_bracket",
+            "overall_bounding_box": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                15.0
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 20.000000000000004,
+                  "size_y": 41.0,
+                  "size_z": 30.0,
+                  "x_max": 10.000000000000002,
+                  "x_min": -10.000000000000002,
+                  "y_max": 26.0,
+                  "y_min": -15.0,
+                  "z_max": 30.0,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 2.3601731792294654e-18,
+                  "y": 1.7330473753982902,
+                  "z": 16.08580935409005
+                },
+                "face_count": 16,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 9643.178816329959
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 9643.178816329959
+          },
+          "topology_metadata_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/topology.json"
+        }
+      ],
+      "requested_output_ids": [
+        "sensor_bracket"
+      ],
+      "schema_version": "cad-execution-result-v1",
+      "success": true,
+      "worker_version": "cad-worker-v1"
+    },
+    "job_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+    "job_manifest": {
+      "cad_backend": "cadquery",
+      "execution_limits": {
+        "timeout_seconds": 60
+      },
+      "job_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+      "parameter_values": {
+        "bracket_thickness": 4.0,
+        "chainstay_diameter": 22.0,
+        "screw_diameter": 4.2
+      },
+      "requested_outputs": [
+        {
+          "allow_disconnected_solids": false,
+          "expected_solid_count": 1,
+          "output_id": "sensor_bracket",
+          "required": true
+        }
+      ],
+      "schema_version": "cad-execution-job-v1",
+      "source_contract_version": "cadquery-v1",
+      "source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+      "source_language": "python",
+      "source_path": "input/model.py"
+    },
+    "output_manifest": {
+      "configuration_change_id": null,
+      "design_plan_id": null,
+      "outputs": [
+        {
+          "allow_disconnected_solids": false,
+          "brep": {
+            "path": "projects/7f6e043e-6a1f-4214-b246-bc332858ccb0/revisions/5347644f-5585-45d7-904f-1a84c4ea0a63/brep/sensor_bracket.brep",
+            "sha256": "c68643d1024d19cbce8ab2d0a4306f10067bdf776bdf1d33150e189a3ef44c4b"
+          },
+          "compile_ms": 3726.333,
+          "component_id": "sensor_bracket",
+          "component_ids": [
+            "sensor_bracket"
+          ],
+          "detected_solid_count": 1,
+          "dimensions_mm": {
+            "x": 20.0,
+            "y": 41.0,
+            "z": 30.0
+          },
+          "entrypoint": "sensor_bracket",
+          "expected_solid_count": 1,
+          "filename": "sensor_bracket.stl",
+          "output_id": "sensor_bracket",
+          "parameter_hash": "385418602727f58be6acf0602307ab54041480ce4d2d07fc4d31a8253eb95a21",
+          "quantity": 1,
+          "required": true,
+          "sha256": "c800511643e8579e59f7037f9d51b0c9fab4529f1e6f728f095bb07238a7a57c",
+          "state": "ready_with_warnings",
+          "step": {
+            "path": "projects/7f6e043e-6a1f-4214-b246-bc332858ccb0/revisions/5347644f-5585-45d7-904f-1a84c4ea0a63/step/sensor_bracket.step",
+            "sha256": "20b35754da036083075063f5f37b752049b80dd855d0b80ac8652041a0b5f000"
+          },
+          "stl": {
+            "path": "projects/7f6e043e-6a1f-4214-b246-bc332858ccb0/revisions/5347644f-5585-45d7-904f-1a84c4ea0a63/stl/sensor_bracket.stl",
+            "sha256": "c800511643e8579e59f7037f9d51b0c9fab4529f1e6f728f095bb07238a7a57c"
+          },
+          "topology": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 16,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 15.0,
+              "z_min": -15.0
+            },
+            "outcome": "valid",
+            "output_id": "sensor_bracket",
+            "overall_bounding_box": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                15.0
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 20.000000000000004,
+                  "size_y": 41.0,
+                  "size_z": 30.0,
+                  "x_max": 10.000000000000002,
+                  "x_min": -10.000000000000002,
+                  "y_max": 26.0,
+                  "y_min": -15.0,
+                  "z_max": 30.0,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 2.3601731792294654e-18,
+                  "y": 1.7330473753982902,
+                  "z": 16.08580935409005
+                },
+                "face_count": 16,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 9643.178816329959
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 9643.178816329959
+          }
+        }
+      ],
+      "parameter_hash": "385418602727f58be6acf0602307ab54041480ce4d2d07fc4d31a8253eb95a21",
+      "project_id": "7f6e043e-6a1f-4214-b246-bc332858ccb0",
+      "revision_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+      "schema_version": "output-manifest-v1",
+      "source": {
+        "cad_backend": "cadquery",
+        "filename": "source.py",
+        "path": "projects/7f6e043e-6a1f-4214-b246-bc332858ccb0/revisions/5347644f-5585-45d7-904f-1a84c4ea0a63/source.py",
+        "sha256": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+        "source_contract_version": "cadquery-v1",
+        "source_language": "python"
+      }
+    },
+    "result": {
+      "diagnostics": {
+        "active_phase": "metadata_generation",
+        "cadquery_version": "2.8.0",
+        "cadquery_worker_version": "cadquery-cli-runner-v1",
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "completed_output_ids": [
+          "sensor_bracket"
+        ],
+        "exit_code": 0,
+        "incomplete_output_ids": [],
+        "last_completed_operation": {
+          "after": null,
+          "before": null,
+          "elapsed_ms": 2.099,
+          "name": "translate"
+        },
+        "last_started_incomplete_operation": {
+          "before": null,
+          "name": "translate",
+          "started_at_monotonic": 48569.133398779
+        },
+        "message": null,
+        "partial_diagnostic_state_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/diagnostic-state.json",
+        "partial_stderr_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/stderr.log",
+        "partial_stdout_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/stdout.log",
+        "partial_timing_record_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/diagnostic-state.json",
+        "per_output_results": {
+          "sensor_bracket": {
+            "compile_error": null,
+            "required": true,
+            "started_at_monotonic": 48569.121413026,
+            "status": "completed",
+            "timing": {
+              "export_ms": 52.531
+            },
+            "updated_at_monotonic": 48569.1740872
+          }
+        },
+        "process_rss_kb": 552036,
+        "source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+        "started_at_monotonic": 48566.663625184,
+        "subprocess_exit_status": 0,
+        "subprocess_pid": 680701,
+        "timed_out": false,
+        "timeout_deadline_monotonic": 48626.663625184,
+        "timeout_seconds": 60
+      },
+      "duration_seconds": 3.039449,
+      "failure_class": null,
+      "job_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+      "output_ids": [
+        "sensor_bracket"
+      ],
+      "outputs": [
+        {
+          "brep_hash": "c68643d1024d19cbce8ab2d0a4306f10067bdf776bdf1d33150e189a3ef44c4b",
+          "brep_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.brep",
+          "compile_error": null,
+          "entrypoint": "sensor_bracket",
+          "metadata_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.metadata.json",
+          "output_id": "sensor_bracket",
+          "required": true,
+          "source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+          "step_hash": "20b35754da036083075063f5f37b752049b80dd855d0b80ac8652041a0b5f000",
+          "step_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.step",
+          "stl_hash": "c800511643e8579e59f7037f9d51b0c9fab4529f1e6f728f095bb07238a7a57c",
+          "stl_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.stl",
+          "stl_size_bytes": 71684,
+          "success": true,
+          "topology_metadata": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 16,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 15.0,
+              "z_min": -15.0
+            },
+            "outcome": "valid",
+            "output_id": "sensor_bracket",
+            "overall_bounding_box": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                15.0
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 20.000000000000004,
+                  "size_y": 41.0,
+                  "size_z": 30.0,
+                  "x_max": 10.000000000000002,
+                  "x_min": -10.000000000000002,
+                  "y_max": 26.0,
+                  "y_min": -15.0,
+                  "z_max": 30.0,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 2.3601731792294654e-18,
+                  "y": 1.7330473753982902,
+                  "z": 16.08580935409005
+                },
+                "face_count": 16,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 9643.178816329959
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 9643.178816329959
+          },
+          "topology_metadata_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/topology.json"
+        }
+      ],
+      "requested_output_ids": [
+        "sensor_bracket"
+      ],
+      "schema_version": "cad-execution-result-v1",
+      "success": true,
+      "worker_version": "cad-worker-v1"
+    },
+    "worker_execution_id": "5347644f-5585-45d7-904f-1a84c4ea0a63"
+  },
+  "reference_specification": {
+    "execution_manifest": {
+      "diagnostics": {
+        "active_phase": "metadata_generation",
+        "cadquery_version": "2.8.0",
+        "cadquery_worker_version": "cadquery-cli-runner-v1",
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "completed_output_ids": [
+          "sensor_bracket"
+        ],
+        "exit_code": 0,
+        "incomplete_output_ids": [],
+        "last_completed_operation": {
+          "after": null,
+          "before": null,
+          "elapsed_ms": 2.13,
+          "name": "translate"
+        },
+        "last_started_incomplete_operation": {
+          "before": null,
+          "name": "translate",
+          "started_at_monotonic": 48576.207567054
+        },
+        "message": null,
+        "partial_diagnostic_state_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/diagnostic-state.json",
+        "partial_stderr_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/stderr.log",
+        "partial_stdout_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/stdout.log",
+        "partial_timing_record_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/diagnostic-state.json",
+        "per_output_results": {
+          "sensor_bracket": {
+            "compile_error": null,
+            "required": true,
+            "started_at_monotonic": 48576.197902655,
+            "status": "completed",
+            "timing": {
+              "export_ms": 46.082
+            },
+            "updated_at_monotonic": 48576.244145608
+          }
+        },
+        "process_rss_kb": 552428,
+        "source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+        "started_at_monotonic": 48573.705776951,
+        "subprocess_exit_status": 0,
+        "subprocess_pid": 680780,
+        "timed_out": false,
+        "timeout_deadline_monotonic": 48633.705776951,
+        "timeout_seconds": 60
+      },
+      "duration_seconds": 3.104642,
+      "failure_class": null,
+      "job_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+      "output_ids": [
+        "sensor_bracket"
+      ],
+      "outputs": [
+        {
+          "brep_hash": "73647d22d79ca9e757765150e105c552a257ac1c761d19c32d8bd9a8c114115b",
+          "brep_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.brep",
+          "compile_error": null,
+          "entrypoint": "sensor_bracket",
+          "metadata_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.metadata.json",
+          "output_id": "sensor_bracket",
+          "required": true,
+          "source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+          "step_hash": "202271d37fb34e190ae6f27ee514b1434a293262e79c514fafdfda9f8588a506",
+          "step_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.step",
+          "stl_hash": "1da6f7ffd540e618eede73749478ec71e9c88aa553d3331796231fb07902a45b",
+          "stl_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.stl",
+          "stl_size_bytes": 63084,
+          "success": true,
+          "topology_metadata": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 12,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 13.25,
+              "z_min": -13.25
+            },
+            "outcome": "valid",
+            "output_id": "sensor_bracket",
+            "overall_bounding_box": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                13.25
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 14.0,
+                  "size_y": 13.7,
+                  "size_z": 26.5,
+                  "x_max": 7.0,
+                  "x_min": -7.0,
+                  "y_max": 6.85,
+                  "y_min": -6.85,
+                  "z_max": 26.5,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 2.1575988928565184e-16,
+                  "y": 0.0,
+                  "z": 13.210628829429746
+                },
+                "face_count": 12,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 3853.056300648563
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 3853.056300648563
+          },
+          "topology_metadata_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/topology.json"
+        }
+      ],
+      "requested_output_ids": [
+        "sensor_bracket"
+      ],
+      "schema_version": "cad-execution-result-v1",
+      "success": true,
+      "worker_version": "cad-worker-v1"
+    },
+    "job_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+    "job_manifest": {
+      "cad_backend": "cadquery",
+      "execution_limits": {
+        "timeout_seconds": 60
+      },
+      "job_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+      "parameter_values": {
+        "bracket_depth": 13.7,
+        "bracket_height": 26.5,
+        "bracket_width": 14.0
+      },
+      "requested_outputs": [
+        {
+          "allow_disconnected_solids": false,
+          "expected_solid_count": 1,
+          "output_id": "sensor_bracket",
+          "required": true
+        }
+      ],
+      "schema_version": "cad-execution-job-v1",
+      "source_contract_version": "cadquery-v1",
+      "source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+      "source_language": "python",
+      "source_path": "input/model.py"
+    },
+    "output_manifest": {
+      "configuration_change_id": null,
+      "design_plan_id": null,
+      "outputs": [
+        {
+          "allow_disconnected_solids": false,
+          "brep": {
+            "path": "projects/abb178de-39b3-48f5-bf28-9d6beb589b9b/revisions/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/brep/sensor_bracket.brep",
+            "sha256": "73647d22d79ca9e757765150e105c552a257ac1c761d19c32d8bd9a8c114115b"
+          },
+          "compile_ms": 3416.601,
+          "component_id": "sensor_bracket",
+          "component_ids": [
+            "sensor_bracket"
+          ],
+          "detected_solid_count": 1,
+          "dimensions_mm": {
+            "x": 14.0,
+            "y": 13.699999809265137,
+            "z": 26.5
+          },
+          "entrypoint": "sensor_bracket",
+          "expected_solid_count": 1,
+          "filename": "sensor_bracket.stl",
+          "output_id": "sensor_bracket",
+          "parameter_hash": "4a6fc90d012a1856202fca5d75a35dae0c95bf65ab6419075c380db2b619e0cf",
+          "quantity": 1,
+          "required": true,
+          "sha256": "1da6f7ffd540e618eede73749478ec71e9c88aa553d3331796231fb07902a45b",
+          "state": "ready_with_warnings",
+          "step": {
+            "path": "projects/abb178de-39b3-48f5-bf28-9d6beb589b9b/revisions/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/step/sensor_bracket.step",
+            "sha256": "202271d37fb34e190ae6f27ee514b1434a293262e79c514fafdfda9f8588a506"
+          },
+          "stl": {
+            "path": "projects/abb178de-39b3-48f5-bf28-9d6beb589b9b/revisions/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/stl/sensor_bracket.stl",
+            "sha256": "1da6f7ffd540e618eede73749478ec71e9c88aa553d3331796231fb07902a45b"
+          },
+          "topology": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 12,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 13.25,
+              "z_min": -13.25
+            },
+            "outcome": "valid",
+            "output_id": "sensor_bracket",
+            "overall_bounding_box": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                13.25
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 14.0,
+                  "size_y": 13.7,
+                  "size_z": 26.5,
+                  "x_max": 7.0,
+                  "x_min": -7.0,
+                  "y_max": 6.85,
+                  "y_min": -6.85,
+                  "z_max": 26.5,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 2.1575988928565184e-16,
+                  "y": 0.0,
+                  "z": 13.210628829429746
+                },
+                "face_count": 12,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 3853.056300648563
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 3853.056300648563
+          }
+        }
+      ],
+      "parameter_hash": "4a6fc90d012a1856202fca5d75a35dae0c95bf65ab6419075c380db2b619e0cf",
+      "project_id": "abb178de-39b3-48f5-bf28-9d6beb589b9b",
+      "revision_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+      "schema_version": "output-manifest-v1",
+      "source": {
+        "cad_backend": "cadquery",
+        "filename": "source.py",
+        "path": "projects/abb178de-39b3-48f5-bf28-9d6beb589b9b/revisions/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/source.py",
+        "sha256": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+        "source_contract_version": "cadquery-v1",
+        "source_language": "python"
+      }
+    },
+    "result": {
+      "diagnostics": {
+        "active_phase": "metadata_generation",
+        "cadquery_version": "2.8.0",
+        "cadquery_worker_version": "cadquery-cli-runner-v1",
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "completed_output_ids": [
+          "sensor_bracket"
+        ],
+        "exit_code": 0,
+        "incomplete_output_ids": [],
+        "last_completed_operation": {
+          "after": null,
+          "before": null,
+          "elapsed_ms": 2.13,
+          "name": "translate"
+        },
+        "last_started_incomplete_operation": {
+          "before": null,
+          "name": "translate",
+          "started_at_monotonic": 48576.207567054
+        },
+        "message": null,
+        "partial_diagnostic_state_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/diagnostic-state.json",
+        "partial_stderr_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/stderr.log",
+        "partial_stdout_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/stdout.log",
+        "partial_timing_record_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/diagnostic-state.json",
+        "per_output_results": {
+          "sensor_bracket": {
+            "compile_error": null,
+            "required": true,
+            "started_at_monotonic": 48576.197902655,
+            "status": "completed",
+            "timing": {
+              "export_ms": 46.082
+            },
+            "updated_at_monotonic": 48576.244145608
+          }
+        },
+        "process_rss_kb": 552428,
+        "source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+        "started_at_monotonic": 48573.705776951,
+        "subprocess_exit_status": 0,
+        "subprocess_pid": 680780,
+        "timed_out": false,
+        "timeout_deadline_monotonic": 48633.705776951,
+        "timeout_seconds": 60
+      },
+      "duration_seconds": 3.104642,
+      "failure_class": null,
+      "job_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+      "output_ids": [
+        "sensor_bracket"
+      ],
+      "outputs": [
+        {
+          "brep_hash": "73647d22d79ca9e757765150e105c552a257ac1c761d19c32d8bd9a8c114115b",
+          "brep_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.brep",
+          "compile_error": null,
+          "entrypoint": "sensor_bracket",
+          "metadata_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.metadata.json",
+          "output_id": "sensor_bracket",
+          "required": true,
+          "source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+          "step_hash": "202271d37fb34e190ae6f27ee514b1434a293262e79c514fafdfda9f8588a506",
+          "step_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.step",
+          "stl_hash": "1da6f7ffd540e618eede73749478ec71e9c88aa553d3331796231fb07902a45b",
+          "stl_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.stl",
+          "stl_size_bytes": 63084,
+          "success": true,
+          "topology_metadata": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 12,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 13.25,
+              "z_min": -13.25
+            },
+            "outcome": "valid",
+            "output_id": "sensor_bracket",
+            "overall_bounding_box": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                13.25
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 14.0,
+                  "size_y": 13.7,
+                  "size_z": 26.5,
+                  "x_max": 7.0,
+                  "x_min": -7.0,
+                  "y_max": 6.85,
+                  "y_min": -6.85,
+                  "z_max": 26.5,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 2.1575988928565184e-16,
+                  "y": 0.0,
+                  "z": 13.210628829429746
+                },
+                "face_count": 12,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 3853.056300648563
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 3853.056300648563
+          },
+          "topology_metadata_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/topology.json"
+        }
+      ],
+      "requested_output_ids": [
+        "sensor_bracket"
+      ],
+      "schema_version": "cad-execution-result-v1",
+      "success": true,
+      "worker_version": "cad-worker-v1"
+    },
+    "worker_execution_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62"
+  }
+}

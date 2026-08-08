@@ -1,0 +1,96 @@
+{
+  "premise_only": {
+    "operations": [
+      {
+        "created_at": "2026-08-08 03:27:47.593184",
+        "id": "1c127090-f3b5-431a-b196-2080a9570161",
+        "idempotency_key": "mounting-bracket-001-premise-only",
+        "operation_type": "start_design",
+        "payload_hash": "4ad7fa284ff4958178f20d270089de9b9646b816fe2ed20a5e33dd690f54f10c",
+        "project_id": "7f6e043e-6a1f-4214-b246-bc332858ccb0",
+        "status": "completed",
+        "updated_at": "2026-08-08 03:27:55.430966",
+        "workflow_id": "64fa5bf4-e846-40c8-b0f1-aad87a4c5007"
+      },
+      {
+        "created_at": "2026-08-08 03:27:55.472198",
+        "id": "0b0758a0-d5b4-42aa-8283-c857cbdd1d8d",
+        "idempotency_key": "mounting-bracket-001-premise-only-accept",
+        "operation_type": "accept_candidate",
+        "payload_hash": "0ae108e7f52a04be6261b2f7aafe4aa79600d86847c58613a8f75c1ff72ca814",
+        "project_id": "7f6e043e-6a1f-4214-b246-bc332858ccb0",
+        "status": "completed",
+        "updated_at": "2026-08-08 03:27:55.552492",
+        "workflow_id": "64fa5bf4-e846-40c8-b0f1-aad87a4c5007"
+      }
+    ],
+    "provider_attempts": [
+      {
+        "attempt_id": "f6cacbfc-e04d-481f-bfd8-0b2d4bb49ef7",
+        "created_at": "2026-08-08 03:27:50.523410",
+        "credential_present": 1,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "id": "a03de0cd-8e32-49f0-9188-4429bd9e8010",
+        "logical_operation_id": "bb517cb5-9a88-4d63-9f0a-79dc8a238ce4",
+        "normalized_transport_error": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "27f879c832ec5e97b1ef376827984b4079e320f54cd114dd8b925c387e0190a7",
+        "request_hash": "09d626fbe9db019389063d2443c9f3e95098432b8a1d8d41908b8df8cf904347",
+        "request_started_at": "2026-08-08 03:27:47.635954",
+        "response_length": 3869,
+        "response_received": 1,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ]
+  },
+  "reference_specification": {
+    "operations": [
+      {
+        "created_at": "2026-08-08 03:27:55.635758",
+        "id": "86c6c2d8-9075-45a6-82ea-938c7744c307",
+        "idempotency_key": "mounting-bracket-001-reference-specification",
+        "operation_type": "start_design",
+        "payload_hash": "df57c2a64b8bd8c20bae51c567692cc44e82b83ecb98dc916cd09ef00680edd2",
+        "project_id": "abb178de-39b3-48f5-bf28-9d6beb589b9b",
+        "status": "completed",
+        "updated_at": "2026-08-08 03:28:02.378942",
+        "workflow_id": "e321729e-85d6-489a-8694-bff48d22bcca"
+      },
+      {
+        "created_at": "2026-08-08 03:28:02.401616",
+        "id": "a7f102fb-3453-4a81-bd06-b5142af4f398",
+        "idempotency_key": "mounting-bracket-001-reference-specification-accept",
+        "operation_type": "accept_candidate",
+        "payload_hash": "0fc542601ae3b31c664681d47dfbc172dd78f819b3c2e5f70c58f7b01b935f3e",
+        "project_id": "abb178de-39b3-48f5-bf28-9d6beb589b9b",
+        "status": "completed",
+        "updated_at": "2026-08-08 03:28:02.485996",
+        "workflow_id": "e321729e-85d6-489a-8694-bff48d22bcca"
+      }
+    ],
+    "provider_attempts": [
+      {
+        "attempt_id": "a696d1a3-636a-4f78-bf5f-a62b277a7096",
+        "created_at": "2026-08-08 03:27:57.903483",
+        "credential_present": 1,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "id": "d0811caf-6644-4747-b17a-8297c7029416",
+        "logical_operation_id": "d403eafa-f28a-4ba3-bac1-36306946946e",
+        "normalized_transport_error": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "de1fa6cd36677d14907e4c76834c118024bc7900bb75d5b3369f6b426c259f49",
+        "request_hash": "77709feb18b7e50581736d9c6a3cef5946d09f7a62bd00f434372e75680bb133",
+        "request_started_at": "2026-08-08 03:27:55.649049",
+        "response_length": 3242,
+        "response_received": 1,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ]
+  }
+}

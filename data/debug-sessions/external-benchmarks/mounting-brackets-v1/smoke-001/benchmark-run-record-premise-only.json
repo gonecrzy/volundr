@@ -1,0 +1,613 @@
+{
+  "run_metadata": {
+    "artifact_hashes": {
+      "design-package": "68ec5bbd3b31f25cb6cffb77fa6304628da88b3f87704e6e734b3c39a737b7fc",
+      "sensor_bracket:brep": "c68643d1024d19cbce8ab2d0a4306f10067bdf776bdf1d33150e189a3ef44c4b",
+      "sensor_bracket:step": "20b35754da036083075063f5f37b752049b80dd855d0b80ac8652041a0b5f000",
+      "sensor_bracket:stl": "c800511643e8579e59f7037f9d51b0c9fab4529f1e6f728f095bb07238a7a57c"
+    },
+    "benchmark_project_id": "mounting-bracket-001",
+    "code_commit": "9ceff34f7e3b370efe4106e9afc0ae5eeaf699cc",
+    "failure_class": null,
+    "fallback_calls": 0,
+    "finished_at": "2026-08-08 03:27:55.552492",
+    "first_incorrect_owner": null,
+    "generated_geometry": {
+      "bounding_box_mm": {
+        "size_x": 20.000000000000004,
+        "size_y": 41.0,
+        "size_z": 30.0
+      },
+      "center_of_mass_mm": [
+        1.4760505793341225e-13,
+        1.7330473753982933,
+        16.08580935409006
+      ],
+      "component_count": 1,
+      "solid_count": 1,
+      "surface_area_mm2": 5852.797336683617,
+      "volume_mm3": 9643.17881632996
+    },
+    "idempotency_key": "mounting-bracket-001-premise-only",
+    "intent_sha256": "069e479e26be4ad9cc403e9bf36f437fd2106c36c1487a65d2dca3f843f6157d",
+    "mode": "premise_only",
+    "operations": [
+      {
+        "created_at": "2026-08-08 03:27:47.593184",
+        "id": "1c127090-f3b5-431a-b196-2080a9570161",
+        "idempotency_key": "mounting-bracket-001-premise-only",
+        "operation_type": "start_design",
+        "payload_hash": "4ad7fa284ff4958178f20d270089de9b9646b816fe2ed20a5e33dd690f54f10c",
+        "project_id": "7f6e043e-6a1f-4214-b246-bc332858ccb0",
+        "status": "completed",
+        "updated_at": "2026-08-08 03:27:55.430966",
+        "workflow_id": "64fa5bf4-e846-40c8-b0f1-aad87a4c5007"
+      },
+      {
+        "created_at": "2026-08-08 03:27:55.472198",
+        "id": "0b0758a0-d5b4-42aa-8283-c857cbdd1d8d",
+        "idempotency_key": "mounting-bracket-001-premise-only-accept",
+        "operation_type": "accept_candidate",
+        "payload_hash": "0ae108e7f52a04be6261b2f7aafe4aa79600d86847c58613a8f75c1ff72ca814",
+        "project_id": "7f6e043e-6a1f-4214-b246-bc332858ccb0",
+        "status": "completed",
+        "updated_at": "2026-08-08 03:27:55.552492",
+        "workflow_id": "64fa5bf4-e846-40c8-b0f1-aad87a4c5007"
+      }
+    ],
+    "output_ids": [
+      "sensor_bracket"
+    ],
+    "project_id": "7f6e043e-6a1f-4214-b246-bc332858ccb0",
+    "provider_attempts": [
+      {
+        "attempt_id": "f6cacbfc-e04d-481f-bfd8-0b2d4bb49ef7",
+        "created_at": "2026-08-08 03:27:50.523410",
+        "credential_present": 1,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "id": "a03de0cd-8e32-49f0-9188-4429bd9e8010",
+        "logical_operation_id": "bb517cb5-9a88-4d63-9f0a-79dc8a238ce4",
+        "normalized_transport_error": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "27f879c832ec5e97b1ef376827984b4079e320f54cd114dd8b925c387e0190a7",
+        "request_hash": "09d626fbe9db019389063d2443c9f3e95098432b8a1d8d41908b8df8cf904347",
+        "request_started_at": "2026-08-08 03:27:47.635954",
+        "response_length": 3869,
+        "response_received": 1,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_calls": 1,
+    "reference_comparison": {
+      "reference_similarity": {
+        "metrics": {
+          "bounding_box_error_by_axis_mm": {
+            "x": 5.999999799999998,
+            "y": 27.337290061090787,
+            "z": 3.5001407271615435
+          },
+          "solid_count_agreement": true,
+          "surface_area_difference_mm2": 3859.3680148359963,
+          "surface_area_difference_ratio": 1.936044570298043,
+          "volume_difference_mm3": 6859.85854755024,
+          "volume_difference_ratio": 2.464631406057262
+        },
+        "status": "measured"
+      },
+      "requirement_compliance": {
+        "finding_ids": {
+          "failed": [],
+          "passed": [],
+          "review_required": [],
+          "unsupported_verifier": [],
+          "unverifiable": []
+        },
+        "findings": [],
+        "machine_fail": 0,
+        "machine_pass": 0,
+        "policy_summary": {
+          "failed": 0,
+          "informational": 0,
+          "machine_required": 0,
+          "review_required": 0,
+          "unsupported_verifier": 0,
+          "verified": 0,
+          "version": "executable-cadquery-semantic-policy-v1"
+        },
+        "review_required": 0,
+        "status": "passed",
+        "total_authoritative_requirements": 0,
+        "unsupported_verifier": 0,
+        "unverifiable": 0
+      },
+      "schema_version": "external-cad-comparison-v1"
+    },
+    "reference_geometry": {
+      "bounding_box_mm": {
+        "size_x": 14.000000200000006,
+        "size_y": 13.662709938909213,
+        "size_z": 26.499859272838457
+      },
+      "center_of_mass_mm": [
+        0.0989905917935456,
+        7.7994276242846325,
+        14.869947411376113
+      ],
+      "component_count": 1,
+      "solid_count": 1,
+      "surface_area_mm2": 1993.4293218476207,
+      "volume_mm3": 2783.320268779721
+    },
+    "reference_geometry_sent_to_provider": false,
+    "repair_calls": 0,
+    "repair_history": [],
+    "revision_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+    "semantic_verification": {
+      "candidate_policy": {
+        "blockers": [],
+        "candidate_policy_version": "executable-cadquery-candidate-policy-v1",
+        "candidate_state": "candidate_ready_for_review",
+        "eligible_for_review": true,
+        "fully_verified": false,
+        "independent_review_verdict": null,
+        "review_obligations": [
+          "independent_final_review"
+        ],
+        "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+        "state": "candidate_ready_for_review"
+      },
+      "output_states": {
+        "sensor_bracket": "completed"
+      },
+      "revision_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+      "semantic_verification": {
+        "failed": [],
+        "findings": [],
+        "load_errors": {},
+        "output_ids": [
+          "sensor_bracket"
+        ],
+        "passed": [],
+        "policy_summary": {
+          "failed": 0,
+          "informational": 0,
+          "machine_required": 0,
+          "review_required": 0,
+          "unsupported_verifier": 0,
+          "verified": 0,
+          "version": "executable-cadquery-semantic-policy-v1"
+        },
+        "review_required": [],
+        "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+        "status": "passed",
+        "unsupported_verifier": [],
+        "unverifiable": []
+      },
+      "status": "passed"
+    },
+    "source_contract": {
+      "valid": true,
+      "version": "cadquery-v1"
+    },
+    "source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+    "started_at": "2026-08-08 03:27:47.593184",
+    "terminal_stage": "candidate_ready_and_packaged",
+    "topology_evidence": {
+      "allow_disconnected_solids": false,
+      "bounding_box_mm": {
+        "size_x": 20.000000000000004,
+        "size_y": 41.0,
+        "size_z": 30.0,
+        "x_max": 10.000000000000002,
+        "x_min": -10.000000000000002,
+        "y_max": 26.0,
+        "y_min": -15.0,
+        "z_max": 30.0,
+        "z_min": 0.0
+      },
+      "coordinate_space": "print_space",
+      "detected_solid_count": 1,
+      "disconnected_solid_policy": {
+        "allow_disconnected_solids": false
+      },
+      "expected_solid_count": 1,
+      "face_count": 16,
+      "measurement_errors": [],
+      "measurement_tolerance_mm": 1e-07,
+      "model_space_bounds": {
+        "size_x": 20.000000000000004,
+        "size_y": 41.0,
+        "size_z": 30.0,
+        "x_max": 10.000000000000002,
+        "x_min": -10.000000000000002,
+        "y_max": 26.0,
+        "y_min": -15.0,
+        "z_max": 15.0,
+        "z_min": -15.0
+      },
+      "outcome": "valid",
+      "output_id": "sensor_bracket",
+      "overall_bounding_box": {
+        "size_x": 20.000000000000004,
+        "size_y": 41.0,
+        "size_z": 30.0,
+        "x_max": 10.000000000000002,
+        "x_min": -10.000000000000002,
+        "y_max": 26.0,
+        "y_min": -15.0,
+        "z_max": 30.0,
+        "z_min": 0.0
+      },
+      "overall_shape_valid": true,
+      "placement_policy": "cadquery-output-placement-v1",
+      "print_space_bounds": {
+        "size_x": 20.000000000000004,
+        "size_y": 41.0,
+        "size_z": 30.0,
+        "x_max": 10.000000000000002,
+        "x_min": -10.000000000000002,
+        "y_max": 26.0,
+        "y_min": -15.0,
+        "z_max": 30.0,
+        "z_min": 0.0
+      },
+      "print_transform": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          15.0
+        ]
+      },
+      "schema_version": "topology-evidence-v2",
+      "shell_count": 1,
+      "solid_pairs": [],
+      "solids": [
+        {
+          "bounding_box_mm": {
+            "size_x": 20.000000000000004,
+            "size_y": 41.0,
+            "size_z": 30.0,
+            "x_max": 10.000000000000002,
+            "x_min": -10.000000000000002,
+            "y_max": 26.0,
+            "y_min": -15.0,
+            "z_max": 30.0,
+            "z_min": 0.0
+          },
+          "centroid_mm": {
+            "x": 2.3601731792294654e-18,
+            "y": 1.7330473753982902,
+            "z": 16.08580935409005
+          },
+          "face_count": 16,
+          "shell_count": 1,
+          "solid_id": "solid-0",
+          "solid_index": 0,
+          "valid": true,
+          "volume_mm3": 9643.178816329959
+        }
+      ],
+      "status": "measured",
+      "valid": true,
+      "volume_mm3": 9643.178816329959
+    },
+    "worker_execution_ids": [
+      "5347644f-5585-45d7-904f-1a84c4ea0a63"
+    ],
+    "worker_result": {
+      "diagnostics": {
+        "active_phase": "metadata_generation",
+        "cadquery_version": "2.8.0",
+        "cadquery_worker_version": "cadquery-cli-runner-v1",
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "completed_output_ids": [
+          "sensor_bracket"
+        ],
+        "exit_code": 0,
+        "incomplete_output_ids": [],
+        "last_completed_operation": {
+          "after": null,
+          "before": null,
+          "elapsed_ms": 2.099,
+          "name": "translate"
+        },
+        "last_started_incomplete_operation": {
+          "before": null,
+          "name": "translate",
+          "started_at_monotonic": 48569.133398779
+        },
+        "message": null,
+        "partial_diagnostic_state_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/diagnostic-state.json",
+        "partial_stderr_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/stderr.log",
+        "partial_stdout_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/stdout.log",
+        "partial_timing_record_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/diagnostic-state.json",
+        "per_output_results": {
+          "sensor_bracket": {
+            "compile_error": null,
+            "required": true,
+            "started_at_monotonic": 48569.121413026,
+            "status": "completed",
+            "timing": {
+              "export_ms": 52.531
+            },
+            "updated_at_monotonic": 48569.1740872
+          }
+        },
+        "process_rss_kb": 552036,
+        "source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+        "started_at_monotonic": 48566.663625184,
+        "subprocess_exit_status": 0,
+        "subprocess_pid": 680701,
+        "timed_out": false,
+        "timeout_deadline_monotonic": 48626.663625184,
+        "timeout_seconds": 60
+      },
+      "duration_seconds": 3.039449,
+      "failure_class": null,
+      "job_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+      "output_ids": [
+        "sensor_bracket"
+      ],
+      "outputs": [
+        {
+          "brep_hash": "c68643d1024d19cbce8ab2d0a4306f10067bdf776bdf1d33150e189a3ef44c4b",
+          "brep_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.brep",
+          "compile_error": null,
+          "entrypoint": "sensor_bracket",
+          "metadata_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.metadata.json",
+          "output_id": "sensor_bracket",
+          "required": true,
+          "source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+          "step_hash": "20b35754da036083075063f5f37b752049b80dd855d0b80ac8652041a0b5f000",
+          "step_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.step",
+          "stl_hash": "c800511643e8579e59f7037f9d51b0c9fab4529f1e6f728f095bb07238a7a57c",
+          "stl_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/sensor_bracket.stl",
+          "stl_size_bytes": 71684,
+          "success": true,
+          "topology_metadata": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 16,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 15.0,
+              "z_min": -15.0
+            },
+            "outcome": "valid",
+            "output_id": "sensor_bracket",
+            "overall_bounding_box": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 20.000000000000004,
+              "size_y": 41.0,
+              "size_z": 30.0,
+              "x_max": 10.000000000000002,
+              "x_min": -10.000000000000002,
+              "y_max": 26.0,
+              "y_min": -15.0,
+              "z_max": 30.0,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                15.0
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 20.000000000000004,
+                  "size_y": 41.0,
+                  "size_z": 30.0,
+                  "x_max": 10.000000000000002,
+                  "x_min": -10.000000000000002,
+                  "y_max": 26.0,
+                  "y_min": -15.0,
+                  "z_max": 30.0,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 2.3601731792294654e-18,
+                  "y": 1.7330473753982902,
+                  "z": 16.08580935409005
+                },
+                "face_count": 16,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 9643.178816329959
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 9643.178816329959
+          },
+          "topology_metadata_path": "work/5347644f-5585-45d7-904f-1a84c4ea0a63/outputs/sensor_bracket/topology.json"
+        }
+      ],
+      "requested_output_ids": [
+        "sensor_bracket"
+      ],
+      "schema_version": "cad-execution-result-v1",
+      "success": true,
+      "worker_version": "cad-worker-v1"
+    },
+    "workflow_id": "64fa5bf4-e846-40c8-b0f1-aad87a4c5007"
+  },
+  "run_record": {
+    "artifact_hashes": {
+      "design-package": "68ec5bbd3b31f25cb6cffb77fa6304628da88b3f87704e6e734b3c39a737b7fc",
+      "sensor_bracket:brep": "c68643d1024d19cbce8ab2d0a4306f10067bdf776bdf1d33150e189a3ef44c4b",
+      "sensor_bracket:step": "20b35754da036083075063f5f37b752049b80dd855d0b80ac8652041a0b5f000",
+      "sensor_bracket:stl": "c800511643e8579e59f7037f9d51b0c9fab4529f1e6f728f095bb07238a7a57c"
+    },
+    "benchmark_project_id": "mounting-bracket-001",
+    "brep_topology_result": {
+      "output_id": "sensor_bracket",
+      "schema_version": "topology-evidence-v2",
+      "solid_count": 1,
+      "valid": true
+    },
+    "failure_class": null,
+    "failure_stage": null,
+    "first_incorrect_owner": null,
+    "generated_source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+    "mode": "premise_only",
+    "prompt_hashes": {
+      "intent": "069e479e26be4ad9cc403e9bf36f437fd2106c36c1487a65d2dca3f843f6157d"
+    },
+    "provider_attempt_ids": [
+      "f6cacbfc-e04d-481f-bfd8-0b2d4bb49ef7"
+    ],
+    "provider_model_profile": {
+      "code_commit": "9ceff34f7e3b370efe4106e9afc0ae5eeaf699cc",
+      "model": "gemini-3.5-flash-lite",
+      "provider": "gemini_api",
+      "transport": "Gemini REST API with x-goog-api-key"
+    },
+    "reference_metrics": {
+      "reference_similarity": {
+        "metrics": {
+          "bounding_box_error_by_axis_mm": {
+            "x": 5.999999799999998,
+            "y": 27.337290061090787,
+            "z": 3.5001407271615435
+          },
+          "solid_count_agreement": true,
+          "surface_area_difference_mm2": 3859.3680148359963,
+          "surface_area_difference_ratio": 1.936044570298043,
+          "volume_difference_mm3": 6859.85854755024,
+          "volume_difference_ratio": 2.464631406057262
+        },
+        "status": "measured"
+      },
+      "requirement_compliance": {
+        "finding_ids": {
+          "failed": [],
+          "passed": [],
+          "review_required": [],
+          "unsupported_verifier": [],
+          "unverifiable": []
+        },
+        "findings": [],
+        "machine_fail": 0,
+        "machine_pass": 0,
+        "policy_summary": {
+          "failed": 0,
+          "informational": 0,
+          "machine_required": 0,
+          "review_required": 0,
+          "unsupported_verifier": 0,
+          "verified": 0,
+          "version": "executable-cadquery-semantic-policy-v1"
+        },
+        "review_required": 0,
+        "status": "passed",
+        "total_authoritative_requirements": 0,
+        "unsupported_verifier": 0,
+        "unverifiable": 0
+      },
+      "schema_version": "external-cad-comparison-v1"
+    },
+    "revision_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+    "schema_version": "external-cad-benchmark-run-v1",
+    "semantic_verification_result": {
+      "finding_ids": {
+        "failed": [],
+        "passed": [],
+        "review_required": [],
+        "unsupported_verifier": [],
+        "unverifiable": []
+      },
+      "findings": [],
+      "machine_fail": 0,
+      "machine_pass": 0,
+      "policy_summary": {
+        "failed": 0,
+        "informational": 0,
+        "machine_required": 0,
+        "review_required": 0,
+        "unsupported_verifier": 0,
+        "verified": 0,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": 0,
+      "status": "passed",
+      "total_authoritative_requirements": 0,
+      "unsupported_verifier": 0,
+      "unverifiable": 0
+    },
+    "worker_result": {
+      "duration_seconds": 3.039449,
+      "failure_class": null,
+      "job_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+      "output_ids": [
+        "sensor_bracket"
+      ],
+      "success": true
+    },
+    "workflow_id": "64fa5bf4-e846-40c8-b0f1-aad87a4c5007"
+  },
+  "schema_version": "external-cad-benchmark-run-evidence-v1"
+}

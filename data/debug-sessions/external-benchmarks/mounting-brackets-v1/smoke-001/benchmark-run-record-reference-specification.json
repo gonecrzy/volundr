@@ -1,0 +1,833 @@
+{
+  "run_metadata": {
+    "artifact_hashes": {
+      "design-package": "d852dc6d5bc1048425f2d08743ea8367c3d1f881d5735d3d8c758dc045d345f8",
+      "sensor_bracket:brep": "73647d22d79ca9e757765150e105c552a257ac1c761d19c32d8bd9a8c114115b",
+      "sensor_bracket:step": "202271d37fb34e190ae6f27ee514b1434a293262e79c514fafdfda9f8588a506",
+      "sensor_bracket:stl": "1da6f7ffd540e618eede73749478ec71e9c88aa553d3331796231fb07902a45b"
+    },
+    "benchmark_project_id": "mounting-bracket-001",
+    "code_commit": "9ceff34f7e3b370efe4106e9afc0ae5eeaf699cc",
+    "failure_class": null,
+    "fallback_calls": 0,
+    "finished_at": "2026-08-08 03:28:02.485996",
+    "first_incorrect_owner": null,
+    "generated_geometry": {
+      "bounding_box_mm": {
+        "size_x": 14.0,
+        "size_y": 13.7,
+        "size_z": 26.5
+      },
+      "center_of_mass_mm": [
+        8.296613178598414e-15,
+        -9.630636288933621e-14,
+        13.210628829429202
+      ],
+      "component_count": 1,
+      "solid_count": 1,
+      "surface_area_mm2": 2345.1947057053153,
+      "volume_mm3": 3853.0563006490916
+    },
+    "idempotency_key": "mounting-bracket-001-reference-specification",
+    "intent_sha256": "b4be606c6cf29fe8d737f93f1ea9fd14c65e745233c3599fcc04cf7a5b635437",
+    "mode": "reference_specification",
+    "operations": [
+      {
+        "created_at": "2026-08-08 03:27:55.635758",
+        "id": "86c6c2d8-9075-45a6-82ea-938c7744c307",
+        "idempotency_key": "mounting-bracket-001-reference-specification",
+        "operation_type": "start_design",
+        "payload_hash": "df57c2a64b8bd8c20bae51c567692cc44e82b83ecb98dc916cd09ef00680edd2",
+        "project_id": "abb178de-39b3-48f5-bf28-9d6beb589b9b",
+        "status": "completed",
+        "updated_at": "2026-08-08 03:28:02.378942",
+        "workflow_id": "e321729e-85d6-489a-8694-bff48d22bcca"
+      },
+      {
+        "created_at": "2026-08-08 03:28:02.401616",
+        "id": "a7f102fb-3453-4a81-bd06-b5142af4f398",
+        "idempotency_key": "mounting-bracket-001-reference-specification-accept",
+        "operation_type": "accept_candidate",
+        "payload_hash": "0fc542601ae3b31c664681d47dfbc172dd78f819b3c2e5f70c58f7b01b935f3e",
+        "project_id": "abb178de-39b3-48f5-bf28-9d6beb589b9b",
+        "status": "completed",
+        "updated_at": "2026-08-08 03:28:02.485996",
+        "workflow_id": "e321729e-85d6-489a-8694-bff48d22bcca"
+      }
+    ],
+    "output_ids": [
+      "sensor_bracket"
+    ],
+    "project_id": "abb178de-39b3-48f5-bf28-9d6beb589b9b",
+    "provider_attempts": [
+      {
+        "attempt_id": "a696d1a3-636a-4f78-bf5f-a62b277a7096",
+        "created_at": "2026-08-08 03:27:57.903483",
+        "credential_present": 1,
+        "credential_slot": "primary",
+        "exception_type": null,
+        "failure_class": null,
+        "id": "d0811caf-6644-4747-b17a-8297c7029416",
+        "logical_operation_id": "d403eafa-f28a-4ba3-bac1-36306946946e",
+        "normalized_transport_error": null,
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "de1fa6cd36677d14907e4c76834c118024bc7900bb75d5b3369f6b426c259f49",
+        "request_hash": "77709feb18b7e50581736d9c6a3cef5946d09f7a62bd00f434372e75680bb133",
+        "request_started_at": "2026-08-08 03:27:55.649049",
+        "response_length": 3242,
+        "response_received": 1,
+        "status_code": 200,
+        "transport_retry_classification": "none"
+      }
+    ],
+    "provider_calls": 1,
+    "reference_comparison": {
+      "reference_similarity": {
+        "metrics": {
+          "bounding_box_error_by_axis_mm": {
+            "x": 2.0000000588993316e-07,
+            "y": 0.03729006109078625,
+            "z": 0.00014072716154345244
+          },
+          "solid_count_agreement": true,
+          "surface_area_difference_mm2": 351.7653838576946,
+          "surface_area_difference_ratio": 0.17646243084839294,
+          "volume_difference_mm3": 1069.7360318693704,
+          "volume_difference_ratio": 0.3843381029012411
+        },
+        "status": "measured"
+      },
+      "requirement_compliance": {
+        "finding_ids": {
+          "failed": [],
+          "passed": [
+            "overall_envelope"
+          ],
+          "review_required": [],
+          "unsupported_verifier": [],
+          "unverifiable": []
+        },
+        "findings": [
+          {
+            "evidence_source": "final_mesh",
+            "expected_value": {
+              "depth": 13.7,
+              "height": 26.5,
+              "width": 14
+            },
+            "measured_value": {
+              "detected_mm": [
+                14,
+                13.7,
+                26.5
+              ],
+              "expected_mm": [
+                14,
+                13.7,
+                26.5
+              ],
+              "scope_resolution": {
+                "available_output_ids": [
+                  "sensor_bracket"
+                ],
+                "output_ids": [
+                  "sensor_bracket"
+                ],
+                "reason": "explicit_scope_resolved",
+                "requested_identities": [
+                  {
+                    "field": "scope",
+                    "values": [
+                      "sensor_bracket"
+                    ]
+                  }
+                ],
+                "scope_kind": "output_local",
+                "status": "resolved"
+              }
+            },
+            "measurement_available": true,
+            "observed_status": "passed",
+            "policy": "machine_required",
+            "requirement_id": "overall_envelope",
+            "result": "verified",
+            "semantic_contract": {
+              "canonical_fields": [],
+              "shadowed_legacy_fields": [],
+              "status": "normalized",
+              "version": "executable-cadquery-semantic-contract-v1"
+            },
+            "tolerance": 0.5,
+            "verification_policy": "final_mesh_bounds"
+          }
+        ],
+        "machine_fail": 0,
+        "machine_pass": 1,
+        "policy_summary": {
+          "failed": 0,
+          "informational": 0,
+          "machine_required": 1,
+          "review_required": 0,
+          "unsupported_verifier": 0,
+          "verified": 1,
+          "version": "executable-cadquery-semantic-policy-v1"
+        },
+        "review_required": 0,
+        "status": "passed",
+        "total_authoritative_requirements": 1,
+        "unsupported_verifier": 0,
+        "unverifiable": 0
+      },
+      "schema_version": "external-cad-comparison-v1"
+    },
+    "reference_geometry": {
+      "bounding_box_mm": {
+        "size_x": 14.000000200000006,
+        "size_y": 13.662709938909213,
+        "size_z": 26.499859272838457
+      },
+      "center_of_mass_mm": [
+        0.0989905917935456,
+        7.7994276242846325,
+        14.869947411376113
+      ],
+      "component_count": 1,
+      "solid_count": 1,
+      "surface_area_mm2": 1993.4293218476207,
+      "volume_mm3": 2783.320268779721
+    },
+    "reference_geometry_sent_to_provider": false,
+    "repair_calls": 0,
+    "repair_history": [],
+    "revision_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+    "semantic_verification": {
+      "candidate_policy": {
+        "blockers": [],
+        "candidate_policy_version": "executable-cadquery-candidate-policy-v1",
+        "candidate_state": "candidate_ready_for_review",
+        "eligible_for_review": true,
+        "fully_verified": false,
+        "independent_review_verdict": null,
+        "review_obligations": [
+          "independent_final_review"
+        ],
+        "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+        "state": "candidate_ready_for_review"
+      },
+      "output_states": {
+        "sensor_bracket": "completed"
+      },
+      "revision_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+      "semantic_verification": {
+        "failed": [],
+        "findings": [
+          {
+            "evidence_source": "final_mesh",
+            "expected_value": {
+              "depth": 13.7,
+              "height": 26.5,
+              "width": 14
+            },
+            "measured_value": {
+              "detected_mm": [
+                14,
+                13.7,
+                26.5
+              ],
+              "expected_mm": [
+                14,
+                13.7,
+                26.5
+              ],
+              "scope_resolution": {
+                "available_output_ids": [
+                  "sensor_bracket"
+                ],
+                "output_ids": [
+                  "sensor_bracket"
+                ],
+                "reason": "explicit_scope_resolved",
+                "requested_identities": [
+                  {
+                    "field": "scope",
+                    "values": [
+                      "sensor_bracket"
+                    ]
+                  }
+                ],
+                "scope_kind": "output_local",
+                "status": "resolved"
+              }
+            },
+            "measurement_available": true,
+            "observed_status": "passed",
+            "policy": "machine_required",
+            "requirement_id": "overall_envelope",
+            "result": "verified",
+            "semantic_contract": {
+              "canonical_fields": [],
+              "shadowed_legacy_fields": [],
+              "status": "normalized",
+              "version": "executable-cadquery-semantic-contract-v1"
+            },
+            "tolerance": 0.5,
+            "verification_policy": "final_mesh_bounds"
+          }
+        ],
+        "load_errors": {},
+        "output_ids": [
+          "sensor_bracket"
+        ],
+        "passed": [
+          "overall_envelope"
+        ],
+        "policy_summary": {
+          "failed": 0,
+          "informational": 0,
+          "machine_required": 1,
+          "review_required": 0,
+          "unsupported_verifier": 0,
+          "verified": 1,
+          "version": "executable-cadquery-semantic-policy-v1"
+        },
+        "review_required": [],
+        "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+        "status": "passed",
+        "unsupported_verifier": [],
+        "unverifiable": []
+      },
+      "status": "passed"
+    },
+    "source_contract": {
+      "valid": true,
+      "version": "cadquery-v1"
+    },
+    "source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+    "started_at": "2026-08-08 03:27:55.635758",
+    "terminal_stage": "candidate_ready_and_packaged",
+    "topology_evidence": {
+      "allow_disconnected_solids": false,
+      "bounding_box_mm": {
+        "size_x": 14.0,
+        "size_y": 13.7,
+        "size_z": 26.5,
+        "x_max": 7.0,
+        "x_min": -7.0,
+        "y_max": 6.85,
+        "y_min": -6.85,
+        "z_max": 26.5,
+        "z_min": 0.0
+      },
+      "coordinate_space": "print_space",
+      "detected_solid_count": 1,
+      "disconnected_solid_policy": {
+        "allow_disconnected_solids": false
+      },
+      "expected_solid_count": 1,
+      "face_count": 12,
+      "measurement_errors": [],
+      "measurement_tolerance_mm": 1e-07,
+      "model_space_bounds": {
+        "size_x": 14.0,
+        "size_y": 13.7,
+        "size_z": 26.5,
+        "x_max": 7.0,
+        "x_min": -7.0,
+        "y_max": 6.85,
+        "y_min": -6.85,
+        "z_max": 13.25,
+        "z_min": -13.25
+      },
+      "outcome": "valid",
+      "output_id": "sensor_bracket",
+      "overall_bounding_box": {
+        "size_x": 14.0,
+        "size_y": 13.7,
+        "size_z": 26.5,
+        "x_max": 7.0,
+        "x_min": -7.0,
+        "y_max": 6.85,
+        "y_min": -6.85,
+        "z_max": 26.5,
+        "z_min": 0.0
+      },
+      "overall_shape_valid": true,
+      "placement_policy": "cadquery-output-placement-v1",
+      "print_space_bounds": {
+        "size_x": 14.0,
+        "size_y": 13.7,
+        "size_z": 26.5,
+        "x_max": 7.0,
+        "x_min": -7.0,
+        "y_max": 6.85,
+        "y_min": -6.85,
+        "z_max": 26.5,
+        "z_min": 0.0
+      },
+      "print_transform": {
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          13.25
+        ]
+      },
+      "schema_version": "topology-evidence-v2",
+      "shell_count": 1,
+      "solid_pairs": [],
+      "solids": [
+        {
+          "bounding_box_mm": {
+            "size_x": 14.0,
+            "size_y": 13.7,
+            "size_z": 26.5,
+            "x_max": 7.0,
+            "x_min": -7.0,
+            "y_max": 6.85,
+            "y_min": -6.85,
+            "z_max": 26.5,
+            "z_min": 0.0
+          },
+          "centroid_mm": {
+            "x": 2.1575988928565184e-16,
+            "y": 0.0,
+            "z": 13.210628829429746
+          },
+          "face_count": 12,
+          "shell_count": 1,
+          "solid_id": "solid-0",
+          "solid_index": 0,
+          "valid": true,
+          "volume_mm3": 3853.056300648563
+        }
+      ],
+      "status": "measured",
+      "valid": true,
+      "volume_mm3": 3853.056300648563
+    },
+    "worker_execution_ids": [
+      "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62"
+    ],
+    "worker_result": {
+      "diagnostics": {
+        "active_phase": "metadata_generation",
+        "cadquery_version": "2.8.0",
+        "cadquery_worker_version": "cadquery-cli-runner-v1",
+        "command_args": [
+          "python",
+          "_volundr_cadquery_runner.py",
+          "outputs",
+          "execution-manifest.json",
+          "parameter-values.json",
+          "requested-outputs.json"
+        ],
+        "completed_output_ids": [
+          "sensor_bracket"
+        ],
+        "exit_code": 0,
+        "incomplete_output_ids": [],
+        "last_completed_operation": {
+          "after": null,
+          "before": null,
+          "elapsed_ms": 2.13,
+          "name": "translate"
+        },
+        "last_started_incomplete_operation": {
+          "before": null,
+          "name": "translate",
+          "started_at_monotonic": 48576.207567054
+        },
+        "message": null,
+        "partial_diagnostic_state_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/diagnostic-state.json",
+        "partial_stderr_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/stderr.log",
+        "partial_stdout_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/stdout.log",
+        "partial_timing_record_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/diagnostic-state.json",
+        "per_output_results": {
+          "sensor_bracket": {
+            "compile_error": null,
+            "required": true,
+            "started_at_monotonic": 48576.197902655,
+            "status": "completed",
+            "timing": {
+              "export_ms": 46.082
+            },
+            "updated_at_monotonic": 48576.244145608
+          }
+        },
+        "process_rss_kb": 552428,
+        "source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+        "started_at_monotonic": 48573.705776951,
+        "subprocess_exit_status": 0,
+        "subprocess_pid": 680780,
+        "timed_out": false,
+        "timeout_deadline_monotonic": 48633.705776951,
+        "timeout_seconds": 60
+      },
+      "duration_seconds": 3.104642,
+      "failure_class": null,
+      "job_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+      "output_ids": [
+        "sensor_bracket"
+      ],
+      "outputs": [
+        {
+          "brep_hash": "73647d22d79ca9e757765150e105c552a257ac1c761d19c32d8bd9a8c114115b",
+          "brep_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.brep",
+          "compile_error": null,
+          "entrypoint": "sensor_bracket",
+          "metadata_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.metadata.json",
+          "output_id": "sensor_bracket",
+          "required": true,
+          "source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+          "step_hash": "202271d37fb34e190ae6f27ee514b1434a293262e79c514fafdfda9f8588a506",
+          "step_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.step",
+          "stl_hash": "1da6f7ffd540e618eede73749478ec71e9c88aa553d3331796231fb07902a45b",
+          "stl_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/sensor_bracket.stl",
+          "stl_size_bytes": 63084,
+          "success": true,
+          "topology_metadata": {
+            "allow_disconnected_solids": false,
+            "bounding_box_mm": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "coordinate_space": "print_space",
+            "detected_solid_count": 1,
+            "disconnected_solid_policy": {
+              "allow_disconnected_solids": false
+            },
+            "expected_solid_count": 1,
+            "face_count": 12,
+            "measurement_errors": [],
+            "measurement_tolerance_mm": 1e-07,
+            "model_space_bounds": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 13.25,
+              "z_min": -13.25
+            },
+            "outcome": "valid",
+            "output_id": "sensor_bracket",
+            "overall_bounding_box": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "overall_shape_valid": true,
+            "placement_policy": "cadquery-output-placement-v1",
+            "print_space_bounds": {
+              "size_x": 14.0,
+              "size_y": 13.7,
+              "size_z": 26.5,
+              "x_max": 7.0,
+              "x_min": -7.0,
+              "y_max": 6.85,
+              "y_min": -6.85,
+              "z_max": 26.5,
+              "z_min": 0.0
+            },
+            "print_transform": {
+              "rotation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                13.25
+              ]
+            },
+            "schema_version": "topology-evidence-v2",
+            "shell_count": 1,
+            "solid_pairs": [],
+            "solids": [
+              {
+                "bounding_box_mm": {
+                  "size_x": 14.0,
+                  "size_y": 13.7,
+                  "size_z": 26.5,
+                  "x_max": 7.0,
+                  "x_min": -7.0,
+                  "y_max": 6.85,
+                  "y_min": -6.85,
+                  "z_max": 26.5,
+                  "z_min": 0.0
+                },
+                "centroid_mm": {
+                  "x": 2.1575988928565184e-16,
+                  "y": 0.0,
+                  "z": 13.210628829429746
+                },
+                "face_count": 12,
+                "shell_count": 1,
+                "solid_id": "solid-0",
+                "solid_index": 0,
+                "valid": true,
+                "volume_mm3": 3853.056300648563
+              }
+            ],
+            "status": "measured",
+            "valid": true,
+            "volume_mm3": 3853.056300648563
+          },
+          "topology_metadata_path": "work/bba71c46-d36f-4cb2-ac2b-a6aea6ceac62/outputs/sensor_bracket/topology.json"
+        }
+      ],
+      "requested_output_ids": [
+        "sensor_bracket"
+      ],
+      "schema_version": "cad-execution-result-v1",
+      "success": true,
+      "worker_version": "cad-worker-v1"
+    },
+    "workflow_id": "e321729e-85d6-489a-8694-bff48d22bcca"
+  },
+  "run_record": {
+    "artifact_hashes": {
+      "design-package": "d852dc6d5bc1048425f2d08743ea8367c3d1f881d5735d3d8c758dc045d345f8",
+      "sensor_bracket:brep": "73647d22d79ca9e757765150e105c552a257ac1c761d19c32d8bd9a8c114115b",
+      "sensor_bracket:step": "202271d37fb34e190ae6f27ee514b1434a293262e79c514fafdfda9f8588a506",
+      "sensor_bracket:stl": "1da6f7ffd540e618eede73749478ec71e9c88aa553d3331796231fb07902a45b"
+    },
+    "benchmark_project_id": "mounting-bracket-001",
+    "brep_topology_result": {
+      "output_id": "sensor_bracket",
+      "schema_version": "topology-evidence-v2",
+      "solid_count": 1,
+      "valid": true
+    },
+    "failure_class": null,
+    "failure_stage": null,
+    "first_incorrect_owner": null,
+    "generated_source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+    "mode": "reference_specification",
+    "prompt_hashes": {
+      "intent": "b4be606c6cf29fe8d737f93f1ea9fd14c65e745233c3599fcc04cf7a5b635437"
+    },
+    "provider_attempt_ids": [
+      "a696d1a3-636a-4f78-bf5f-a62b277a7096"
+    ],
+    "provider_model_profile": {
+      "code_commit": "9ceff34f7e3b370efe4106e9afc0ae5eeaf699cc",
+      "model": "gemini-3.5-flash-lite",
+      "provider": "gemini_api",
+      "transport": "Gemini REST API with x-goog-api-key"
+    },
+    "reference_metrics": {
+      "reference_similarity": {
+        "metrics": {
+          "bounding_box_error_by_axis_mm": {
+            "x": 2.0000000588993316e-07,
+            "y": 0.03729006109078625,
+            "z": 0.00014072716154345244
+          },
+          "solid_count_agreement": true,
+          "surface_area_difference_mm2": 351.7653838576946,
+          "surface_area_difference_ratio": 0.17646243084839294,
+          "volume_difference_mm3": 1069.7360318693704,
+          "volume_difference_ratio": 0.3843381029012411
+        },
+        "status": "measured"
+      },
+      "requirement_compliance": {
+        "finding_ids": {
+          "failed": [],
+          "passed": [
+            "overall_envelope"
+          ],
+          "review_required": [],
+          "unsupported_verifier": [],
+          "unverifiable": []
+        },
+        "findings": [
+          {
+            "evidence_source": "final_mesh",
+            "expected_value": {
+              "depth": 13.7,
+              "height": 26.5,
+              "width": 14
+            },
+            "measured_value": {
+              "detected_mm": [
+                14,
+                13.7,
+                26.5
+              ],
+              "expected_mm": [
+                14,
+                13.7,
+                26.5
+              ],
+              "scope_resolution": {
+                "available_output_ids": [
+                  "sensor_bracket"
+                ],
+                "output_ids": [
+                  "sensor_bracket"
+                ],
+                "reason": "explicit_scope_resolved",
+                "requested_identities": [
+                  {
+                    "field": "scope",
+                    "values": [
+                      "sensor_bracket"
+                    ]
+                  }
+                ],
+                "scope_kind": "output_local",
+                "status": "resolved"
+              }
+            },
+            "measurement_available": true,
+            "observed_status": "passed",
+            "policy": "machine_required",
+            "requirement_id": "overall_envelope",
+            "result": "verified",
+            "semantic_contract": {
+              "canonical_fields": [],
+              "shadowed_legacy_fields": [],
+              "status": "normalized",
+              "version": "executable-cadquery-semantic-contract-v1"
+            },
+            "tolerance": 0.5,
+            "verification_policy": "final_mesh_bounds"
+          }
+        ],
+        "machine_fail": 0,
+        "machine_pass": 1,
+        "policy_summary": {
+          "failed": 0,
+          "informational": 0,
+          "machine_required": 1,
+          "review_required": 0,
+          "unsupported_verifier": 0,
+          "verified": 1,
+          "version": "executable-cadquery-semantic-policy-v1"
+        },
+        "review_required": 0,
+        "status": "passed",
+        "total_authoritative_requirements": 1,
+        "unsupported_verifier": 0,
+        "unverifiable": 0
+      },
+      "schema_version": "external-cad-comparison-v1"
+    },
+    "revision_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+    "schema_version": "external-cad-benchmark-run-v1",
+    "semantic_verification_result": {
+      "finding_ids": {
+        "failed": [],
+        "passed": [
+          "overall_envelope"
+        ],
+        "review_required": [],
+        "unsupported_verifier": [],
+        "unverifiable": []
+      },
+      "findings": [
+        {
+          "evidence_source": "final_mesh",
+          "expected_value": {
+            "depth": 13.7,
+            "height": 26.5,
+            "width": 14
+          },
+          "measured_value": {
+            "detected_mm": [
+              14,
+              13.7,
+              26.5
+            ],
+            "expected_mm": [
+              14,
+              13.7,
+              26.5
+            ],
+            "scope_resolution": {
+              "available_output_ids": [
+                "sensor_bracket"
+              ],
+              "output_ids": [
+                "sensor_bracket"
+              ],
+              "reason": "explicit_scope_resolved",
+              "requested_identities": [
+                {
+                  "field": "scope",
+                  "values": [
+                    "sensor_bracket"
+                  ]
+                }
+              ],
+              "scope_kind": "output_local",
+              "status": "resolved"
+            }
+          },
+          "measurement_available": true,
+          "observed_status": "passed",
+          "policy": "machine_required",
+          "requirement_id": "overall_envelope",
+          "result": "verified",
+          "semantic_contract": {
+            "canonical_fields": [],
+            "shadowed_legacy_fields": [],
+            "status": "normalized",
+            "version": "executable-cadquery-semantic-contract-v1"
+          },
+          "tolerance": 0.5,
+          "verification_policy": "final_mesh_bounds"
+        }
+      ],
+      "machine_fail": 0,
+      "machine_pass": 1,
+      "policy_summary": {
+        "failed": 0,
+        "informational": 0,
+        "machine_required": 1,
+        "review_required": 0,
+        "unsupported_verifier": 0,
+        "verified": 1,
+        "version": "executable-cadquery-semantic-policy-v1"
+      },
+      "review_required": 0,
+      "status": "passed",
+      "total_authoritative_requirements": 1,
+      "unsupported_verifier": 0,
+      "unverifiable": 0
+    },
+    "worker_result": {
+      "duration_seconds": 3.104642,
+      "failure_class": null,
+      "job_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+      "output_ids": [
+        "sensor_bracket"
+      ],
+      "success": true
+    },
+    "workflow_id": "e321729e-85d6-489a-8694-bff48d22bcca"
+  },
+  "schema_version": "external-cad-benchmark-run-evidence-v1"
+}

@@ -1,0 +1,92 @@
+{
+  "benchmark_project_id": "mounting-bracket-001",
+  "code_commit": "9ceff34f7e3b370efe4106e9afc0ae5eeaf699cc",
+  "comparison_alignment": "none",
+  "fallback_calls_total": 0,
+  "harness_validity": {
+    "benchmark_only_cad_generation_logic": false,
+    "comparison_metrics_without_manual_intervention": true,
+    "complete_provenance": true,
+    "normal_workflow": true,
+    "reference_evaluator_only": true,
+    "reproducible_from_persisted_ids_and_artifacts": true,
+    "requirement_compliance_separate_from_similarity": true
+  },
+  "modes": {
+    "premise_only": {
+      "fallback_calls": 0,
+      "provider_calls": 1,
+      "reference_similarity": {
+        "metrics": {
+          "bounding_box_error_by_axis_mm": {
+            "x": 5.999999799999998,
+            "y": 27.337290061090787,
+            "z": 3.5001407271615435
+          },
+          "solid_count_agreement": true,
+          "surface_area_difference_mm2": 3859.3680148359963,
+          "surface_area_difference_ratio": 1.936044570298043,
+          "volume_difference_mm3": 6859.85854755024,
+          "volume_difference_ratio": 2.464631406057262
+        },
+        "status": "measured"
+      },
+      "repair_calls": 0,
+      "revision_id": "5347644f-5585-45d7-904f-1a84c4ea0a63",
+      "semantic": {
+        "machine_fail": 0,
+        "machine_pass": 0,
+        "review_required": 0,
+        "status": "passed",
+        "unverifiable": 0
+      },
+      "solid_count": 1,
+      "source_hash": "5fe0c51f96fcdc74a5c981fdf8d7d89d2811f1a9da87f035bf44658d0b8b5fca",
+      "topology_valid": true,
+      "worker_execution_ids": [
+        "5347644f-5585-45d7-904f-1a84c4ea0a63"
+      ],
+      "workflow_id": "64fa5bf4-e846-40c8-b0f1-aad87a4c5007"
+    },
+    "reference_specification": {
+      "fallback_calls": 0,
+      "provider_calls": 1,
+      "reference_similarity": {
+        "metrics": {
+          "bounding_box_error_by_axis_mm": {
+            "x": 2.0000000588993316e-07,
+            "y": 0.03729006109078625,
+            "z": 0.00014072716154345244
+          },
+          "solid_count_agreement": true,
+          "surface_area_difference_mm2": 351.7653838576946,
+          "surface_area_difference_ratio": 0.17646243084839294,
+          "volume_difference_mm3": 1069.7360318693704,
+          "volume_difference_ratio": 0.3843381029012411
+        },
+        "status": "measured"
+      },
+      "repair_calls": 0,
+      "revision_id": "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62",
+      "semantic": {
+        "machine_fail": 0,
+        "machine_pass": 1,
+        "review_required": 0,
+        "status": "passed",
+        "unverifiable": 0
+      },
+      "solid_count": 1,
+      "source_hash": "e7d7e5befc5cf3252a4564766bc53feb377e7c453947275e7a2e96dd7496ff7a",
+      "topology_valid": true,
+      "worker_execution_ids": [
+        "bba71c46-d36f-4cb2-ac2b-a6aea6ceac62"
+      ],
+      "workflow_id": "e321729e-85d6-489a-8694-bff48d22bcca"
+    }
+  },
+  "provider_calls_total": 2,
+  "reference_geometry_sent_to_provider": false,
+  "repair_calls_total": 0,
+  "schema_version": "external-cad-benchmark-smoke-summary-v1",
+  "worker_executions_total": 2
+}
