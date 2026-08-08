@@ -115,6 +115,7 @@
     ,"phase_1b_hole_detector_downgraded_to_non_authoritative_candidate_evidence"
     ,"phase_1b_hole_detector_anti_overfitting_passed"
     ,"full_backend_phase_1b_hole_detector_checkpoint_1513_passed"
+    ,"external_real_world_benchmark_pilot_infrastructure_built_without_provider_calls"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -144,6 +145,25 @@
     "project_specific_clearance_rules_allowed": false,
     "phase_0_gate": "seed_stabilization_properties",
     "status": "stable_seed_checkpoint"
+  },
+  "external_real_world_benchmark_pilot_status": {
+    "status": "infrastructure_built_pilot_slots_empty",
+    "role": "supplemental_external_real_world_benchmark",
+    "benchmark_id": "mounting-brackets-v1",
+    "target_project_count": 50,
+    "target_category_count": 10,
+    "pilot_project_count": 5,
+    "pilot_project_ids": ["mounting-bracket-001", "mounting-bracket-002", "mounting-bracket-003", "mounting-bracket-004", "mounting-bracket-005"],
+    "reference_projects_locked": false,
+    "reference_files_imported": 0,
+    "provider_calls": 0,
+    "benchmark_runs": 0,
+    "production_workflow_changes": 0,
+    "holdout_access": false,
+    "manifest": "benchmarks/external/mounting-brackets-v1/manifest.json",
+    "design_document": "docs/EXTERNAL_REAL_WORLD_CAD_BENCHMARK_PILOT.md",
+    "ingestion_cli": "scripts/import_external_benchmark_reference.py",
+    "next_action": "Lock and import five live mounting-bracket references, then run a bounded smoke benchmark through the normal Volundr CAD workflow."
   },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
@@ -540,6 +560,7 @@
     "phase_1b_hole_detector_characterization_tests": "backend/tests/test_hole_detector_characterization.py; 22 passed including RED reproduction gates after recovery; focused geometry/semantic suite 72 passed",
     "phase_1b_geometry_measurement_characterization": "28 synthetic CadQuery/STL executions; 61 focused existing geometry/semantic tests passed; no production files changed",
     "phase_1b_brep_physical_hole_evidence_contract_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-brep-physical-hole-evidence-contract-reconstruction.json; 16 synthetic B-Rep cases; 23 characterization tests passed; split decision; no production extractor; provider_calls=0; frozen_worker_executions=0",
-    "verification_current_checkpoint": "backend 1536 passed, 1 skipped, 1 warning; B-Rep characterization 23 passed; adjacent topology/worker/semantic/geometry suites 112 passed; provider_calls=0; frozen_worker_executions=0; no production recognition changes"
+    "external_real_world_benchmark_pilot_infrastructure": "docs/EXTERNAL_REAL_WORLD_CAD_BENCHMARK_PILOT.md; benchmarks/external/mounting-brackets-v1/manifest.json; backend/app/services/external_benchmarks; scripts/import_external_benchmark_reference.py; five empty pilot slots; provider_calls=0; benchmark_runs=0",
+    "verification_current_checkpoint": "backend 1546 passed, 1 skipped, 1 warning; external benchmark infrastructure 10 passed; adjacent topology/worker/semantic/geometry suites 58 passed; provider_calls=0; benchmark_runs=0; frozen_worker_executions=0; no production workflow changes"
   }
 }

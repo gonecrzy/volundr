@@ -1,0 +1,99 @@
+{
+  "schema_version": "external-cad-benchmark-manifest-v1",
+  "benchmark_id": "mounting-brackets-v1",
+  "benchmark_version": "1.0.0",
+  "target_project_count": 50,
+  "target_category_count": 10,
+  "pilot_category": "mounting_brackets",
+  "split_policy": {
+    "allowed_assignments": [
+      "development",
+      "validation",
+      "holdout",
+      "pilot"
+    ],
+    "pilot_is_not_a_future_holdout_assignment": true
+  },
+  "projects": [
+    {
+      "benchmark_id": "mounting-bracket-001",
+      "benchmark_version": "1.0.0",
+      "category": "mounting_brackets",
+      "source_site": null,
+      "source_url": null,
+      "creator": null,
+      "source_title": null,
+      "license": null,
+      "acquired_at": null,
+      "reference_files": [],
+      "premise": "",
+      "reference_spec": {},
+      "split_assignment": "pilot",
+      "status": "placeholder"
+    },
+    {
+      "benchmark_id": "mounting-bracket-002",
+      "benchmark_version": "1.0.0",
+      "category": "mounting_brackets",
+      "source_site": null,
+      "source_url": null,
+      "creator": null,
+      "source_title": null,
+      "license": null,
+      "acquired_at": null,
+      "reference_files": [],
+      "premise": "",
+      "reference_spec": {},
+      "split_assignment": "pilot",
+      "status": "placeholder"
+    },
+    {
+      "benchmark_id": "mounting-bracket-003",
+      "benchmark_version": "1.0.0",
+      "category": "mounting_brackets",
+      "source_site": null,
+      "source_url": null,
+      "creator": null,
+      "source_title": null,
+      "license": null,
+      "acquired_at": null,
+      "reference_files": [],
+      "premise": "",
+      "reference_spec": {},
+      "split_assignment": "pilot",
+      "status": "placeholder"
+    },
+    {
+      "benchmark_id": "mounting-bracket-004",
+      "benchmark_version": "1.0.0",
+      "category": "mounting_brackets",
+      "source_site": null,
+      "source_url": null,
+      "creator": null,
+      "source_title": null,
+      "license": null,
+      "acquired_at": null,
+      "reference_files": [],
+      "premise": "",
+      "reference_spec": {},
+      "split_assignment": "pilot",
+      "status": "placeholder"
+    },
+    {
+      "benchmark_id": "mounting-bracket-005",
+      "benchmark_version": "1.0.0",
+      "category": "mounting_brackets",
+      "source_site": null,
+      "source_url": null,
+      "creator": null,
+      "source_title": null,
+      "license": null,
+      "acquired_at": null,
+      "reference_files": [],
+      "premise": "",
+      "reference_spec": {},
+      "split_assignment": "pilot",
+      "status": "placeholder"
+    }
+  ]
+}
