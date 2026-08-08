@@ -1,0 +1,336 @@
+{
+  "schema_version": "phase-1b-output-identity-scope-reconstruction-v1",
+  "checkpoint": "RECOVERY_C_RECONSTRUCT_MULTI_OUTPUT_IDENTITY_SCOPE",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "scope": {
+    "benchmark_id": "external-cad-50-v1.1",
+    "selected_source": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-semantic-unverifiable-reconstruction.json",
+    "selected_cells": 7,
+    "selected_c_requirements": 43,
+    "known_expected_multi_output_cells": 7,
+    "validation_loaded": false,
+    "holdout_loaded": false,
+    "historical_evidence_mutated": false
+  },
+  "decision": "RECOVERY_C_MULTIPLE_BOUNDARIES",
+  "decision_basis": "A confirmed generic contract fallback collapses missing output declarations to object_type, but durable compact survey evidence does not retain the raw extraction response, a complete pre-materialization DesignSpecification output declaration, or generated source bodies. Separately, container-case-002 has a historically recorded missing-lid source-generation outcome. These are distinct identity-plumbing and geometry-omission subclusters.",
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "production_changes": false,
+  "implementation": "none",
+  "evidence_limitations": [
+    "The compact survey records raw-response hashes and response lengths, not raw requirement-response bodies.",
+    "The compact survey records ledger and executable-contract summaries, but not a durable pre-materialization output declaration when absent.",
+    "The generated CadQuery source bodies and temporary worker source directories for these survey runs are not present in committed evidence.",
+    "Therefore the earliest incorrect owner before the contract fallback cannot be proven as extraction, specification schema, normalization, or ledger for these cells.",
+    "Source-level statements in the prior concept audit are preserved as historical audit findings and are not represented as newly re-inspected source evidence."
+  ],
+  "pipeline_trace_model": {
+    "1_user_or_comparison_input": "The comparison prompts explicitly stated the intended printed output count and named output-specific dimensional facts for the seven selected comparison-mode cells.",
+    "2_requirement_extraction": "The normal product extraction path ran. Compact evidence retains accepted requirement/assumption summaries and raw-response hashes, but the accepted provider payload is not durable in the selected run records.",
+    "3_design_specification": "The current DesignSpecificationPayload declares no first-class outputs or printable_outputs field. Its Pydantic model allows extra fields, but compact evidence does not prove that output declarations survived validation.",
+    "4_normalization_and_ledger": "The ledger persisted requirements with output names in object_type/subject and the assembly-level scope, but no output declaration collection was persisted for these runs. The exact first loss among upstream boundaries is unresolved.",
+    "5_executable_contract": "The confirmed materializer calls _product_contract_outputs(). If specification.outputs and specification.printable_outputs are absent/non-list, it creates one output from specification.object_type. All seven selected contracts exhibit this one-output result.",
+    "6_generation_prompt": "The executable CAD prompt receives the frozen contract and explicitly lists the contract output IDs. With one collapsed contract output, the provider was not given the intended logical output list. Exact per-run prompt bodies are not durably available, but the generic prompt implementation is inspected and deterministic.",
+    "7_source_and_worker": "The source contract and worker are strict about requested output IDs. Persisted worker results show one requested/persisted output in every selected run. Source bodies are unavailable, so source-level component naming cannot be independently established.",
+    "8_semantic": "Semantic findings observe the downstream consequence: per-part or output-count requirements cannot be scoped to the intended logical outputs and remain unsupported/unverifiable. This is not evidence that all physical geometry was absent."
+  },
+  "existing_output_models": {
+    "design_specification_payload": {
+      "schema": "DesignSpecificationPayload",
+      "explicit_output_field": false,
+      "fields_relevant_to_identity": ["object_type", "print_requirements", "functional_requirements", "critical_dimensions", "parameters", "assumptions"],
+      "extra_fields": "ConfigDict(extra=allow) permits undeclared data to survive validation when present, but does not establish a canonical output model or guarantee persistence.",
+      "finding": "The user requirement extraction schema is not a first-class canonical carrier for logical printed outputs."
+    },
+    "design_plan_payload": {
+      "schema": "DesignPlanPayload",
+      "field": "printable_outputs",
+      "item_model": "DesignPlanPrintableOutput",
+      "identity_fields": ["id", "label", "component_ids", "component_id", "required", "expected_solid_count", "output_type"],
+      "relationships": "DesignPlanPayload also carries components, assembly_strategy, functional_contract, and relationships.",
+      "finding": "This is an existing richer output model, but the executable start_design path in these runs materialized directly from DesignSpecification plus the ledger and did not use a persisted DesignPlan as the output source."
+    },
+    "executable_contract": {
+      "schema": "executable-cadquery-design-contract-v1",
+      "output_fields": ["output_id", "required", "output_type", "expected_solid_count", "aliases"],
+      "identity_rule": "_product_contract_outputs reads specification.outputs or specification.printable_outputs; if neither is a list, it falls back to one output using object_type or primary_output.",
+      "requirement_scope_rule": "A requirement scope not matching a contract output is reset to the first output unless it is assembly or global.",
+      "relationships": "Copied from specification.relationships when it is a list; all seven selected contracts contain an empty list.",
+      "protected_facts": "Created per required ledger requirement; they preserve requirement IDs and values but do not create output identity.",
+      "materialization_version": "executable-cadquery-product-contract-v1"
+    }
+  },
+  "affected_requirement_inventory": [
+    {
+      "benchmark_project_id": "container-case-001",
+      "mode": "comparison_specification",
+      "output_identity_intent": ["battery_body", "flexible_strap", "lower_bumper", "screw_lid", "strap_retainer"],
+      "requirement_ids": ["battery_body_envelope", "flexible_strap_envelope", "lower_bumper_envelope", "screw_lid_envelope", "strap_retainer_envelope"],
+      "requirement_semantics": "Five part-scoped approximate envelope facts; raw evidence and ledger entries are preserved verbatim in the cited source report and run record.",
+      "primary_category": "C",
+      "source_record": "phase-1b-external-cad-semantic-unverifiable-reconstruction.json requirements where benchmark_project_id=container-case-001 and primary_category=C"
+    },
+    {
+      "benchmark_project_id": "electronics-enclosure-001",
+      "mode": "comparison_specification",
+      "output_identity_intent": ["case_bottom", "case_top"],
+      "requirement_ids": ["req_two_part_case"],
+      "requirement_semantics": "Required two-part protective enclosure; per-part envelope requirements also remain in the ledger but were classified under other semantic categories in the reconstruction.",
+      "primary_category": "C",
+      "source_record": "phase-1b-external-cad-semantic-unverifiable-reconstruction.json requirements where benchmark_project_id=electronics-enclosure-001 and primary_category=C"
+    },
+    {
+      "benchmark_project_id": "functional-assembly-001",
+      "mode": "comparison_specification",
+      "output_identity_intent": ["scale_body", "scale_button", "scale_front_cover", "scale_platform"],
+      "requirement_ids": ["platform", "req_scale_assembly_components"],
+      "requirement_semantics": "Assembly component/output presence requirements; dimensional component facts are recorded separately in the ledger.",
+      "primary_category": "C",
+      "source_record": "phase-1b-external-cad-semantic-unverifiable-reconstruction.json requirements where benchmark_project_id=functional-assembly-001 and primary_category=C"
+    },
+    {
+      "benchmark_project_id": "functional-assembly-003",
+      "mode": "comparison_specification",
+      "output_identity_intent": ["bearing_plate_bottom", "bearing_plate_top", "pump_base", "pump_mount", "pump_spacer"],
+      "requirement_ids": ["envelope_bearing_plate_bottom_x", "envelope_bearing_plate_bottom_y", "envelope_bearing_plate_bottom_z", "envelope_bearing_plate_top_x", "envelope_bearing_plate_top_y", "envelope_bearing_plate_top_z", "envelope_pump_base_x", "envelope_pump_base_y", "envelope_pump_base_z", "envelope_pump_mount_x", "envelope_pump_mount_y", "envelope_pump_mount_z", "envelope_pump_spacer_x", "envelope_pump_spacer_y", "envelope_pump_spacer_z", "req_output_count"],
+      "requirement_semantics": "Fifteen component-envelope scalar facts plus exact printed-output count five; the dimensional facts retain component subjects but contract scope collapsed to the assembly output.",
+      "primary_category": "C",
+      "source_record": "phase-1b-external-cad-semantic-unverifiable-reconstruction.json requirements where benchmark_project_id=functional-assembly-003 and primary_category=C"
+    },
+    {
+      "benchmark_project_id": "mounting-bracket-002",
+      "mode": "comparison_specification",
+      "output_identity_intent": ["load_cell_foot", "scale_platform"],
+      "requirement_ids": ["load_cell_foot_envelope_x", "load_cell_foot_envelope_y", "load_cell_foot_envelope_z", "scale_platform_envelope_x", "scale_platform_envelope_y", "scale_platform_envelope_z"],
+      "requirement_semantics": "Two-part load-cell mount with three approximate envelope axes per part.",
+      "primary_category": "C",
+      "source_record": "phase-1b-external-cad-semantic-unverifiable-reconstruction.json requirements where benchmark_project_id=mounting-bracket-002 and primary_category=C"
+    },
+    {
+      "benchmark_project_id": "stand-support-001",
+      "mode": "comparison_specification",
+      "output_identity_intent": ["magsafe_mount", "stand_back", "stand_base", "stand_peg"],
+      "requirement_ids": ["envelope_magsafe_mount_x", "envelope_magsafe_mount_y", "envelope_magsafe_mount_z", "envelope_stand_back_x", "envelope_stand_back_y", "envelope_stand_back_z", "envelope_stand_base_x", "envelope_stand_base_y", "envelope_stand_base_z", "envelope_stand_peg_x", "envelope_stand_peg_y", "envelope_stand_peg_z", "req_printed_outputs_count"],
+      "requirement_semantics": "Four-part stand/support design with three approximate envelope axes per part plus exact printed-output count four.",
+      "primary_category": "C",
+      "source_record": "phase-1b-external-cad-semantic-unverifiable-reconstruction.json requirements where benchmark_project_id=stand-support-001 and primary_category=C"
+    }
+  ],
+  "case_traces": [
+    {
+      "benchmark_project_id": "container-case-001",
+      "mode": "comparison_specification",
+      "runtime_identity": {"project_runtime_id": "4182fc83-a340-4b0f-b4b6-22b7c1717e73", "workflow_id": "dde3e05c-eb9e-405c-b829-767205d4b317", "revision_id": "c8b6a068-0fff-4710-9217-98be857e2085", "design_specification_id": "0b5a8ad4-1222-4510-89a9-9159d371a78b"},
+      "intended_outputs": 5,
+      "contract_outputs": [{"output_id": "battery_case", "expected_solid_count": 1}],
+      "generated_outputs": [{"output_id": "battery_case", "solid_count": 1, "component_count": 1}],
+      "topology": {"valid": true, "solid_count": 1, "shell_count": 2, "face_count": 34},
+      "artifacts": {"step": "5722729a5899223c3493548fd2c94cecaa3436721a7926088632fc5ebdad7ec1", "brep": "0793259efadd3711974367f190a0b2483a4e5d5daf583e8c2950d283c9b4f899", "stl": "751566f5744def4a03ff58c6def65b98d58ed4e4cc3b88f91a3b344d7e800baa", "package_available": false},
+      "semantic": {"total": 8, "unsupported": 6, "review": 2, "status": "unsupported_verifier"},
+      "historical_geometry_classification": "physical_components_present_but_identity_ambiguous",
+      "earliest_proven_boundary": "C-CONTRACT",
+      "earliest_owner_confidence": "upstream boundary unresolved; contract fallback confirmed",
+      "historical_audit": "Five expected parts were represented by useful physical geometry in the concept audit, but the one-output contract prevented independent output identity and packaging."
+    },
+    {
+      "benchmark_project_id": "container-case-002",
+      "mode": "comparison_specification",
+      "runtime_identity": {"project_runtime_id": "baa79b07-6c51-4f93-80b9-909605532a77", "workflow_id": "df62ac88-1bd0-427a-8db0-b2bd76a4d55d", "revision_id": "f16746c1-c9af-4cd7-ad2e-1dccd5b34cf1", "design_specification_id": "128b399e-e068-47be-8fbd-5b2baa35a355"},
+      "intended_outputs": 2,
+      "intended_output_ids": ["battery_box_26650", "battery_lid"],
+      "contract_outputs": [{"output_id": "carry_case", "expected_solid_count": 1}],
+      "generated_outputs": [{"output_id": "carry_case", "solid_count": 1, "component_count": 1}],
+      "topology": {"valid": true, "solid_count": 1, "shell_count": 2, "face_count": 9},
+      "artifacts": {"step": "241ecbdbceabed26af7dc144707e6496458154a8c06677b024677434f1c5e6d3", "brep": "02331ca2c44aaa12d8cf1caf0ec23193590cfae2eeb8041021edf8b788b11c81", "stl": "4a78391f50253410e2a7ec0e6d3af8a6c314b0f4cc5031c95d3c2e78c68c0a46", "package_available": false},
+      "semantic": {"total": 11, "unsupported": 9, "review": 2, "status": "unsupported_verifier"},
+      "historical_geometry_classification": "required_component_missing",
+      "earliest_proven_boundary": "C-CONTRACT for output identity; C-SOURCE-GENERATION for the missing lid according to the prior concept audit",
+      "earliest_owner_confidence": "source-level reinspection unavailable; exact distinction between provider-not-told and provider-told-but-omitted is unresolved",
+      "historical_audit": "The prior concept audit records that the source constructed only the body and omitted the required lid. Correct output declarations alone must not turn this into a PASS."
+    },
+    {
+      "benchmark_project_id": "electronics-enclosure-001",
+      "mode": "comparison_specification",
+      "runtime_identity": {"project_runtime_id": "d0ba4081-5939-4fe9-a79d-e707e8fea91f", "workflow_id": "880b4900-9668-4c66-bb19-ccc2e4abefcf", "revision_id": "88dfae56-8752-470c-9f0f-1c046cd34169", "design_specification_id": "c5584cf5-e52d-4f27-a6e0-0dc89d58a53c"},
+      "intended_outputs": 2,
+      "intended_output_ids": ["case_bottom", "case_top"],
+      "contract_outputs": [{"output_id": "electronics_enclosure", "expected_solid_count": 1}],
+      "generated_outputs": [{"output_id": "electronics_enclosure", "solid_count": 2, "component_count": 2}],
+      "topology": {"valid": true, "solid_count": 2, "shell_count": 2, "face_count": 22},
+      "artifacts": {"step": "4def0f7dedc059768fe1d4f6cc052b2e322fbb2eded94f0b8769ce284f620260", "brep": "cf75c698b75332eaabdb1851dff420cb2e55d5d7327166874d7baa34511c30ea", "stl": "9e7a161cd9862314a6b48e23fd32b3bb9a11100832e0c8319c16fa9dd56ede2c", "package_available": false},
+      "semantic": {"total": 8, "unsupported": 8, "review": 0, "status": "unsupported_verifier"},
+      "historical_geometry_classification": "single_output_with_multiple_solids",
+      "earliest_proven_boundary": "C-CONTRACT",
+      "earliest_owner_confidence": "upstream boundary unresolved; two physical solids under one persisted logical output are directly evidenced",
+      "historical_audit": "The geometry contains two valid solids, but logical case_bottom/case_top identity was not preserved in the contract or export record."
+    },
+    {
+      "benchmark_project_id": "functional-assembly-001",
+      "mode": "comparison_specification",
+      "runtime_identity": {"project_runtime_id": "32562044-b42c-4bff-935f-f967ffde8b43", "workflow_id": "50287626-9bb1-45c6-b5b5-9cca416159bc", "revision_id": "ee2281c3-6d70-49ce-a601-31873e5563bd", "design_specification_id": "68a72a95-714f-413f-8da6-fe13318722ad"},
+      "intended_outputs": 4,
+      "intended_output_ids": ["scale_body", "scale_button", "scale_front_cover", "scale_platform"],
+      "contract_outputs": [{"output_id": "scale", "expected_solid_count": 1}],
+      "generated_outputs": [{"output_id": "scale", "solid_count": 1, "component_count": 1}],
+      "topology": {"valid": true, "solid_count": 1, "shell_count": 1, "face_count": 14},
+      "artifacts": {"step": "d6ab6b17a80b8d6a0c20b071d46c3d151530ba613db0289075dacbee9e47ede8", "brep": "3dd5d41ec4cd71c1f6edeb9614fee7ad4cce5b67c16ce6abf71da0083ebe4d7e", "stl": "afc1388e8b1faf0689df5fcdf7780cb3dac74f54995db3cac8edd3e42d1ade10", "package_available": false},
+      "semantic": {"total": 9, "unsupported": 8, "review": 1, "status": "unsupported_verifier"},
+      "historical_geometry_classification": "components_fused_or_single_body",
+      "earliest_proven_boundary": "C-CONTRACT",
+      "earliest_owner_confidence": "upstream boundary unresolved; one valid body and one logical output directly evidenced",
+      "historical_audit": "The concept audit found a recognizable assembly, but the four intended components were fused/collapsed into one output."
+    },
+    {
+      "benchmark_project_id": "functional-assembly-003",
+      "mode": "comparison_specification",
+      "runtime_identity": {"project_runtime_id": "97f14d28-a55a-455b-b59b-80601e7f0a53", "workflow_id": "1c5ebb6b-0a7e-4029-bf02-8675f8fa6762", "revision_id": "db968e3d-6daf-46aa-b531-a13015b4cdda", "design_specification_id": "4bb71c68-8500-44be-bc79-d03e7e70038e"},
+      "intended_outputs": 5,
+      "intended_output_ids": ["bearing_plate_bottom", "bearing_plate_top", "pump_base", "pump_mount", "pump_spacer"],
+      "contract_outputs": [{"output_id": "peristaltic_pump_assembly", "expected_solid_count": 1}],
+      "generated_outputs": [{"output_id": "peristaltic_pump_assembly", "solid_count": 1, "component_count": 1}],
+      "topology": {"valid": true, "solid_count": 1, "shell_count": 2, "face_count": 57},
+      "artifacts": {"step": "caaff5935552938400706b02070d0b10fd6800dd30ef709a34ddea622328c822", "brep": "90b6ba4b0139693fe87da8efc34df0e71d6ce3e5f40d1872ada68aadf1db920d", "stl": "d05f84bab68337b5d3c1dc3d5e081e902b61c1234eb704182002fa9aeaa40589", "package_available": false},
+      "semantic": {"total": 19, "unsupported": 16, "review": 3, "status": "unsupported_verifier"},
+      "historical_geometry_classification": "components_fused_or_single_body",
+      "earliest_proven_boundary": "C-CONTRACT",
+      "earliest_owner_confidence": "upstream boundary unresolved; source body unavailable",
+      "historical_audit": "The prior concept audit records five component roles and useful pump geometry, with the intended parts fused/collapsed and two shells retained in topology."
+    },
+    {
+      "benchmark_project_id": "mounting-bracket-002",
+      "mode": "comparison_specification",
+      "runtime_identity": {"project_runtime_id": "57ef6e07-c2f7-44d4-a210-a4dfb4003790", "workflow_id": "a15ac4aa-df45-4a5f-8745-727f119134b9", "revision_id": "3d58a6da-8d80-421a-a2ad-7fdb315055d3", "design_specification_id": "b00f6e36-3243-480c-ada2-4236725c2947"},
+      "intended_outputs": 2,
+      "intended_output_ids": ["load_cell_foot", "scale_platform"],
+      "contract_outputs": [{"output_id": "mounting_bracket", "expected_solid_count": 1}],
+      "generated_outputs": [{"output_id": "mounting_bracket", "solid_count": 1, "component_count": 1}],
+      "topology": {"valid": true, "solid_count": 1, "shell_count": 2, "face_count": 24},
+      "artifacts": {"step": "344bd38ceb3bd43764cb10214f88ff8044cb53d03618eae1607abc8c6a29ec32", "brep": "6f20785ff938897c7ac497354f7708beded21864813f942271749863b677af88", "stl": "ed7823bf98504815def047d663ca90f4eab4983144c10efc6b5d7d5c699c62b2", "package_available": false},
+      "semantic": {"total": 10, "unsupported": 7, "review": 3, "status": "unsupported_verifier"},
+      "historical_geometry_classification": "components_fused_or_single_body",
+      "earliest_proven_boundary": "C-CONTRACT",
+      "earliest_owner_confidence": "upstream boundary unresolved; one valid body and one logical output directly evidenced",
+      "historical_audit": "The concept audit found recognizable foot/pillar/platform geometry, but the required foot and platform were fused/collapsed into one output."
+    },
+    {
+      "benchmark_project_id": "stand-support-001",
+      "mode": "comparison_specification",
+      "runtime_identity": {"project_runtime_id": "bcf4652f-31c1-498d-bdc8-0c1a2f6cbe93", "workflow_id": "b2833e74-3bca-4225-a0cf-f1e786978246", "revision_id": "5f6d08c6-2a1c-4746-9e2c-544ddb536f91", "design_specification_id": "a15184d3-efbb-4231-94bc-391cfcc497cb"},
+      "intended_outputs": 4,
+      "intended_output_ids": ["magsafe_mount", "stand_back", "stand_base", "stand_peg"],
+      "contract_outputs": [{"output_id": "stand", "expected_solid_count": 1}],
+      "generated_outputs": [{"output_id": "stand", "solid_count": 1, "component_count": 1}],
+      "topology": {"valid": true, "solid_count": 1, "shell_count": 1, "face_count": 45},
+      "artifacts": {"step": "aaf4e6c9f6d8b55b3b335c1ea36aec6a97072d6c39f611b562050b40caf2e379", "brep": "4a739c9a1eaeea4cf2e6d561e9b4a3847915d591d8355b28bf8e11a3a6dc24c1", "stl": "265945e9eed90394f3bb0d68e6b3abc3521abb3d0afceed867b205ae22a3400b", "package_available": false},
+      "semantic": {"total": 16, "unsupported": 13, "review": 3, "status": "unsupported_verifier"},
+      "historical_geometry_classification": "components_fused_or_single_body",
+      "earliest_proven_boundary": "C-CONTRACT",
+      "earliest_owner_confidence": "upstream boundary unresolved; one valid body and one logical output directly evidenced",
+      "historical_audit": "The concept audit found base/back/mount/peg geometry, but four intended printable outputs were combined into one output."
+    }
+  ],
+  "logical_outputs_vs_solids": {
+    "rows": [
+      {"benchmark_project_id": "container-case-001", "intended_outputs": 5, "contract_outputs": 1, "generated_outputs": 1, "detected_solids": 1},
+      {"benchmark_project_id": "container-case-002", "intended_outputs": 2, "contract_outputs": 1, "generated_outputs": 1, "detected_solids": 1},
+      {"benchmark_project_id": "electronics-enclosure-001", "intended_outputs": 2, "contract_outputs": 1, "generated_outputs": 1, "detected_solids": 2},
+      {"benchmark_project_id": "functional-assembly-001", "intended_outputs": 4, "contract_outputs": 1, "generated_outputs": 1, "detected_solids": 1},
+      {"benchmark_project_id": "functional-assembly-003", "intended_outputs": 5, "contract_outputs": 1, "generated_outputs": 1, "detected_solids": 1},
+      {"benchmark_project_id": "mounting-bracket-002", "intended_outputs": 2, "contract_outputs": 1, "generated_outputs": 1, "detected_solids": 1},
+      {"benchmark_project_id": "stand-support-001", "intended_outputs": 4, "contract_outputs": 1, "generated_outputs": 1, "detected_solids": 1}
+    ],
+    "conclusion": "Logical output identity and solid count are separate facts. electronics-enclosure-001 directly demonstrates one logical output containing two valid solids; a solid count cannot reconstruct intended output identity."
+  },
+  "useful_geometry_case_classifications": {
+    "container-case-001": "physical_components_present_but_identity_ambiguous",
+    "electronics-enclosure-001": "single_output_with_multiple_solids",
+    "functional-assembly-001": "components_fused_or_single_body",
+    "functional-assembly-003": "components_fused_or_single_body",
+    "mounting-bracket-002": "components_fused_or_single_body",
+    "stand-support-001": "components_fused_or_single_body",
+    "evidence_note": "The six classifications are observational classifications from persisted topology and the prior concept audit. Exact source-level names, separate CadQuery object declarations, and source-to-component correspondence are unavailable for independent reinspection."
+  },
+  "generation_and_export_audit": {
+    "contract_to_prompt": "The generic executable CAD prompt states that the frozen contract contains exactly the canonical output IDs and embeds the full executable design contract. Therefore a one-output contract propagates one output obligation to the provider.",
+    "source_contract": "parse_executable_cadquery_response requires source metadata output IDs to match the contract output ID set and expected solid counts; a provider response declaring intended IDs not present in the collapsed contract would be rejected.",
+    "worker_request": "The workflow execution plan is derived one-for-one from contract.outputs, with id, component_id, component_ids, filename, required, expected_solid_count, and entrypoint.",
+    "persisted_export": "Each selected run persisted one RevisionOutput keyed by the collapsed output ID and STEP/BREP/STL hashes under that ID. No multi-output package was available. This confirms persisted logical output collapse, not a universal proof of boolean fusion.",
+    "exact_source_inspection": "not available from committed survey evidence; do not infer source naming or source-level component decomposition from output IDs alone"
+  },
+  "relationships": {
+    "contract_relationships": "All seven selected executable contracts contain relationships=[] despite assembly/mating language in their inputs.",
+    "lost_or_unproven": ["lid/body correspondence", "load-cell foot/platform relationship", "scale assembly component relationships", "pump component relationships", "stand component relationships"],
+    "conclusion": "Relationship preservation is a separate structural requirement from output identity. It is currently absent from these materialized contracts and should be included in a later Recovery-C implementation boundary only where authoritative product state supplies it."
+  },
+  "container_case_002_c2_analysis": {
+    "classification": "C2_TRUE_OUTPUT_OMISSION",
+    "required_parts": ["battery_box_26650", "battery_lid"],
+    "observed_contract": ["carry_case"],
+    "observed_geometry": "one valid solid and one persisted output",
+    "historical_root_cause": "The prior concept-quality audit records that the generated source constructed only the body and omitted the lid.",
+    "source_provenance_limit": "The historical generated source body is not present in the authorized compact evidence, so this checkpoint cannot independently distinguish provider-not-told from provider-told-but-omitted.",
+    "future_action": "geometry revision if the omission is confirmed during a later authorized source/artifact recovery; output metadata correction alone must not satisfy the missing-lid requirement"
+  },
+  "offline_counterfactual": {
+    "metadata_only_with_exact_geometry": [
+      "container-case-001",
+      "electronics-enclosure-001",
+      "functional-assembly-001",
+      "functional-assembly-003",
+      "mounting-bracket-002",
+      "stand-support-001"
+    ],
+    "geometry_revision_required": ["container-case-002"],
+    "insufficient_evidence_for_exact_source_boundary": 7,
+    "metadata_recoverable_c_requirement_estimate": 43,
+    "caveat": "The 43/43 estimate means output identity/scope could plausibly be restored for the C-classified requirements without regenerating the existing artifact. It does not claim that per-output geometry, relationships, or missing components would pass after metadata repair."
+  },
+  "router_implications": {
+    "identity_plumbing": {"action": "local_state_contract_recovery", "provider_geometry_rewrite": false},
+    "required_component_missing": {"action": "geometry_revision", "provider_repair": "only after source/geometry ownership is proven and normal repair authorization exists"},
+    "insufficient_evidence": {"action": "remain unresolved/fail-closed", "provider_geometry_rewrite": false}
+  },
+  "concept_state_guardrail": {
+    "unchanged": true,
+    "collapsed_identity_artifact": "may remain concept_available when artifact and topology gates pass; candidate remains blocked by C",
+    "missing_component_artifact": "may remain concept_available when remaining artifact is structurally valid; candidate remains blocked and requires revision",
+    "no_quality_claim": "concept_available does not mean correct multi-output identity, functionally complete, or final verified"
+  },
+  "coverage_and_counts": {
+    "c_requirements_total": 43,
+    "cells_with_identity_contract_loss": 7,
+    "useful_geometry_identity_cases": 6,
+    "true_output_omission_cases": 1,
+    "metadata_recoverable_requirement_estimate": 43,
+    "geometry_revision_required_cell_estimate": 1,
+    "exact_source_boundary_insufficient_evidence_cells": 7,
+    "d_and_g_cases": 0,
+    "production_recovery_claim": false
+  },
+  "anti_overfitting": {
+    "project_specific_production_logic": false,
+    "frozen_dimensions_added": false,
+    "source_name_matching_added": false,
+    "prompt_changes": false,
+    "provider_or_model_changes": false,
+    "reference_geometry_used_as_generation_input": false,
+    "validation_or_holdout_access": false,
+    "concept_policy_changed": false,
+    "candidate_policy_changed": false
+  },
+  "tests": {
+    "tests_added": [],
+    "tests_run": ["read-only JSON selection and repository/code audit"],
+    "production_code_changed": false,
+    "required_future_reconstruction_tests": ["deterministic development-only C selection", "logical output versus solid-count separation", "metadata-recoverable versus geometry-revision classification", "no provider/worker construction"]
+  },
+  "recommended_generic_implementation_boundary": {
+    "first": "Preserve authoritative logical output declarations and component relationships at the earliest existing product state boundary that can carry them, preferably by reusing the existing DesignPlan printable_outputs model or introducing one canonical shared output representation rather than a benchmark-specific field.",
+    "then": "Materialize every authoritative output into executable contract.outputs and execution-plan requested_outputs without fallback when a multi-output requirement is explicit.",
+    "then": "Route output IDs through worker/export/package persistence and scope requirements per output; keep expected_solid_count separate.",
+    "guard": "If output identity is restored but source geometry omits a required component, retain a hard blocker and route geometry revision; never synthesize PASS from declarations alone.",
+    "not_in_this_checkpoint": ["requirement extraction changes", "schema changes", "contract changes", "prompt changes", "worker changes", "router changes"]
+  },
+  "recommended_next_action": "Review this multiple-boundary reconstruction. If accepted, open a narrow implementation design for identity plumbing beginning at the earliest durable product output declaration boundary, with a separate geometry-revision path for container-case-002. Do not begin Recovery B or E."
+}

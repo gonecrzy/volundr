@@ -428,6 +428,31 @@
     "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-generated-concept-quality-audit/evidence.json; aggregate-report.json; anti-overfitting-audit.json",
     "next_action": "Stop for review before Recovery B or C; carry concept-ready versus final-certification separation as a future product-policy decision without weakening hard verification."
   },
+  "external_cad_output_identity_scope_reconstruction_status": {
+    "status": "complete_reconstructed_multiple_boundaries_no_implementation",
+    "benchmark_id": "external-cad-50-v1.1",
+    "scope": "seven development comparison-specification cells with authoritative expected multi-output structure; 43 C-classified requirements plus the separate container-case-002 missing-lid case",
+    "decision": "RECOVERY_C_MULTIPLE_BOUNDARIES",
+    "identity_plumbing_boundary": "C-CONTRACT is the earliest proven boundary: absent specification output declarations trigger _product_contract_outputs fallback to object_type, producing one logical output and one requested/exported output.",
+    "earliest_upstream_owner": "unresolved among extraction, DesignSpecification schema, normalization, ledger, and contract because compact survey evidence does not retain the raw accepted extraction payload or pre-materialization output declarations",
+    "true_omission_boundary": "container-case-002 is separately recorded by the prior concept audit as a missing-lid source-generation outcome; source body is not durably available for independent reinspection",
+    "affected_cells": 7,
+    "c_requirements": 43,
+    "metadata_recoverable_requirement_estimate": 43,
+    "geometry_revision_required_cells": 1,
+    "insufficient_exact_source_boundary_cells": 7,
+    "logical_output_vs_solid_count_kept_separate": true,
+    "relationships_present_in_selected_contracts": 0,
+    "concept_state_unchanged": true,
+    "provider_calls": 0,
+    "worker_executions": 0,
+    "validation_access": false,
+    "holdout_access": false,
+    "production_changes": false,
+    "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-identity-scope-reconstruction.json",
+    "source_evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-semantic-unverifiable-reconstruction.json; data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-generated-concept-quality-audit/evidence.json; data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/comparison-specification/<benchmark-id>/run.json",
+    "next_action": "Stop for review; do not implement Recovery C, B, or E in this checkpoint."
+  },
   "external_cad_concept_availability_status": {
     "status": "implemented_and_verified",
     "scope": "orthogonal concept/artifact availability for validated and executable CadQuery workflows",
@@ -942,5 +967,6 @@
     ,"external_real_world_cad_50_comparison_qualification": "benchmarks/external/cad-50-v1.1/qualification-report.json; development audit=30; comparison_ready_without_changes=0; enriched_to_comparison_ready=2; still_underconstrained=25; replacement_required=3; validation_specs=10; holdout_specs sealed by hash only; provider_calls=0; worker_executions=0; benchmark_runs=0"
     ,"external_real_world_cad_50_v1_1_development_first_pass": "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/; frozen code=8dd0d8d; 60 cells; 54 live workflows; 6 replacement exclusions; transport_attempts=107; requirement_extraction_calls=64; schema_retries=20; CAD generation operations=43; CAD repair operations=23; fallback=1 after primary HTTP 429; worker_executions=61 after offline runtime-DB reconciliation; validation/holdout=0; no interpreted similarity for 25 underconstrained projects"
     ,"external_real_world_cad_50_v1_1_development_first_pass_reconciliation": "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/reconciliation.json; evidence-only worker/timestamp reconciliation; provider_calls=0; worker_executions=0; workflow outcomes unchanged"
+    ,"phase_1b_output_identity_scope_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-identity-scope-reconstruction.json; seven development multi-output cases; 43 C requirements; C-CONTRACT fallback proven; container-case-002 omission kept separate; provider_calls=0; worker_executions=0; no implementation"
   }
 }
