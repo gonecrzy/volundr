@@ -1,0 +1,192 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-development-05-zero-call-source-artifact-forensics-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "checkpoint": "development_05_zero_call_source_artifact_forensics",
+  "recorded_at": "2026-08-08T01:06:44Z",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "base_commit": "1e68fd4646b6607891ad0c162223e79cef8ab498",
+  "holdout_boundary": {
+    "phase_2_inspected": false,
+    "phase_2_accessed": false,
+    "notes": "No Phase 2 holdout prompt, contract, source, artifact, manifest, or requirement was opened or used. Searches were limited to exact authoritative development-05 identifiers and hashes plus the explicitly permitted development evidence and runtime roots."
+  },
+  "authoritative_attempt": {
+    "project_id": "development-05",
+    "project_runtime_id": "0ff7d753-cc9a-481e-b0f1-d348a82fd1bf",
+    "workflow_id": "d728a811-0d90-4a4c-9cf0-def59c2b9507",
+    "revision_id": "4e3fc066-ba04-4189-ae29-ae7deb3f980f",
+    "provider_logical_operation_id": "c787c326-f800-4fb8-adad-bcae8f7326a1",
+    "provider_attempt_id": "9d0e9099-82c0-454b-b944-a4de1ad2cc0a",
+    "request_start_timestamp": "2026-08-07T19:00:21.510602+00:00",
+    "credential_slot": "primary",
+    "http_status": 200,
+    "response_received": true,
+    "response_length": 3814,
+    "raw_response_hash": "f1305f6aecec9bd54d99a98783c9677f97795216b42a04b9229504524011b023",
+    "request_hash": "0e32012f3c08fb9aacc3f929f690b797a3d5f5143bb69e8cb3275cdcdd36f4a1",
+    "extracted_source_hash": "20087efdeb1188f0abad69f04d13759bc000f645586b0238a91dc222708fda9c",
+    "design_contract_sha256": "01d84183c9cbc79748c3e297f6a1ddd5f7dd0ec020b0b132d986fbe73f82a612",
+    "prompt_sha256": "a20b78c51fc9786f60e25546c61a1410a53ab489d5bbca7f57075ec738154eb2",
+    "output_id": "cable_organizer",
+    "provider_transport": "gemini_api_rest_x_goog_api_key_via_GeminiApiProvider",
+    "transport_retry_classification": "none",
+    "rate_limit_429_classification": "not_429",
+    "exception_type": null,
+    "normalized_transport_provider_error": null,
+    "callback_persistence_exception": null,
+    "artifact_hashes": null,
+    "result_hash": null,
+    "worker_job_id": null,
+    "execution_manifest_identifier": null,
+    "execution_manifest_path": null,
+    "source_path": null,
+    "artifact_paths": null,
+    "stable_identifier_source": "project-05-reconciled-first-pass.json"
+  },
+  "historical_invalidated_attempt": {
+    "project_id": "development-05",
+    "project_runtime_id": "bfe6f4dd-8b8e-4cdd-833f-7650d1aa3169",
+    "workflow_id": "33ce61e8-3d12-47c4-9cae-e393a3d48f86",
+    "revision_id": null,
+    "provider_attempt_id": null,
+    "source_hash": null,
+    "artifact_hashes": null,
+    "status": "invalidated_phase_1a_observation",
+    "reason": "provider response facts, extracted source, worker execution, and durable callback evidence were not reconstructed defensibly; this record was not used for artifact provenance."
+  },
+  "evidence_sources_read": [
+    "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
+    "data/debug-sessions/executable-cadquery/recovery-program-progress.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-geometry-owned-measured-discrepancy-reconstruction.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/project-05-reconciled-first-pass.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/project-05-first-pass.json"
+  ],
+  "durable_storage_search": [
+    {
+      "location": "data/debug-sessions/executable-cadquery/recovery-development-16",
+      "method": "exact identifier/hash text search and project-05/development-05 artifact-name inventory",
+      "result": "Only the compact reconciled record, invalidated first-pass record, prior reconstruction evidence, and presentation render were present; no source, STEP, STL, BREP, execution manifest, worker job, feature trace, package measurement, or artifact hash record was found."
+    },
+    {
+      "location": "repository working tree and /tmp",
+      "method": "exact search for all persisted project, workflow, revision, attempt, operation, source, response, request, contract, and prompt anchors",
+      "result": "Matches were limited to the four permitted compact development records; no additional source, artifact, job, or manifest file matched an authoritative anchor."
+    },
+    {
+      "location": "data/app.db",
+      "method": "read-only exact queries across projects, revisions, generation attempts, validated workflow/operation/attempt/output tables, workflow runs/artifacts, and revision outputs",
+      "result": "Zero exact rows matched the authoritative project runtime ID, workflow ID, revision ID, attempt ID, logical operation ID, request hash, or extracted source hash. The database does not contain the reconciled revision."
+    },
+    {
+      "location": "data/volundr.db",
+      "method": "read-only schema inspection",
+      "result": "Empty 0-byte SQLite file with no tables."
+    },
+    {
+      "location": "normal Docker deployment bind mounts",
+      "method": "read-only mount inspection followed by exact-anchor searches in /root/volundr/data and /root/volundr/data/jobs",
+      "result": "volundr-api mounts /root/volundr/data at /app/data and volundr-cad-worker mounts /root/volundr/data/jobs at /work/jobs; neither mounted root contains an exact authoritative source, artifact, job, or manifest anchor. No separate named Volundr artifact volume is mounted."
+    },
+    {
+      "location": "Git history and tree",
+      "method": "exact source-hash/identity string searches and path inventory for the development evidence directory",
+      "result": "Only the compact Phase 1A evidence commit contains the reconciled source hash/identifiers; no historical source or geometry artifact object is present."
+    }
+  ],
+  "candidate_artifacts": {
+    "authoritative_source": null,
+    "authoritative_step": null,
+    "authoritative_brep": null,
+    "authoritative_stl": null,
+    "authoritative_worker_job": null,
+    "authoritative_execution_manifest": null,
+    "untrusted_candidate_artifacts": [],
+    "name_only_or_similar_artifacts": {
+      "examined": false,
+      "status": "excluded",
+      "reason": "No candidate was opened or accepted from filename similarity, project-number similarity, timestamp similarity, or output-name similarity without an exact authoritative linkage."
+    },
+    "presentation_render": {
+      "path": "data/debug-sessions/executable-cadquery/recovery-development-16/development-05-render.png",
+      "exists": true,
+      "role": "authoritative presentation evidence only",
+      "source_or_geometry_provenance": false,
+      "used_for_historical_geometry_ownership": false
+    }
+  },
+  "provenance_validation": {
+    "source_hash_bytes_available": false,
+    "source_hash_revalidated": false,
+    "artifact_hashes_available": false,
+    "artifact_hashes_revalidated": false,
+    "worker_manifest_linkage_available": false,
+    "revision_linkage_available": false,
+    "database_linkage_available": false,
+    "authoritative_artifact_recovered": false,
+    "conclusion": "No source or geometry artifact can be tied defensibly to the reconciled attempt."
+  },
+  "historical_geometry_inspection": {
+    "source_recovered": false,
+    "step_recovered": false,
+    "brep_recovered": false,
+    "stl_recovered": false,
+    "source_construction_inspected": false,
+    "analytic_brep_features_inspected": false,
+    "stl_candidate_attribution_performed": false,
+    "historical_8481_candidate_explanation": "Not recoverable for the authoritative development-05 attempt. The prior synthetic characterization remains separate evidence: a near-square rounded non-circular profile can produce an approximately 8.481 mm raw mesh candidate, and stepped holes can produce multiple raw candidates. Neither mechanism is proven to be the historical development-05 geometry."
+  },
+  "historical_ownership_conclusion": {
+    "historical_development_05_geometry_ownership": "unresolved_due_to_missing_authoritative_artifacts",
+    "status": "parked",
+    "observed_stage": "semantic_measurement",
+    "failure_class": "semantic_requirement_unverifiable / measured discrepancy",
+    "first_incorrect_owner": "unresolved between generated_source, geometry_execution, and application_measurement",
+    "preserved_facts": [
+      "The authoritative requirement remains 2 holes at 4.0 mm.",
+      "The reconciled record reports one valid solid and four raw mesh detector candidate values near 8.481 mm.",
+      "The canonical 4.0 mm semantic matching count was zero.",
+      "Topology-v2 global one-solid evidence does not prove hole count or diameter."
+    ],
+    "reason_not_geometry_owned": "The source, feature trace, and authoritative STEP/BREP/STL bytes are absent; the same numerical detector result has an independently proven generic false-positive explanation."
+  },
+  "generic_detector_subcluster": {
+    "id": "hole_detector_non_circular_profile_false_positive",
+    "status": "confirmed_independently_but_not_implemented",
+    "first_incorrect_owner": "application geometry measurement primitive",
+    "historical_development_05_applicability": "unproven",
+    "related_diagnostic_subcluster": "raw_hole_candidate_count_vs_matching_count_ambiguity",
+    "evidence": "phase-1b-geometry-owned-measured-discrepancy-reconstruction.json",
+    "next_recovery_target": true,
+    "production_fix_this_cycle": false
+  },
+  "operations": {
+    "provider_calls": 0,
+    "fallback_calls": 0,
+    "frozen_worker_executions": 0,
+    "frozen_worker_replays": 0,
+    "source_modifications": 0,
+    "synthetic_executions": 0,
+    "regeneration": 0
+  },
+  "tracker_reconciliation": {
+    "prior_tracker_experimental_head": "e193bf0 Recover topology-backed required output verification",
+    "reconciled_substantive_head": "1e68fd4 Reconstruct development-05 geometry discrepancy",
+    "current_branch_head_before_bookkeeping_commit": "1e68fd4646b6607891ad0c162223e79cef8ab498",
+    "origin_branch_head_before_bookkeeping_commit": "1e68fd4646b6607891ad0c162223e79cef8ab498",
+    "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+    "metadata_convention": "experimental_head, origin_experimental_head, and latest_substantive_commit identify the latest substantive experiment checkpoint; this forensic evidence/tracker commit is bookkeeping and does not replace that substantive head.",
+    "tracker_update_required": true,
+    "tracker_evidence_path": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-development-05-zero-call-source-artifact-forensics.json"
+  },
+  "anti_overfitting": {
+    "project_id_logic": false,
+    "filename_only_provenance": false,
+    "source_or_artifact_substitution": false,
+    "seed_artifact_substitution": false,
+    "holdout_access": false,
+    "provider_calls": false,
+    "source_modification": false,
+    "conclusion": "This checkpoint records an evidence-limited historical ownership result and does not encode development-05 geometry behavior."
+  },
+  "recommended_next_action": "Keep historical development-05 ownership parked. Next Phase 1B recovery target is the generic hole_detector_non_circular_profile_false_positive subcluster, with permanent project-independent regression coverage; do not use development-05 as recovered geometry evidence."
+}
