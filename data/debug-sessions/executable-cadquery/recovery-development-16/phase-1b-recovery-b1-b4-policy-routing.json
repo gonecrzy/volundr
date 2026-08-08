@@ -1,0 +1,159 @@
+{
+  "schema_version": "phase-1b-recovery-b1-b4-policy-routing-v1",
+  "status": "offline_implementation_verified_live_confirmation_pending",
+  "decision": "offline_policy_boundary_confirmed",
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "historical_evidence_mutated": false,
+  "validation_and_holdout_access": false,
+  "source_evidence": {
+    "b5_normalization": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b5-composite-normalization.json",
+    "b5_sha256": "f3110e3bd0f2832450dae30e52b3afadd0995bc13ade18482cbb71ce43aae6b1",
+    "b_policy_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b-policy-boundary-reconstruction.json",
+    "b_policy_reconstruction_sha256": "a69e6454e4044242213cf994bfe22c92dff1ed74570996149b3f1da1e5446364"
+  },
+  "implementation": {
+    "boundary": "normalized requirement semantics -> RequirementLedgerStore normalization/reload -> executable product contract",
+    "resolver": "app.services.requirements.policy.resolve_product_requirement_policy",
+    "policy_version": "product-requirement-policy-v1",
+    "contract_materialization_version": "executable-cadquery-product-contract-v3",
+    "application_owns_policy": true,
+    "provider_policy_retained_as_audit": true,
+    "semantic_evaluator_changed": false
+  },
+  "precedence": [
+    {
+      "rule": "flexible_or_delegated_choice",
+      "canonical_policy": "informational",
+      "authority": "flexible",
+      "protected": false,
+      "reason": "normalized authority/provenance proves a model or delegated choice"
+    },
+    {
+      "rule": "explicit_or_structural_hard_floor",
+      "canonical_policy": "machine_required",
+      "authority": "required",
+      "reason": "numeric/operator/feature/output/structural evidence remains hard"
+    },
+    {
+      "rule": "explicit_qualitative_objective",
+      "canonical_policy": "review_required",
+      "authority": "explicit",
+      "reason": "user objective is retained as a review obligation"
+    },
+    {
+      "rule": "pure_design_context",
+      "canonical_policy": "informational",
+      "reason": "context guides design without being an independent acceptance gate"
+    },
+    {
+      "rule": "ambiguous_default",
+      "canonical_policy": "machine_required",
+      "reason": "fail closed"
+    }
+  ],
+  "hard_floor": {
+    "numeric_dimensions_and_bounds": "machine_required",
+    "minimum_maximum_range_clearance_count": "machine_required",
+    "required_output_identity_and_count": "machine_required",
+    "feature_present_or_absent": "machine_required",
+    "structural_relationship_fit_compatibility": "machine_required",
+    "explicit_verification_policy": "machine_required_unless_review_only_or_informational",
+    "open_top": "machine_required_in_principle; missing verifier remains Recovery E",
+    "unsupported_machine_requirement": "remains unsupported_verifier and blocks final completion"
+  },
+  "authority_and_protection": {
+    "explicit_user_fact": "preserve explicit authority; preserve protected state when supplied by authoritative product state",
+    "delegated_choice": "authority flexible; explicit false; protected false; selected value remains design context",
+    "model_proposal_or_assumption": "authority flexible; protected false",
+    "review_objective": "user authority/provenance retained independently of review policy",
+    "policy_does_not_define_protection": true
+  },
+  "offline_replay": {
+    "normalized_record_count": 45,
+    "expected_policy_mapping_from_frozen_reconstruction": {
+      "review_required": 9,
+      "informational_b2": 1,
+      "informational_b3": 33,
+      "machine_required": 2,
+      "remaining_composite": 0,
+      "insufficient_evidence": 0
+    },
+    "replayed_policy_distribution": {
+      "review_required": 9,
+      "informational": 34,
+      "machine_required": 2,
+      "unresolved_default_machine_required": 0
+    },
+    "authority_distribution": {
+      "explicit_or_required": 12,
+      "flexible_or_model": 33
+    },
+    "protected_distribution": {
+      "protected_true": 1,
+      "protected_false": 44
+    },
+    "representative_assertions": {
+      "flexible_recovery_a_bounds": "informational, flexible, unprotected",
+      "explicit_clearance": "machine_required",
+      "explicit_open_top": "machine_required",
+      "airflow_path": "machine_required",
+      "qualitative_printability": "review_required",
+      "pure_design_context": "informational"
+    },
+    "sixteen_cell_counterfactual": {
+      "candidate_blocked": 9,
+      "candidate_ready_for_review": 7,
+      "candidate_fully_verified": 0,
+      "concept_state": "unchanged; valid artifacts remain concept_available"
+    },
+    "recovery_c_synthetic_counterfactual": {
+      "body_bounds": "machine_required/pass",
+      "output_identity": "machine_required/pass",
+      "wall_thickness": "informational/flexible",
+      "lid_clearance": "informational/flexible",
+      "printability": "review_required",
+      "concept_state": "concept_available",
+      "candidate_state": "candidate_ready_for_review",
+      "fully_verified": false,
+      "independent_final_review": "retained"
+    }
+  },
+  "semantic_evaluator_contract": {
+    "machine_required_missing_finding": "unsupported_verifier",
+    "review_required_missing_finding": "review_required",
+    "informational_missing_finding": "informational",
+    "evaluator_meaning_changed": false,
+    "automatic_pass_from_missing_evidence": false
+  },
+  "anti_laxness_audit": {
+    "unknown_fit": "not downgraded",
+    "missing_required_output": "not downgraded",
+    "explicit_dimension": "not downgraded",
+    "explicit_clearance": "not downgraded",
+    "open_top": "not downgraded",
+    "valid_topology": "not treated as functional success",
+    "unsupported_verifier": "not automatically converted to review"
+  },
+  "anti_overconstraint_audit": {
+    "model_selected_wall": "not protected or user-hard",
+    "model_selected_clearance": "not protected or user-hard",
+    "flexible_bounds": "not a final blocker",
+    "ordinary_concept_dimensions": "not globally mandatory",
+    "comparison_specification": "not generalized to premise_only",
+    "concept_state": "unchanged"
+  },
+  "tests": {
+    "focused": "69 passed",
+    "full_backend": "1651 passed, 1 skipped, 1 warning",
+    "full_backend_command": "PYTHONPATH=.:backend backend/.venv/bin/python -m pytest -q backend/tests",
+    "provider_or_worker_constructors": "not invoked by offline tests"
+  },
+  "production_files_changed": [
+    "backend/app/services/requirements/policy.py",
+    "backend/app/services/projects/requirement_ledger.py",
+    "backend/app/services/executable_cadquery/contract.py",
+    "backend/tests/test_requirement_policy_routing.py"
+  ],
+  "next_gate": "Run exactly one synthetic Recovery-B live confirmation with the existing two-piece storage-box prompt after this offline implementation is committed."
+}

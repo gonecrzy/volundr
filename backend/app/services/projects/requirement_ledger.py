@@ -30,6 +30,7 @@ from app.services.requirements.trace import (
     normalize_composite_requirement_parts,
     normalize_requirement_semantics,
 )
+from app.services.requirements.policy import resolve_product_requirement_policy
 
 
 REQUIREMENT_LEDGER_VERSION = "requirement-ledger-v1"
@@ -640,6 +641,9 @@ class RequirementLedgerStore:
                             "source_fact_evidence",
                             "classification",
                             "policy",
+                            "policy_version",
+                            "policy_source",
+                            "policy_reason",
                             "verification_policy",
                             "authority",
                             "protected",
@@ -687,6 +691,9 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
                             "source_fact_evidence",
                             "classification",
                             "policy",
+                            "policy_version",
+                            "policy_source",
+                            "policy_reason",
                             "verification_policy",
                             "authority",
                             "protected",
@@ -779,7 +786,7 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
         if isinstance(verification_evidence, dict)
         else None
     )
-    return normalize_requirement_semantics({
+    return resolve_product_requirement_policy(normalize_requirement_semantics({
         "record_id": row.id,
         "requirement_id": row.requirement_id,
         "source": row.source,
@@ -807,6 +814,9 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
                         "classification": semantic.get("classification"),
                         "authority": semantic.get("authority"),
                         "protected": semantic.get("protected"),
+                        "policy_version": semantic.get("policy_version"),
+                        "policy_source": semantic.get("policy_source"),
+                        "policy_reason": semantic.get("policy_reason"),
                         "parent_requirement_id": semantic.get("parent_requirement_id"),
                         "source_requirement_id": semantic.get("source_requirement_id"),
                         "composite_part_id": semantic.get("composite_part_id"),
@@ -815,7 +825,7 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
         "verification_policy": semantic.get("verification_policy"),
         "created_at": row.created_at.isoformat() if row.created_at else None,
         "updated_at": row.updated_at.isoformat() if row.updated_at else None,
-    })
+    }))
 
 
 def _json_value(value: Any) -> str | None:
@@ -904,6 +914,9 @@ def _normalize_requirement(
         "source_fact_evidence",
         "classification",
         "policy",
+        "policy_version",
+        "policy_source",
+        "policy_reason",
         "verification_policy",
         "authority",
         "protected",
@@ -916,7 +929,7 @@ def _normalize_requirement(
             normalized[key] = item[key]
     if item.get("provenance") is not None:
         normalized["provenance"] = item["provenance"]
-    return normalize_requirement_semantics(normalized)
+    return resolve_product_requirement_policy(normalize_requirement_semantics(normalized))
 
 
 def _dedupe_active(records: list[dict[str, Any]]) -> list[dict[str, Any]]:

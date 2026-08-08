@@ -20,25 +20,17 @@ from app.services.cad.cadquery_contract import (
     CadQuerySourceMetadata,
     validate_cadquery_source,
 )
+from app.services.requirements.policy import (
+    REQUIREMENT_POLICIES,
+    REQUIREMENT_POLICY_VERSION,
+    resolve_product_requirement_policy,
+)
 
 
 DESIGN_CONTRACT_SCHEMA_VERSION = "executable-cadquery-design-contract-v1"
 RESPONSE_SCHEMA_VERSION = "executable-cadquery-complete-source-v2"
 SOURCE_CONTRACT_VERSION = "cadquery-v1"
-PRODUCT_CONTRACT_MATERIALIZATION_VERSION = "executable-cadquery-product-contract-v2"
-_REQUIREMENT_POLICIES = frozenset({"machine_required", "review_required", "informational"})
-_QUALITATIVE_REQUIREMENT_TYPES = frozenset(
-    {
-        "qualitative_behavior",
-        "orientation",
-        "support",
-        "retention",
-        "access",
-        "removal_access",
-        "relationship",
-        "process_constraint",
-    }
-)
+PRODUCT_CONTRACT_MATERIALIZATION_VERSION = "executable-cadquery-product-contract-v3"
 
 
 class ExecutableCadQueryContractError(ValueError):
@@ -205,7 +197,7 @@ def build_executable_cadquery_product_contract(
     for item in sorted(requirements, key=lambda value: str(value.get("requirement_id") or value.get("id"))):
         requirement = _product_contract_requirement(item, outputs, outputs[0]["output_id"])
         contract_requirements.append(requirement)
-        if requirement["authority"] == "required":
+        if requirement["authority"] == "required" and requirement.get("protected", True) is True:
             protected_facts.append(
                 {
                     "requirement_id": requirement["requirement_id"],
@@ -231,6 +223,7 @@ def build_executable_cadquery_product_contract(
         "protected_facts": protected_facts,
         "product_state": {
             "design_specification_schema": specification.get("schema_version"),
+            "requirement_policy_version": REQUIREMENT_POLICY_VERSION,
             "purpose": specification.get("purpose"),
             "object_type": specification.get("object_type"),
         },
@@ -305,6 +298,8 @@ def _product_contract_requirement(
     outputs: list[Mapping[str, Any]],
     default_output_id: str,
 ) -> dict[str, Any]:
+    provider_policy = item.get("policy") or item.get("classification")
+    item = resolve_product_requirement_policy(item)
     requirement_id = _stable_contract_id(item.get("requirement_id") or item.get("id"), fallback="requirement")
     raw_value = item.get("expected", item.get("value"))
     output_count = _is_output_count_requirement(item)
@@ -315,8 +310,10 @@ def _product_contract_requirement(
     )
     source = str(item.get("source") or "initial_user")
     explicit = bool(item.get("explicit", source in {"initial_user", "clarification_user", "revision_user", "physical_test_feedback"}))
-    authority = "required" if explicit else "flexible"
-    classification = _resolve_product_classification(item)
+    normalized_authority = str(item.get("authority") or ("explicit" if explicit else "flexible"))
+    authority = "flexible" if not explicit or normalized_authority in {"flexible", "provisional", "proposed", "ai_assumption"} else "required"
+    classification = str(item.get("policy") or item.get("classification") or "machine_required")
+    protected = bool(item.get("protected", explicit and authority == "required"))
     scope, scope_kind = _resolve_product_requirement_scope(item, outputs, default_output_id)
     requirement: dict[str, Any] = {
         "requirement_id": requirement_id,
@@ -324,8 +321,15 @@ def _product_contract_requirement(
         "classification": classification,
         "origin": "user_explicit" if explicit else "model_design_choice",
         "authority": authority,
+        "protected": protected,
         "source": source,
+        "policy_version": REQUIREMENT_POLICY_VERSION,
+        "policy_source": "application",
     }
+    if isinstance(provider_policy, str) and provider_policy in REQUIREMENT_POLICIES and provider_policy != classification:
+        requirement["provider_policy"] = provider_policy
+    if item.get("policy_reason") is not None:
+        requirement["policy_reason"] = str(item["policy_reason"])
     if scope is not None:
         requirement["scope"] = scope
     if scope_kind is not None:
@@ -476,14 +480,9 @@ def _is_bounds_expectation(expected: Mapping[str, Any]) -> bool:
 
 
 def _resolve_product_classification(item: Mapping[str, Any]) -> str:
-    for key in ("policy", "classification"):
-        value = item.get(key)
-        if isinstance(value, str) and value in _REQUIREMENT_POLICIES:
-            return value
-    kind = str(item.get("kind") or item.get("type") or "").lower()
-    if kind in _QUALITATIVE_REQUIREMENT_TYPES:
-        return "review_required"
-    return "machine_required"
+    """Compatibility wrapper for callers of the former contract-local helper."""
+
+    return resolve_product_requirement_policy(item)["policy"]
 
 
 def _stable_contract_id(value: Any, *, fallback: str) -> str:
