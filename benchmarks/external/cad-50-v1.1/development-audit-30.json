@@ -1,0 +1,1716 @@
+{
+  "development_project_count": 30,
+  "methodology_version": "external-cad-comparison-extraction-v1",
+  "projects": [
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 45.097341537475586,
+            "y": 61.72631645202637,
+            "z": 101.97502899169922
+          },
+          "part_id": "adapter_body",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "solid_count": null
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 19.654051780700684,
+            "y": 13.369010925292969,
+            "z": 37.549046993255615
+          },
+          "part_id": "thumb_tab",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 2
+        }
+      ],
+      "benchmark_id": "adapter-coupler-001",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 2,
+      "canonical_selection_basis": "PDF description and model-file listing; body plus thumb tab are canonical, body-size alternatives are provenance.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "appliance",
+        "output_count",
+        "per_part_envelope",
+        "retention"
+      ],
+      "existing_specification_fact_ids": [
+        "appliance",
+        "output_count",
+        "retention"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "body.stl",
+        "thumb_tab.stl"
+      ],
+      "source_description_summary": "Adapter for connecting Tineco stick vacuums to a hose or vacuum accessory; includes a body variant family and a thumb tab.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "d0f1caf0b89f379f7ab81d94ed8f02be236844400371004caa4f7328b5df289c"
+    },
+    {
+      "action": "comparison_ready",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 45.49943782132422,
+            "y": 45.499633551409374,
+            "z": 104.09540721191975
+          },
+          "part_id": "dyson_dust_adapter",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "solid_count": null
+        }
+      ],
+      "benchmark_id": "adapter-coupler-002",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing; 3MF is the only supplied geometry for this selected model.",
+      "comparison_readiness": "comparison_ready",
+      "design_driving_facts_already_supplied": [
+        "hose_diameter",
+        "output_count",
+        "per_part_envelope",
+        "supported_appliance"
+      ],
+      "existing_specification_fact_ids": [
+        "hose_diameter",
+        "output_count",
+        "supported_appliance"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": true,
+      "missing_design_driving_facts": [],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "dyson-adapter-final.3mf"
+      ],
+      "source_description_summary": "Dust-extractor adapter for Dyson vacuum families and a Fein 35 mm hose, supplied as a 3MF mesh reference.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "268a51d7030a53143cf2ee8f6987a88c7ff821fec27ea7cad41e17bc2f777611"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "analytic_brep",
+          "overall_envelope_mm": {
+            "x": 37.10571126878992,
+            "y": 15.093290520755334,
+            "z": 76.00000010000099
+          },
+          "part_id": "adapter_top",
+          "quality_classification": "analytic_brep_authoritative",
+          "solid_count": 1
+        },
+        {
+          "authority": "analytic_brep",
+          "overall_envelope_mm": {
+            "x": 42.973422620237,
+            "y": 47.5000001,
+            "z": 125.00000000000009
+          },
+          "part_id": "adapter_tube",
+          "quality_classification": "analytic_brep_authoritative",
+          "solid_count": 1
+        },
+        {
+          "authority": "analytic_brep",
+          "overall_envelope_mm": {
+            "x": 17.0,
+            "y": 5.500000100000001,
+            "z": 29.0
+          },
+          "part_id": "retention_button",
+          "quality_classification": "analytic_brep_authoritative",
+          "solid_count": 1
+        },
+        {
+          "authority": "analytic_brep",
+          "overall_envelope_mm": {
+            "x": 9.50000000000248,
+            "y": 8.800000000000487,
+            "z": 45.70000000000048
+          },
+          "part_id": "retention_rocker",
+          "quality_classification": "analytic_brep_authoritative",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "adapter-coupler-003",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 4,
+      "canonical_selection_basis": "PDF model-file listing; four named STEP components are canonical, 3MF/FCStd are assembly/native provenance.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "output_count",
+        "per_part_envelope",
+        "source_interface",
+        "target_interface"
+      ],
+      "existing_specification_fact_ids": [
+        "output_count",
+        "source_interface",
+        "target_interface"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "analytic_brep",
+      "selected_variants": [
+        "Electrolux_Vacuum_Cleaner_Miele_Adapter_V7-Top.step",
+        "Electrolux_Vacuum_Cleaner_Miele_Adapter_V7-Tube.step",
+        "Electrolux_Vacuum_Cleaner_Miele_Adapter_V7-Button.step",
+        "Electrolux_Vacuum_Cleaner_Miele_Adapter_V7-Rocker.step"
+      ],
+      "source_description_summary": "Multi-part vacuum adapter with tube, top, button, and rocker STEP components plus assembly/native provenance.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "636e55a6149454c21258c79b3f6445d347060a5dc8f6c2e59d0a93b88d9d07b5"
+    },
+    {
+      "action": "comparison_ready",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 61.999216,
+            "y": 62.100088,
+            "z": 20.0
+          },
+          "part_id": "pipe_clamp_50mm",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "clamp-clip-001",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF parameter-family listing plus manual benchmark annotation selecting one metric mid-range variant.",
+      "comparison_readiness": "comparison_ready",
+      "design_driving_facts_already_supplied": [
+        "output_count",
+        "per_part_envelope",
+        "retention",
+        "variant_nominal_diameter"
+      ],
+      "existing_specification_fact_ids": [
+        "output_count",
+        "retention",
+        "variant_nominal_diameter"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": true,
+      "missing_design_driving_facts": [],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "LR2209-050mm.3mf"
+      ],
+      "source_description_summary": "Parameterized snap-in pipe clamp with metric and imperial diameter variants and a zip-tie lock.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "469261826a849253ee139eafc18fefe33498079316896c0b5899a376655bb57d"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 43.0,
+            "y": 53.537001609802246,
+            "z": 15.0
+          },
+          "part_id": "vacuum_hose_cable_clip",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "clamp-clip-002",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "application",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "application",
+        "output_count"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "Staubsaugerkabel.stl"
+      ],
+      "source_description_summary": "Cable clip for a vacuum hose.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "aca2dd47b2993c74f1e31917a552c5ee1daf64176e1a9cbb1320ea97f1361025"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 65.0,
+            "y": 13.0,
+            "z": 18.000000000002352
+          },
+          "part_id": "holder_guide",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 33.0,
+            "y": 250.0,
+            "z": 23.0
+          },
+          "part_id": "holder_left",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "clamp-clip-003",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 2,
+      "canonical_selection_basis": "PDF description and model-file listing; two named holder parts are canonical.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "mounting_context",
+        "output_count",
+        "per_part_envelope",
+        "supported_tool"
+      ],
+      "existing_specification_fact_ids": [
+        "mounting_context",
+        "output_count",
+        "supported_tool"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "Shaper Workbench Holder Guide.stl",
+        "Shaper Workbench Holder Left.stl"
+      ],
+      "source_description_summary": "Two-piece clamp/holder system for securing a Shaper Origin workstation to a T-Loc Systainer or MDF board.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "51b9354354d4e0265b965c5d6fa62e5883649f8b3d3c2968f4d61136d9e10a1a"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 35.17900085449219,
+            "y": 78.73999786376953,
+            "z": 35.17900085449219
+          },
+          "part_id": "battery_body",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "solid_count": null
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 92.30131530761719,
+            "y": 1.2699999809265137,
+            "z": 36.067970633506775
+          },
+          "part_id": "flexible_strap",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 27.939998626708984,
+            "y": 1.2699999809265137,
+            "z": 27.939998626708984
+          },
+          "part_id": "lower_bumper",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 36.74241638183594,
+            "y": 12.699999809265137,
+            "z": 36.74241638183594
+          },
+          "part_id": "screw_lid",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 15.239999771118164,
+            "y": 4.445000171661377,
+            "z": 15.239999771118164
+          },
+          "part_id": "strap_retainer",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "container-case-001",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 5,
+      "canonical_selection_basis": "PDF model-file listing; all five named printed components form the intended case design.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "battery_type",
+        "closure",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "battery_type",
+        "closure",
+        "output_count"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "26650_body.STL",
+        "26650_flexible_strap.STL",
+        "26650_lower_bumper.STL",
+        "26650_screw_lid.STL",
+        "strap_retainer.STL"
+      ],
+      "source_description_summary": "Multi-part screw-lid holder for a 26650 battery with flexible strap, retainer, body, lid, and bumper pieces.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "c71de82b52d38707bc29064a409e673a41a337f8131f5ed11b98cd6f9fb0a58b"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 38.79999923706055,
+            "y": 43.719478607177734,
+            "z": 72.5
+          },
+          "part_id": "battery_box_26650",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 38.79999923706055,
+            "y": 38.79999923706055,
+            "z": 19.0
+          },
+          "part_id": "battery_lid",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "container-case-002",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 2,
+      "canonical_selection_basis": "PDF variant family and manual benchmark annotation selecting the 26650 design plus shared lid.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "battery_variants",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "battery_variants",
+        "output_count"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "bat_box(26650).stl",
+        "bat_lid.stl"
+      ],
+      "source_description_summary": "Battery carry case with several battery-size box variants, a shared lid, and a protector source.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "c8ffc626ef0f5e5524fece275f5e3c39a42ddf027107656e737ad5cfbc4bc115"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 152.40000915527344,
+            "y": 50.79999923706055,
+            "z": 165.09999084472656
+          },
+          "part_id": "multi_battery_holder_box",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "container-case-003",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "battery_families",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "battery_families",
+        "output_count"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "multiple_battery_box.STL"
+      ],
+      "source_description_summary": "Multi-size battery holder box.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "1c838c835644fa095d709480887aedcff86d611b84b69e10d41fbba5b536f13f"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 84.0,
+            "y": 84.52261352539062,
+            "z": 45.58539581298828
+          },
+          "part_id": "case_bottom",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 83.98477935791016,
+            "y": 77.09119033813477,
+            "z": 13.0
+          },
+          "part_id": "case_top",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "electronics-enclosure-001",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 2,
+      "canonical_selection_basis": "PDF model-file listing; bottom/top are an intentional two-part enclosure.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "device",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "device",
+        "output_count"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "lcr-t4_case_bottom.stl",
+        "lcr-t4_case_topnew.stl"
+      ],
+      "source_description_summary": "Two-part case for an LCR-T4 ESR meter.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "b6ba02b63c1e97eb8a8ec8f808034bdc8107233b438fc00cca005309d401c2d9"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 112.5,
+            "y": 66.0,
+            "z": 18.0
+          },
+          "part_id": "lcr_meter_housing",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "electronics-enclosure-002",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing; 3MF is the sole canonical source.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "device",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "device",
+        "output_count"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "lcr-house.3mf"
+      ],
+      "source_description_summary": "Housing for an ARCELI LCR-T4 meter supplied as a 3MF mesh package.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "ca252b59d505853880d15adcecb4e19c74a115730230df874c6052cf1f16e7da"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 74.00000095367432,
+            "y": 44.000000953674316,
+            "z": 36.19999980926514
+          },
+          "part_id": "display_box",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 74.00000095367432,
+            "y": 44.000000953674316,
+            "z": 5.0
+          },
+          "part_id": "display_lid",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "electronics-enclosure-003",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 2,
+      "canonical_selection_basis": "PDF model-file listing; box/lid are an intentional two-part output.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "device",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "device",
+        "output_count"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "weight_display_box.stl",
+        "weight_display_lid.stl"
+      ],
+      "source_description_summary": "Two-part display box for an HX711 load-cell project.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "c99097761568482b4ce0c8942d8bb3972b2014dafc6e60eace2690d0a6c40ec2"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 80.0,
+            "y": 140.0000011601951,
+            "z": 19.49222755432129
+          },
+          "part_id": "scale_body",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 9.999160766601562,
+            "y": 9.999580383300781,
+            "z": 9.350000619888306
+          },
+          "part_id": "scale_button",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 76.31513977050781,
+            "y": 27.997642517089844,
+            "z": 11.0
+          },
+          "part_id": "scale_front_cover",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 80.00000762939453,
+            "y": 109.99317169189453,
+            "z": 9.0
+          },
+          "part_id": "scale_platform",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "functional-assembly-001",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 4,
+      "canonical_selection_basis": "PDF model-file listing; four named printed parts are canonical and 3MF is assembly provenance.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "function",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "function",
+        "output_count"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "body.stl",
+        "button.stl",
+        "front-cover.stl",
+        "plateau.stl"
+      ],
+      "source_description_summary": "Multi-part Bluetooth coffee/espresso scale with body, platform, front cover, and button components.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "3c6d895e749537195406c2321a6d0a11089d35400024962af09e68701724838b"
+    },
+    {
+      "action": "replace_before_comparison_scoring",
+      "actual_geometry_evidence": [
+        {
+          "authority": "analytic_brep",
+          "overall_envelope_mm": {
+            "x": 209.61485143860864,
+            "y": 261.764823516691,
+            "z": 262.82554204979243
+          },
+          "part_id": "vp2_pedal_assembly",
+          "quality_classification": "analytic_brep_authoritative",
+          "solid_count": 217
+        }
+      ],
+      "benchmark_id": "functional-assembly-002",
+      "canonical_membership": "explicit_but_scope_too_broad_or_ambiguous",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing; complete STEP assembly retained without exploding source solids into arbitrary outputs.",
+      "comparison_readiness": "replacement_required",
+      "design_driving_facts_already_supplied": [
+        "assembly",
+        "load_cell_capacity",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "assembly",
+        "load_cell_capacity",
+        "output_count"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry",
+        "canonical_scope_confirmation"
+      ],
+      "reference_authority": "analytic_brep",
+      "selected_variants": [
+        "vaessen-motorsports-vp-2-assembly.stp"
+      ],
+      "source_description_summary": "Large STEP assembly for a DIY sim-racing pedal set with off-the-shelf, printed, and laser-cut components.",
+      "source_intent_match": "not_defensible_as_current_comparison_target",
+      "specification_hash": "9a8369a1556d18a63ae7af440586b205012749a2a07a0711e345d83498d64657"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 24.84999942779541,
+            "y": 27.59956169128418,
+            "z": 10.099999904632568
+          },
+          "part_id": "bearing_plate_bottom",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 24.84999942779541,
+            "y": 27.59956169128418,
+            "z": 10.100000143051147
+          },
+          "part_id": "bearing_plate_top",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 45.95392990112305,
+            "y": 46.934804916381836,
+            "z": 16.800000190734863
+          },
+          "part_id": "pump_base",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 45.97696304321289,
+            "y": 14.988612174987793,
+            "z": 28.000000953674316
+          },
+          "part_id": "pump_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 44.95399475097656,
+            "y": 45.93480110168457,
+            "z": 4.0
+          },
+          "part_id": "pump_spacer",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "functional-assembly-003",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 5,
+      "canonical_selection_basis": "PDF model-file listing; five named printed parts are canonical, F3D/3MF are native/assembly provenance.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "application",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "application",
+        "output_count"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "pump-bearing-plate-bottom.stl",
+        "pump-bearing-plate-top.stl",
+        "pump-base.stl",
+        "pump-mount.stl",
+        "peristaltic-pump-spacer.stl"
+      ],
+      "source_description_summary": "Multi-part peristaltic pump assembly with bearing plates, pump mount/base, and spacer.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "71d92687f3ac07a2bf10c4c5549731f2de9c043d677cee919969da8a6f5fa833"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 99.17847919464111,
+            "y": 135.75859451293945,
+            "z": 50.0
+          },
+          "part_id": "trimmer_wall_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "holder-organizer-001",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing and description; printable STL selected over alternate 3MF/native source.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "output_count",
+        "per_part_envelope",
+        "supported_tool"
+      ],
+      "existing_specification_fact_ids": [
+        "output_count",
+        "supported_tool"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "FS91 Wall Hager V4.stl"
+      ],
+      "source_description_summary": "Wall mount for storing a Stihl FS91 or FS31 trimmer upright; fit is specific to the modeled machine and uses construction screws.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "de0b1b85af621a6745a8f927272999d44c7036beac04624f729cb6fa74209859"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "analytic_brep",
+          "overall_envelope_mm": {
+            "x": 122.00000020000002,
+            "y": 70.0000002,
+            "z": 87.07185049373241
+          },
+          "part_id": "single_battery_holder",
+          "quality_classification": "analytic_brep_authoritative",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "holder-organizer-002",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF description plus explicit single/double variant naming; single STEP selected for a deterministic one-output benchmark.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "battery_family",
+        "mounting_fastener",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "battery_family",
+        "mounting_fastener",
+        "output_count"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "analytic_brep",
+      "selected_variants": [
+        "stihl-ap-battery-pack-holder-single.step"
+      ],
+      "source_description_summary": "Wall-mountable holder for one or two Stihl AP battery packs; the source documents single and double designs with countersunk mounting screws.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "acf483392a8f7ad1a8907a1e711caeb7d58915ea1bee6caa1f90c9ad9cadabdf"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 114.41399383544922,
+            "y": 76.0,
+            "z": 9.0
+          },
+          "part_id": "blower_wall_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "holder-organizer-003",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "output_count",
+        "per_part_envelope",
+        "supported_tool"
+      ],
+      "existing_specification_fact_ids": [
+        "output_count",
+        "supported_tool"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "wallmount_stihlbga_57.stl"
+      ],
+      "source_description_summary": "Wall mount for a Stihl BGA 57 blower.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "8477fa2a3ccda1f90b4fd2f49ca075c0243c8ff289b5b7ac955cbd1ff66e6123"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 116.5,
+            "y": 128.00000381469727,
+            "z": 35.0
+          },
+          "part_id": "anschlag",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 110.61710357666016,
+            "y": 89.48259735107422,
+            "z": 50.0
+          },
+          "part_id": "fraswagen",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 125.0,
+            "y": 19.800003051757812,
+            "z": 31.50000762939453
+          },
+          "part_id": "griff_oben",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 15.0,
+            "y": 110.00000381469727,
+            "z": 16.99999237060547
+          },
+          "part_id": "griff_vorne",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 142.00000762939453,
+            "y": 116.0,
+            "z": 171.0
+          },
+          "part_id": "grundkorper",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 18.0,
+            "y": 82.50000762939453,
+            "z": 8.0
+          },
+          "part_id": "kontermutter",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 25.0,
+            "y": 126.0,
+            "z": 8.0
+          },
+          "part_id": "kopfteil",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 30.00000762939453,
+            "y": 30.0,
+            "z": 14.0
+          },
+          "part_id": "mutter",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 24.332244873046875,
+            "y": 22.353118896484375,
+            "z": 7.5
+          },
+          "part_id": "wagenstopp",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 2
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 31.999717712402344,
+            "y": 24.0,
+            "z": 76.0
+          },
+          "part_id": "x_wagen",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "jig-guide-001",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 10,
+      "canonical_selection_basis": "PDF model-file listing; all ten named printed components form the documented jig.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "output_count",
+        "per_part_envelope",
+        "tool"
+      ],
+      "existing_specification_fact_ids": [
+        "output_count",
+        "tool"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry",
+        "output_relationship_mapping"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "anschlag.stl",
+        "fraswagen.stl",
+        "griff-oben.stl",
+        "griff-vorne.stl",
+        "grundkorper.stl",
+        "kontermutter.stl",
+        "kopfteil.stl",
+        "mutter.stl",
+        "wagenstopp.stl",
+        "x-wagen.stl"
+      ],
+      "source_description_summary": "Multi-part jig for a Domino router with carriage, guides, handles, stop, and related pieces.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "61cc817a275bde8cdd5f17a31244cbee23705426bd72cc8339d99fdd960fce6e"
+    },
+    {
+      "action": "replace_before_comparison_scoring",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 222.5,
+            "y": 190.5,
+            "z": 9.0
+          },
+          "part_id": "gauge_set",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 17
+        }
+      ],
+      "benchmark_id": "jig-guide-002",
+      "canonical_membership": "explicit_but_scope_too_broad_or_ambiguous",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF purpose and file naming; principal gauge-set geometry selected while accessory/template family is retained for review.",
+      "comparison_readiness": "replacement_required",
+      "design_driving_facts_already_supplied": [
+        "output_count",
+        "per_part_envelope",
+        "tool"
+      ],
+      "existing_specification_fact_ids": [
+        "output_count",
+        "tool"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "output_identity",
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry",
+        "canonical_scope_confirmation"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "LehrenSatz_GaugeSet.stl"
+      ],
+      "source_description_summary": "Large router gauge/template set with support, inlays, walls, nut, and base components.",
+      "source_intent_match": "not_defensible_as_current_comparison_target",
+      "specification_hash": "3c0af9746629ae186fd4413b8cada352360258662f6a6ac5516bbdac9cd9f1d6"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 156.97772216796875,
+            "y": 70.7106819152832,
+            "z": 27.000000000000018
+          },
+          "part_id": "radius_jig",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "jig-guide-003",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF purpose and variant naming; base jig selected, templates classified as alternatives.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "output_count",
+        "per_part_envelope",
+        "template_family"
+      ],
+      "existing_specification_fact_ids": [
+        "output_count",
+        "template_family"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "jig_v4.stl"
+      ],
+      "source_description_summary": "Router-radius jig with a base jig and multiple interchangeable radius templates.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "06a503b0093d755d62cbf66f9761dfe8b20c88ee1297a11c497ad9126cc10ab8"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "analytic_brep",
+          "overall_envelope_mm": {
+            "x": 14.000000200000006,
+            "y": 13.662709938909213,
+            "z": 26.499859272838457
+          },
+          "part_id": "sensor_bracket",
+          "quality_classification": "analytic_brep_authoritative",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "mounting-bracket-001",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "locked pilot canonical membership preserved from the existing pilot manifest",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "attachment_methods",
+        "output_count",
+        "overall_envelope",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "attachment_methods",
+        "output_count",
+        "overall_envelope"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "analytic_brep",
+      "selected_variants": [
+        "speed-sensor-bracket.step"
+      ],
+      "source_description_summary": null,
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "d16b6505a8f274841435c1dcb5a374380a46c9557702bdd70b860b84ea3790d1"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 109.46806335449219,
+            "y": 66.91010284423828,
+            "z": 15.0
+          },
+          "part_id": "load_cell_foot",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 80.0,
+            "y": 79.97513580322266,
+            "z": 10.0
+          },
+          "part_id": "scale_platform",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "mounting-bracket-002",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 2,
+      "canonical_selection_basis": "locked pilot canonical membership preserved from the existing pilot manifest",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "load_cell_foot_envelope",
+        "load_cell_hardware",
+        "output_count",
+        "per_part_envelope",
+        "scale_platform_envelope",
+        "screw_head_clearance"
+      ],
+      "existing_specification_fact_ids": [
+        "load_cell_foot_envelope",
+        "load_cell_hardware",
+        "output_count",
+        "scale_platform_envelope",
+        "screw_head_clearance"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "HX711_Load_Cell--Foot.stl",
+        "HX711_Load_Cell--Scale.stl"
+      ],
+      "source_description_summary": null,
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "63a4a7c1410ced842d14b1c906b7b917704288dfab5874e06f6740a3ef3dba9c"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 54.00000000000001,
+            "y": 78.30000305175781,
+            "z": 50.000000953674316
+          },
+          "part_id": "ultrasonic_sensor_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "mounting-bracket-003",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "locked pilot canonical membership preserved from the existing pilot manifest",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "extrusion_family",
+        "output_count",
+        "overall_envelope",
+        "per_part_envelope",
+        "sensor_type"
+      ],
+      "existing_specification_fact_ids": [
+        "extrusion_family",
+        "output_count",
+        "overall_envelope",
+        "sensor_type"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "8020_mount_hc-sr04_ultrasonic_distance_sensor_w-c.stl"
+      ],
+      "source_description_summary": null,
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "5207bf8f107a31a5164052242b7c922a5779546b2d2b595984e63f1a61359839"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 21.700000762939453,
+            "y": 12.699999809265137,
+            "z": 34.49100875854492
+          },
+          "part_id": "tineco_seesaw_switch",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 3
+        }
+      ],
+      "benchmark_id": "replacement-part-001",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "appliance",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "appliance",
+        "output_count"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "tineco_wipptaster-v4.stl"
+      ],
+      "source_description_summary": "Replacement seesaw switch for a Tineco appliance.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "ded07437067df54a4a1472827e410bca709875c7193eca5203f4eb922e1d385f"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 36.5,
+            "y": 21.205398559570312,
+            "z": 10.0
+          },
+          "part_id": "tineco_hero_latch",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "replacement-part-002",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing; STL selected over duplicate 3MF for mesh comparison.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "appliance",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "appliance",
+        "output_count"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "Tineco A11 Hero Latch.stl"
+      ],
+      "source_description_summary": "Replacement latch for a Tineco A10/A11 Hero accessory attachment, supplied as matched 3MF and STL geometry.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "b90049cc75fdd7eb4053ac893f44f9a2c89c856fba351ec2e41a0b4184c4de1e"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "analytic_brep",
+          "overall_envelope_mm": {
+            "x": 57.803038609853225,
+            "y": 7.84908338027249,
+            "z": 18.2000002
+          },
+          "part_id": "dyson_wand_latch",
+          "quality_classification": "analytic_brep_authoritative",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "replacement-part-003",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing and editability; STEP selected as strongest available geometry authority.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "output_count",
+        "per_part_envelope",
+        "supported_models"
+      ],
+      "existing_specification_fact_ids": [
+        "output_count",
+        "supported_models"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "analytic_brep",
+      "selected_variants": [
+        "dyson-v10-attachment-latch.stp"
+      ],
+      "source_description_summary": "Replacement Dyson wand-tube latch supplied in STEP, STL, and 3MF forms.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "314fc82e8aaa04ca1061bc0775fbfbe9f6bfea94d2a9e5963adbfb1a232f95b3"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 76.0,
+            "y": 33.23599624633789,
+            "z": 106.61492919921875
+          },
+          "part_id": "magsafe_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 86.0,
+            "y": 29.500555992126465,
+            "z": 127.02894592285156
+          },
+          "part_id": "stand_back",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 99.99846267700195,
+            "y": 90.0029296875,
+            "z": 20.0
+          },
+          "part_id": "stand_base",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 9.599276542663574,
+            "y": 5.0,
+            "z": 9.59963846206665
+          },
+          "part_id": "stand_peg",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "stand-support-001",
+      "canonical_membership": "explicit",
+      "canonical_part_count": 4,
+      "canonical_selection_basis": "PDF model-file listing; all four named printed parts form the stand.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "interface",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "interface",
+        "output_count"
+      ],
+      "existing_sufficiency": "moderate",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "magsafepart.stl",
+        "back.stl",
+        "base.stl",
+        "peg.stl"
+      ],
+      "source_description_summary": "Multi-part iPhone MagSafe stand with base, back, MagSafe part, and peg.",
+      "source_intent_match": "provisionally_consistent_with_selected_canonical_parts",
+      "specification_hash": "7756f3551a5575c7dfbe9877ea41a421b77fdd47cfca722732adb7a8e8dc1993"
+    },
+    {
+      "action": "replace_before_comparison_scoring",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 29.458260536193848,
+            "y": 50.0,
+            "z": 41.41041088104248
+          },
+          "part_id": "corsair_phone_holder_77x47",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "stand-support-002",
+      "canonical_membership": "explicit_but_scope_too_broad_or_ambiguous",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF parameter family plus manual benchmark annotation selecting one named variant.",
+      "comparison_readiness": "replacement_required",
+      "design_driving_facts_already_supplied": [
+        "keyboard",
+        "output_count",
+        "per_part_envelope",
+        "phone_variant"
+      ],
+      "existing_specification_fact_ids": [
+        "keyboard",
+        "output_count",
+        "phone_variant"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "corsair_k70_phone_holder_77x47mm.stl"
+      ],
+      "source_description_summary": "Large parameter family of phone-holder variants for Corsair K70/K65 RGB keyboards.",
+      "source_intent_match": "not_defensible_as_current_comparison_target",
+      "specification_hash": "c2dc60eb739662210d0e327daaada0f4603d730f09e6f03fe00aa4e41bb4c881"
+    },
+    {
+      "action": "enrich_comparison_specification",
+      "actual_geometry_evidence": [
+        {
+          "authority": "mesh_derived",
+          "overall_envelope_mm": {
+            "x": 66.98625373840332,
+            "y": 70.0,
+            "z": 89.3500213623047
+          },
+          "part_id": "remarkable_stand",
+          "quality_classification": "watertight_mesh_reference",
+          "solid_count": 1
+        }
+      ],
+      "benchmark_id": "stand-support-003",
+      "canonical_membership": "explicit_with_ambiguity_flag",
+      "canonical_part_count": 1,
+      "canonical_selection_basis": "PDF model-file listing; standard variant selected over no-folio alternate.",
+      "comparison_readiness": "needs_spec_enrichment",
+      "design_driving_facts_already_supplied": [
+        "device",
+        "output_count",
+        "per_part_envelope"
+      ],
+      "existing_specification_fact_ids": [
+        "device",
+        "output_count"
+      ],
+      "existing_sufficiency": "minimal",
+      "geometric_similarity_fair": false,
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "reference_authority": "mesh_derived",
+      "selected_variants": [
+        "remarkable_stand.stl"
+      ],
+      "source_description_summary": "Stand for a reMarkable 2 tablet with a standard and no-folio STL variant plus 3MF/native provenance.",
+      "source_intent_match": "provisionally_consistent_with_canonical_geometry; ambiguity_flag_requires_review",
+      "specification_hash": "31efba0936547ea00a46aba686242b04c89e0328fa0e1cde91e7c0efd78cd0a6"
+    }
+  ],
+  "schema_version": "external-cad-development-comparison-audit-v1",
+  "source_benchmark_id": "external-cad-50-v1",
+  "summary": {
+    "comparison_ready_without_changes": 0,
+    "enriched_to_comparison_ready": 2,
+    "replacement_required": 3,
+    "still_underconstrained": 25
+  }
+}

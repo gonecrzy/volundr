@@ -1,0 +1,1966 @@
+{
+  "methodology_version": "external-cad-comparison-extraction-v1",
+  "projects": [
+    {
+      "benchmark_id": "adapter-coupler-001",
+      "category": "adapter_coupler",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "appliance",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Tineco stick vacuum"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 2
+        },
+        {
+          "id": "retention",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "hinged or locking thumb tab"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 45.097341537475586,
+            "y": 61.72631645202637,
+            "z": 101.97502899169922
+          },
+          "part_id": "adapter_body",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "selected_variant": "body.stl",
+          "selection_reason": "The PDF describes the body as the main adapter; body_small and body-15-inch are alternate variants.",
+          "solid_count": null
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 19.654051780700684,
+            "y": 13.369010925292969,
+            "z": 37.549046993255615
+          },
+          "part_id": "thumb_tab",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "thumb_tab.stl",
+          "selection_reason": "The PDF describes the thumb/locking tab as a functional companion part.",
+          "solid_count": 2
+        }
+      ],
+      "prompt": "Design an adapter that connects a Tineco stick vacuum to a flexible hose or accessory. It should lock securely, be practical to print, and remain removable without special tools.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output adapter_body should have an overall envelope of approximately 45.097341537475586 mm x 61.72631645202637 mm x 101.97502899169922 mm.\n- Output thumb_tab should have an overall envelope of approximately 19.654051780700684 mm x 13.369010925292969 mm x 37.549046993255615 mm.\n- appliance: Tineco stick vacuum descriptive\n- retention: hinged or locking thumb tab descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "5e24f2ac7143597aa2de7c3332919a8f35a96e06b813c8a0c41888fdb981c681",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "adapter-coupler-002",
+      "category": "adapter_coupler",
+      "comparison_ready": true,
+      "facts": [
+        {
+          "id": "hose_diameter",
+          "provenance": "creator_documented",
+          "unit": "mm",
+          "value": 35
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "supported_appliance",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Dyson V7/V8/V10/V11/V15 accessory interface"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "3mf",
+          "overall_envelope_mm": {
+            "x": 45.49943782132422,
+            "y": 45.499633551409374,
+            "z": 104.09540721191975
+          },
+          "part_id": "dyson_dust_adapter",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "selected_variant": "dyson-adapter-final.3mf",
+          "selection_reason": "The PDF lists the 3MF as the canonical supplied model; it is imported as mesh-derived reference evidence.",
+          "solid_count": null
+        }
+      ],
+      "prompt": "Design a vacuum adapter that connects a Dyson V-series accessory interface to a 35 mm dust-extraction hose. It should seat securely and maintain a usable airflow path.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output dyson_dust_adapter should have an overall envelope of approximately 45.49943782132422 mm x 45.499633551409374 mm x 104.09540721191975 mm.\n- hose_diameter: 35 mm\n- supported_appliance: Dyson V7/V8/V10/V11/V15 accessory interface descriptive",
+      "reference_similarity_status": "eligible",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "d30fc847990660b53e3476bb7e46c807f1e15d36ab579ef382db0bb8055617e9",
+      "split_assignment": "development",
+      "status": "comparison_ready"
+    },
+    {
+      "benchmark_id": "adapter-coupler-003",
+      "category": "adapter_coupler",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 4
+        },
+        {
+          "id": "source_interface",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Electrolux/AEG vacuum tube"
+        },
+        {
+          "id": "target_interface",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Miele nozzle"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 37.10571126878992,
+            "y": 15.093290520755334,
+            "z": 76.00000010000099
+          },
+          "part_id": "adapter_top",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "Electrolux_Vacuum_Cleaner_Miele_Adapter_V7-Top.step",
+          "selection_reason": "The PDF names the Top STEP as a design component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 42.973422620237,
+            "y": 47.5000001,
+            "z": 125.00000000000009
+          },
+          "part_id": "adapter_tube",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "Electrolux_Vacuum_Cleaner_Miele_Adapter_V7-Tube.step",
+          "selection_reason": "The PDF names the Tube STEP as a design component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 17.0,
+            "y": 5.500000100000001,
+            "z": 29.0
+          },
+          "part_id": "retention_button",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "Electrolux_Vacuum_Cleaner_Miele_Adapter_V7-Button.step",
+          "selection_reason": "The PDF names the Button STEP as a functional component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 9.50000000000248,
+            "y": 8.800000000000487,
+            "z": 45.70000000000048
+          },
+          "part_id": "retention_rocker",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "Electrolux_Vacuum_Cleaner_Miele_Adapter_V7-Rocker.step",
+          "selection_reason": "The PDF names the Rocker STEP as a functional component.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a multi-part adapter that connects an Electrolux or AEG vacuum tube to a Miele nozzle. Include the tube interface, nozzle body, and the functional button/rocker pieces needed for retention.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output adapter_top should have an overall envelope of approximately 37.10571126878992 mm x 15.093290520755334 mm x 76.00000010000099 mm.\n- Output adapter_tube should have an overall envelope of approximately 42.973422620237 mm x 47.5000001 mm x 125.00000000000009 mm.\n- Output retention_button should have an overall envelope of approximately 17.0 mm x 5.500000100000001 mm x 29.0 mm.\n- Output retention_rocker should have an overall envelope of approximately 9.50000000000248 mm x 8.800000000000487 mm x 45.70000000000048 mm.\n- source_interface: Electrolux/AEG vacuum tube descriptive\n- target_interface: Miele nozzle descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "ac01a0affd303ef0b0cf4f873df78329ac98ae6198e1282b9c1b4230c11d060b",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "clamp-clip-001",
+      "category": "clamp_clip",
+      "comparison_ready": true,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "retention",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "zip-tie lock"
+        },
+        {
+          "id": "variant_nominal_diameter",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "mm",
+          "value": 50
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "3mf",
+          "overall_envelope_mm": {
+            "x": 61.999216,
+            "y": 62.100088,
+            "z": 20.0
+          },
+          "part_id": "pipe_clamp_50mm",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "LR2209-050mm.3mf",
+          "selection_reason": "The intake contains an explicit parameter family; the 50 mm metric variant is selected by manual benchmark annotation and every other size remains provenance.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a snap-in clamp for securing a round pipe, with a zip-tie locking feature. It should be printable, hold the pipe firmly, and support a useful range of pipe sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output pipe_clamp_50mm should have an overall envelope of approximately 61.999216 mm x 62.100088 mm x 20.0 mm.\n- retention: zip-tie lock descriptive\n- variant_nominal_diameter: 50 mm",
+      "reference_similarity_status": "eligible",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "51a9b5c5b6f62d209291b6927b022194ea5e50281eecc22743651523358844f9",
+      "split_assignment": "development",
+      "status": "comparison_ready"
+    },
+    {
+      "benchmark_id": "clamp-clip-002",
+      "category": "clamp_clip",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "application",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "vacuum hose cable routing"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 43.0,
+            "y": 53.537001609802246,
+            "z": 15.0
+          },
+          "part_id": "vacuum_hose_cable_clip",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "Staubsaugerkabel.stl",
+          "selection_reason": "The PDF lists the single STL as the model file.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a small clip that routes and retains a cable along a vacuum hose without damaging the hose or cable.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output vacuum_hose_cable_clip should have an overall envelope of approximately 43.0 mm x 53.537001609802246 mm x 15.0 mm.\n- application: vacuum hose cable routing descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "fa68693a2eec67b10bff87f6196d118223423b2733f444bda80508fd32bf2c69",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "clamp-clip-003",
+      "category": "clamp_clip",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "mounting_context",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "T-Loc Systainer or MDF board"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 2
+        },
+        {
+          "id": "supported_tool",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Shaper Origin workstation"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 65.0,
+            "y": 13.0,
+            "z": 18.000000000002352
+          },
+          "part_id": "holder_guide",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "Shaper Workbench Holder Guide.stl",
+          "selection_reason": "The PDF describes the guide as one intentional part of the clamp system.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 33.0,
+            "y": 250.0,
+            "z": 23.0
+          },
+          "part_id": "holder_left",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "Shaper Workbench Holder Left.stl",
+          "selection_reason": "The PDF describes the left holder as the second intentional part.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a two-part clamp system for securing a Shaper Origin workstation to a portable work surface. It should fit the workstation feet accurately and allow quick assembly and removal.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output holder_guide should have an overall envelope of approximately 65.0 mm x 13.0 mm x 18.000000000002352 mm.\n- Output holder_left should have an overall envelope of approximately 33.0 mm x 250.0 mm x 23.0 mm.\n- mounting_context: T-Loc Systainer or MDF board descriptive\n- supported_tool: Shaper Origin workstation descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "a6f8965cf2229916b0d90df8fa7d9a4d000fb864cdbe603f74fe4d2ecd068098",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "container-case-001",
+      "category": "container_cases",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "battery_type",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "26650 cell"
+        },
+        {
+          "id": "closure",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "screw lid"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 5
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 35.17900085449219,
+            "y": 78.73999786376953,
+            "z": 35.17900085449219
+          },
+          "part_id": "battery_body",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "selected_variant": "26650_body.STL",
+          "selection_reason": "The PDF lists the body as a required model part.",
+          "solid_count": null
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 92.30131530761719,
+            "y": 1.2699999809265137,
+            "z": 36.067970633506775
+          },
+          "part_id": "flexible_strap",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "26650_flexible_strap.STL",
+          "selection_reason": "The PDF lists the strap as a required model part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 27.939998626708984,
+            "y": 1.2699999809265137,
+            "z": 27.939998626708984
+          },
+          "part_id": "lower_bumper",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "26650_lower_bumper.STL",
+          "selection_reason": "The PDF lists the lower bumper as a required model part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 36.74241638183594,
+            "y": 12.699999809265137,
+            "z": 36.74241638183594
+          },
+          "part_id": "screw_lid",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "26650_screw_lid.STL",
+          "selection_reason": "The PDF lists the screw lid as a required model part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 15.239999771118164,
+            "y": 4.445000171661377,
+            "z": 15.239999771118164
+          },
+          "part_id": "strap_retainer",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "strap_retainer.STL",
+          "selection_reason": "The PDF lists the strap retainer as a required model part.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a protective 26650 battery case with a screw-on lid and retention features. It should keep the cell secure and provide a durable, reusable enclosure.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output battery_body should have an overall envelope of approximately 35.17900085449219 mm x 78.73999786376953 mm x 35.17900085449219 mm.\n- Output flexible_strap should have an overall envelope of approximately 92.30131530761719 mm x 1.2699999809265137 mm x 36.067970633506775 mm.\n- Output lower_bumper should have an overall envelope of approximately 27.939998626708984 mm x 1.2699999809265137 mm x 27.939998626708984 mm.\n- Output screw_lid should have an overall envelope of approximately 36.74241638183594 mm x 12.699999809265137 mm x 36.74241638183594 mm.\n- Output strap_retainer should have an overall envelope of approximately 15.239999771118164 mm x 4.445000171661377 mm x 15.239999771118164 mm.\n- battery_type: 26650 cell descriptive\n- closure: screw lid descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "21895cb048edc5aeb71c43a9b5086b8c90c9218a5b5787ca23e19b09c44663bf",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "container-case-002",
+      "category": "container_cases",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "battery_variants",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": [
+            "26650",
+            "26800",
+            "26350"
+          ]
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 2
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 38.79999923706055,
+            "y": 43.719478607177734,
+            "z": 72.5
+          },
+          "part_id": "battery_box_26650",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "bat_box(26650).stl",
+          "selection_reason": "The package explicitly contains a size family; the 26650 variant is selected by manual annotation, while 26800/26350 and the STEP protector remain provenance.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 38.79999923706055,
+            "y": 38.79999923706055,
+            "z": 19.0
+          },
+          "part_id": "battery_lid",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "bat_lid.stl",
+          "selection_reason": "The shared lid is required with the selected battery-box variant.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a portable carry case for a cylindrical battery. It should protect the cell, retain it during transport, and use a separate lid for access.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.\n- Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.\n- battery_variants: ['26650', '26800', '26350'] descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "8e6b5a696921839036ae87f486ca69ba3af80f5b0da54d3a941aae3850614e89",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "container-case-003",
+      "category": "container_cases",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "battery_families",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": [
+            "AAA",
+            "AA",
+            "CR123a",
+            "18350",
+            "18650",
+            "21700",
+            "26650/26800"
+          ]
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 152.40000915527344,
+            "y": 50.79999923706055,
+            "z": 165.09999084472656
+          },
+          "part_id": "multi_battery_holder_box",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "multiple_battery_box.STL",
+          "selection_reason": "The PDF lists the single STL as the model file.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a compact organizer box for multiple common battery sizes. It should keep cells separated and protected while making them easy to identify and remove.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output multi_battery_holder_box should have an overall envelope of approximately 152.40000915527344 mm x 50.79999923706055 mm x 165.09999084472656 mm.\n- battery_families: ['AAA', 'AA', 'CR123a', '18350', '18650', '21700', '26650/26800'] descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "5e71007baf5919b164cd929c73496d3e759da7f03de523595d1d0c1a2273b97c",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-001",
+      "category": "electronics_enclosures",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "device",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "LCR-T4 ESR meter"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 2
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 84.0,
+            "y": 84.52261352539062,
+            "z": 45.58539581298828
+          },
+          "part_id": "case_bottom",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "lcr-t4_case_bottom.stl",
+          "selection_reason": "The PDF lists the bottom STL as one required enclosure part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 83.98477935791016,
+            "y": 77.09119033813477,
+            "z": 13.0
+          },
+          "part_id": "case_top",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "lcr-t4_case_topnew.stl",
+          "selection_reason": "The PDF lists the top STL as the matching enclosure part.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a two-part protective case for an LCR-T4 ESR meter, with a lower housing and a matching top cover that encloses the instrument while keeping it usable.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.\n- Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.\n- device: LCR-T4 ESR meter descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "c4662ce461163696b8c9c05cab316b2c22eb641a9d13c68236a262891f4c8ac7",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-002",
+      "category": "electronics_enclosures",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "device",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "ARCELI LCR-T4 meter"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "3mf",
+          "overall_envelope_mm": {
+            "x": 112.5,
+            "y": 66.0,
+            "z": 18.0
+          },
+          "part_id": "lcr_meter_housing",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "lcr-house.3mf",
+          "selection_reason": "The PDF lists the 3MF as the only model file; it is imported as mesh-derived reference evidence.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a compact protective housing for an ARCELI LCR-T4 meter. It should fit the instrument, protect it during handling, and leave the controls and display accessible.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.\n- device: ARCELI LCR-T4 meter descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "d271587831b513c985f8ecc32397f07eaf8225acbd0e95333bb5552ffc7f6acc",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-003",
+      "category": "electronics_enclosures",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "device",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "HX711 load-cell display"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 2
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 74.00000095367432,
+            "y": 44.000000953674316,
+            "z": 36.19999980926514
+          },
+          "part_id": "display_box",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "weight_display_box.stl",
+          "selection_reason": "The PDF lists the box STL as a printed enclosure part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 74.00000095367432,
+            "y": 44.000000953674316,
+            "z": 5.0
+          },
+          "part_id": "display_lid",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "weight_display_lid.stl",
+          "selection_reason": "The PDF lists the lid STL as the matching enclosure part.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a two-part enclosure for an HX711 load-cell display. It should protect the electronics, hold the display in position, and provide a removable cover.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output display_box should have an overall envelope of approximately 74.00000095367432 mm x 44.000000953674316 mm x 36.19999980926514 mm.\n- Output display_lid should have an overall envelope of approximately 74.00000095367432 mm x 44.000000953674316 mm x 5.0 mm.\n- device: HX711 load-cell display descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "7cd1c3687486d7529b615ee39ff71afc07801c80125eee4c1e11fe0830435523",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "functional-assembly-001",
+      "category": "functional_assemblies",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "function",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Bluetooth coffee/espresso scale"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 4
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 80.0,
+            "y": 140.0000011601951,
+            "z": 19.49222755432129
+          },
+          "part_id": "scale_body",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "body.stl",
+          "selection_reason": "The PDF lists the body STL as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 9.999160766601562,
+            "y": 9.999580383300781,
+            "z": 9.350000619888306
+          },
+          "part_id": "scale_button",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "button.stl",
+          "selection_reason": "The PDF lists the button STL as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 76.31513977050781,
+            "y": 27.997642517089844,
+            "z": 11.0
+          },
+          "part_id": "scale_front_cover",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "front-cover.stl",
+          "selection_reason": "The PDF lists the front-cover STL as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 80.00000762939453,
+            "y": 109.99317169189453,
+            "z": 9.0
+          },
+          "part_id": "scale_platform",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "plateau.stl",
+          "selection_reason": "The PDF lists the platform STL as a printed design part.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a compact multi-part coffee scale with a platform, electronics body, front cover, and control button. It should support a coffee vessel and protect the electronics during use.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output scale_body should have an overall envelope of approximately 80.0 mm x 140.0000011601951 mm x 19.49222755432129 mm.\n- Output scale_button should have an overall envelope of approximately 9.999160766601562 mm x 9.999580383300781 mm x 9.350000619888306 mm.\n- Output scale_front_cover should have an overall envelope of approximately 76.31513977050781 mm x 27.997642517089844 mm x 11.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.00000762939453 mm x 109.99317169189453 mm x 9.0 mm.\n- function: Bluetooth coffee/espresso scale descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "332422774dae0a7036c7ec1bf61ab43d18157cddf2496fd354a6d26967493ae4",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "functional-assembly-002",
+      "category": "functional_assemblies",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "assembly",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "off-the-shelf parts, 3D printed parts, and laser-cut profiles"
+        },
+        {
+          "id": "load_cell_capacity",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "200 kg"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry",
+        "canonical_scope_confirmation"
+      ],
+      "outputs": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 209.61485143860864,
+            "y": 261.764823516691,
+            "z": 262.82554204979243
+          },
+          "part_id": "vp2_pedal_assembly",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "vaessen-motorsports-vp-2-assembly.stp",
+          "selection_reason": "The PDF provides one complete STEP assembly and no explicit part-level canonical decomposition; the assembly is retained as one reference set with a broad-scope warning.",
+          "solid_count": 217
+        }
+      ],
+      "prompt": "Design a functional sim-racing pedal assembly using printable structural parts and off-the-shelf components. It should provide adjustable brake and throttle pedals with a rigid, serviceable frame.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output vp2_pedal_assembly should have an overall envelope of approximately 209.61485143860864 mm x 261.764823516691 mm x 262.82554204979243 mm.\n- assembly: off-the-shelf parts, 3D printed parts, and laser-cut profiles descriptive\n- load_cell_capacity: 200 kg descriptive",
+      "reference_similarity_status": "replacement_required",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "97fca3c55fd0d9d3588e752fdc95bdfb19d86eef7516a078d3f6f8d91669fd0a",
+      "split_assignment": "development",
+      "status": "replacement_required"
+    },
+    {
+      "benchmark_id": "functional-assembly-003",
+      "category": "functional_assemblies",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "application",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "automated fertilizer pump"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 5
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 24.84999942779541,
+            "y": 27.59956169128418,
+            "z": 10.099999904632568
+          },
+          "part_id": "bearing_plate_bottom",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "pump-bearing-plate-bottom.stl",
+          "selection_reason": "The PDF lists the bottom bearing plate as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 24.84999942779541,
+            "y": 27.59956169128418,
+            "z": 10.100000143051147
+          },
+          "part_id": "bearing_plate_top",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "pump-bearing-plate-top.stl",
+          "selection_reason": "The PDF lists the top bearing plate as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 45.95392990112305,
+            "y": 46.934804916381836,
+            "z": 16.800000190734863
+          },
+          "part_id": "pump_base",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "pump-base.stl",
+          "selection_reason": "The PDF lists the pump base as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 45.97696304321289,
+            "y": 14.988612174987793,
+            "z": 28.000000953674316
+          },
+          "part_id": "pump_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "pump-mount.stl",
+          "selection_reason": "The PDF lists the pump mount as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 44.95399475097656,
+            "y": 45.93480110168457,
+            "z": 4.0
+          },
+          "part_id": "pump_spacer",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "peristaltic-pump-spacer.stl",
+          "selection_reason": "The PDF lists the spacer as a printed design part.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a printable peristaltic pump assembly for an automated fertilizer system. It should support the pump mechanism, keep the tubing path constrained, and assemble from distinct printed parts.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.\n- Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.\n- Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.\n- Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.\n- Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.\n- application: automated fertilizer pump descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "17dbc85184579dec8e35bc06b58c74ad443594e65369eba83d55af29a94be076",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "holder-organizer-001",
+      "category": "holders_organizers",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "supported_tool",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Stihl FS91 or FS31 trimmer"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 99.17847919464111,
+            "y": 135.75859451293945,
+            "z": 50.0
+          },
+          "part_id": "trimmer_wall_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "FS91 Wall Hager V4.stl",
+          "selection_reason": "The PDF describes the STL as the printable wall-mount model; the 3MF and F3D are retained as alternate/native provenance.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a sturdy wall-mounted holder for a string trimmer. It should keep the tool upright for storage and provide a secure screw-mounted interface around the tool body.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output trimmer_wall_mount should have an overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm.\n- supported_tool: Stihl FS91 or FS31 trimmer descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "06f8956cc3fede382f3b2a90bb7d3eebe68044e2fdd82e7b31ddd8a25956bb07",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "holder-organizer-002",
+      "category": "holders_organizers",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "battery_family",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Stihl AP series"
+        },
+        {
+          "id": "mounting_fastener",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "4 mm countersunk wood screws"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 122.00000020000002,
+            "y": 70.0000002,
+            "z": 87.07185049373241
+          },
+          "part_id": "single_battery_holder",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "stihl-ap-battery-pack-holder-single.step",
+          "selection_reason": "The PDF documents single and double variants; the single STEP is selected as one explicit design variant while double/thick variants remain provenance alternatives.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a wall-mounted holder for a Stihl AP-series battery pack. It should retain the battery securely, keep the battery accessible, and use flush countersunk wood screws for mounting.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output single_battery_holder should have an overall envelope of approximately 122.00000020000002 mm x 70.0000002 mm x 87.07185049373241 mm.\n- battery_family: Stihl AP series descriptive\n- mounting_fastener: 4 mm countersunk wood screws descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "8178426c9d256f88fa177e962709582868a04f770fe3c5b0d3fddbf729ac9cbf",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "holder-organizer-003",
+      "category": "holders_organizers",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "supported_tool",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Stihl BGA 57"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 114.41399383544922,
+            "y": 76.0,
+            "z": 9.0
+          },
+          "part_id": "blower_wall_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "wallmount_stihlbga_57.stl",
+          "selection_reason": "The PDF lists this STL as the model file and no alternate design geometry is supplied.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a compact wall mount for a Stihl BGA 57 blower. It should hold the tool securely while keeping it easy to remove for use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.\n- supported_tool: Stihl BGA 57 descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "147db19a6fb90cb03146d81730ec9ae889444158bd5072b18368840fba858233",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "jig-guide-001",
+      "category": "jig_guides",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 10
+        },
+        {
+          "id": "tool",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Domino router"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry",
+        "output_relationship_mapping"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 116.5,
+            "y": 128.00000381469727,
+            "z": 35.0
+          },
+          "part_id": "anschlag",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "anschlag.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 110.61710357666016,
+            "y": 89.48259735107422,
+            "z": 50.0
+          },
+          "part_id": "fraswagen",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "fraswagen.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 125.0,
+            "y": 19.800003051757812,
+            "z": 31.50000762939453
+          },
+          "part_id": "griff_oben",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "griff-oben.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 15.0,
+            "y": 110.00000381469727,
+            "z": 16.99999237060547
+          },
+          "part_id": "griff_vorne",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "griff-vorne.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 142.00000762939453,
+            "y": 116.0,
+            "z": 171.0
+          },
+          "part_id": "grundkorper",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "grundkorper.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 18.0,
+            "y": 82.50000762939453,
+            "z": 8.0
+          },
+          "part_id": "kontermutter",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "kontermutter.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 25.0,
+            "y": 126.0,
+            "z": 8.0
+          },
+          "part_id": "kopfteil",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "kopfteil.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 30.00000762939453,
+            "y": 30.0,
+            "z": 14.0
+          },
+          "part_id": "mutter",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "mutter.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 24.332244873046875,
+            "y": 22.353118896484375,
+            "z": 7.5
+          },
+          "part_id": "wagenstopp",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "wagenstopp.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 2
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 31.999717712402344,
+            "y": 24.0,
+            "z": 76.0
+          },
+          "part_id": "x_wagen",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "x-wagen.stl",
+          "selection_reason": "PDF model-file listing identifies this as a jig component.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a multi-part routing jig for a Domino-style router. It should guide the tool accurately, provide handles and stops, and allow the workpiece to be positioned repeatably.\n\nFor this comparison specification:\n- Provide exactly 10 printed output(s).\n- Output anschlag should have an overall envelope of approximately 116.5 mm x 128.00000381469727 mm x 35.0 mm.\n- Output fraswagen should have an overall envelope of approximately 110.61710357666016 mm x 89.48259735107422 mm x 50.0 mm.\n- Output griff_oben should have an overall envelope of approximately 125.0 mm x 19.800003051757812 mm x 31.50000762939453 mm.\n- Output griff_vorne should have an overall envelope of approximately 15.0 mm x 110.00000381469727 mm x 16.99999237060547 mm.\n- Output grundkorper should have an overall envelope of approximately 142.00000762939453 mm x 116.0 mm x 171.0 mm.\n- Output kontermutter should have an overall envelope of approximately 18.0 mm x 82.50000762939453 mm x 8.0 mm.\n- Output kopfteil should have an overall envelope of approximately 25.0 mm x 126.0 mm x 8.0 mm.\n- Output mutter should have an overall envelope of approximately 30.00000762939453 mm x 30.0 mm x 14.0 mm.\n- Output wagenstopp should have an overall envelope of approximately 24.332244873046875 mm x 22.353118896484375 mm x 7.5 mm.\n- Output x_wagen should have an overall envelope of approximately 31.999717712402344 mm x 24.0 mm x 76.0 mm.\n- tool: Domino router descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "f8d42b56222452775e5e5fa68f2ad741f3c1771d3d568117064f40da1600d83c",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "jig-guide-002",
+      "category": "jig_guides",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 13
+        },
+        {
+          "id": "tool",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "router/milling tool"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "output_identity",
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry",
+        "canonical_scope_confirmation"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 222.5,
+            "y": 190.5,
+            "z": 9.0
+          },
+          "part_id": "gauge_set",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "LehrenSatz_GaugeSet.stl",
+          "selection_reason": "The package contains many accessory/template files with no single fully documented canonical subset; the named gauge-set STL is selected as the principal design part and all other files remain provenance.",
+          "solid_count": 17
+        }
+      ],
+      "prompt": "Design a modular router gauge set with interchangeable guides and a stable support base. It should help position a router consistently for repeatable work.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output gauge_set should have an overall envelope of approximately 222.5 mm x 190.5 mm x 9.0 mm.\n- tool: router/milling tool descriptive",
+      "reference_similarity_status": "replacement_required",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "ff5f3859f6d65f7bb9f9ac64c439753083754ab70e26ecb6507405e034f2fd92",
+      "split_assignment": "development",
+      "status": "replacement_required"
+    },
+    {
+      "benchmark_id": "jig-guide-003",
+      "category": "jig_guides",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "template_family",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "interchangeable radius templates"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 156.97772216796875,
+            "y": 70.7106819152832,
+            "z": 27.000000000000018
+          },
+          "part_id": "radius_jig",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "jig_v4.stl",
+          "selection_reason": "The jig body is the required base; radius template STLs are interchangeable alternatives and remain provenance rather than separate required outputs.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a router jig for cutting repeatable corner radii. It should include a stable jig body and interchangeable templates for different radius sizes.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.\n- template_family: interchangeable radius templates descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "36f55aa532f158a486c9c9d94114a3e7953ea834ea8b014013e396e0c46b25e1",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "mounting-bracket-001",
+      "category": "mounting_brackets",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "attachment_methods",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": [
+            "one screw",
+            "one zip tie",
+            "self-adhesive tape footprint"
+          ]
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "overall_envelope",
+          "measurement_method": "external-cad-reference-derived-v1.geometry.bounding_box_mm",
+          "provenance": "reference_geometry_measured",
+          "unit": "mm",
+          "value": {
+            "x": 14.0,
+            "y": 13.6627,
+            "z": 26.4999
+          }
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 14.000000200000006,
+            "y": 13.662709938909213,
+            "z": 26.499859272838457
+          },
+          "part_id": "sensor_bracket",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "speed-sensor-bracket.step",
+          "selection_reason": "locked pilot canonical membership",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a replacement mounting bracket for an e-bike wheel speed sensor. It should attach securely to a bicycle chain stay, keep the sensor aligned with the wheel spokes, and allow attachment using a screw and zip tie. Keep the design compact and practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output sensor_bracket should have an overall envelope of approximately 14.000000200000006 mm x 13.662709938909213 mm x 26.499859272838457 mm.\n- attachment_methods: ['one screw', 'one zip tie', 'self-adhesive tape footprint'] descriptive\n- overall_envelope: {'x': 14.0, 'y': 13.6627, 'z': 26.4999} mm",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "1308eab6133020635e988137183c171e839f9fb0df0ed0e1fe3172f257692d60",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "mounting-bracket-002",
+      "category": "mounting_brackets",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "load_cell_foot_envelope",
+          "measurement_method": "external-cad-reference-derived-v1.geometry.bounding_box_mm",
+          "provenance": "reference_geometry_measured",
+          "unit": "mm",
+          "value": {
+            "x": 109.4681,
+            "y": 66.9101,
+            "z": 15.0
+          }
+        },
+        {
+          "id": "load_cell_hardware",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "M4 screws"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 2
+        },
+        {
+          "id": "scale_platform_envelope",
+          "measurement_method": "external-cad-reference-derived-v1.geometry.bounding_box_mm",
+          "provenance": "reference_geometry_measured",
+          "unit": "mm",
+          "value": {
+            "x": 80.0,
+            "y": 79.9751,
+            "z": 10.0
+          }
+        },
+        {
+          "id": "screw_head_clearance",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "enlarged openings for typical M4 hex-head fasteners"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 109.46806335449219,
+            "y": 66.91010284423828,
+            "z": 15.0
+          },
+          "part_id": "load_cell_foot",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "HX711_Load_Cell--Foot.stl",
+          "selection_reason": "locked pilot canonical membership",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 80.0,
+            "y": 79.97513580322266,
+            "z": 10.0
+          },
+          "part_id": "scale_platform",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "HX711_Load_Cell--Scale.stl",
+          "selection_reason": "locked pilot canonical membership",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output load_cell_foot should have an overall envelope of approximately 109.46806335449219 mm x 66.91010284423828 mm x 15.0 mm.\n- Output scale_platform should have an overall envelope of approximately 80.0 mm x 79.97513580322266 mm x 10.0 mm.\n- load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm\n- load_cell_hardware: M4 screws descriptive\n- scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm\n- screw_head_clearance: enlarged openings for typical M4 hex-head fasteners descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "91ade80b36cb66643af6b8bfbe38e1214a197a668fa07be175c276c672f96b4c",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "mounting-bracket-003",
+      "category": "mounting_brackets",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "extrusion_family",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "8020 Series 10"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "overall_envelope",
+          "measurement_method": "external-cad-reference-derived-v1.geometry.bounding_box_mm",
+          "provenance": "reference_geometry_measured",
+          "unit": "mm",
+          "value": {
+            "x": 54.0,
+            "y": 78.3,
+            "z": 50.0
+          }
+        },
+        {
+          "id": "sensor_type",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "HC-SR04 ultrasonic distance sensor"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 54.00000000000001,
+            "y": 78.30000305175781,
+            "z": 50.000000953674316
+          },
+          "part_id": "ultrasonic_sensor_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "8020_mount_hc-sr04_ultrasonic_distance_sensor_w-c.stl",
+          "selection_reason": "locked pilot canonical membership",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output ultrasonic_sensor_mount should have an overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm.\n- extrusion_family: 8020 Series 10 descriptive\n- overall_envelope: {'x': 54.0, 'y': 78.3, 'z': 50.0} mm\n- sensor_type: HC-SR04 ultrasonic distance sensor descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "ee3ceaba662f8561636e21f7839104456592b68610bce6bf11e24af3df55d71c",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "replacement-part-001",
+      "category": "replacement_parts",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "appliance",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Tineco appliance"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 21.700000762939453,
+            "y": 12.699999809265137,
+            "z": 34.49100875854492
+          },
+          "part_id": "tineco_seesaw_switch",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "tineco_wipptaster-v4.stl",
+          "selection_reason": "The PDF lists the single STL as the model file.",
+          "solid_count": 3
+        }
+      ],
+      "prompt": "Design a replacement seesaw switch for a Tineco appliance. It should fit the original control opening and provide the same press-and-rocker function.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output tineco_seesaw_switch should have an overall envelope of approximately 21.700000762939453 mm x 12.699999809265137 mm x 34.49100875854492 mm.\n- appliance: Tineco appliance descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "246800d4a757b1308bb9d364d2bfe97e60d30500f8ed1b20e5cde968cf46e73b",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "replacement-part-002",
+      "category": "replacement_parts",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "appliance",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Tineco A10/A11 Hero"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 36.5,
+            "y": 21.205398559570312,
+            "z": 10.0
+          },
+          "part_id": "tineco_hero_latch",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "Tineco A11 Hero Latch.stl",
+          "selection_reason": "The STL is selected as printable geometry; the corresponding 3MF is retained as alternate provenance.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a replacement latch for a Tineco A10/A11 Hero accessory attachment. It should reproduce the retention function and fit the original mating interface.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output tineco_hero_latch should have an overall envelope of approximately 36.5 mm x 21.205398559570312 mm x 10.0 mm.\n- appliance: Tineco A10/A11 Hero descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "3aae9ae4da6bdaa1dce60ddfdf599d5dfa9f670b1e7ffd550144661c7824a0c8",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "replacement-part-003",
+      "category": "replacement_parts",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "supported_models",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": [
+            "Dyson V7",
+            "V8",
+            "V10",
+            "V11",
+            "V15"
+          ]
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 57.803038609853225,
+            "y": 7.84908338027249,
+            "z": 18.2000002
+          },
+          "part_id": "dyson_wand_latch",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "dyson-v10-attachment-latch.stp",
+          "selection_reason": "The PDF explicitly includes a STEP for modification; STEP is selected as analytic canonical geometry and STL/3MF remain provenance.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a replacement latch for a Dyson wand tube used across the V7 through V15 family. It should fit the tube interface and restore the original retention function.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output dyson_wand_latch should have an overall envelope of approximately 57.803038609853225 mm x 7.84908338027249 mm x 18.2000002 mm.\n- supported_models: ['Dyson V7', 'V8', 'V10', 'V11', 'V15'] descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "78b034e78445ea38bbdb093eb8ff45dd5f3c21868a3a3dac5428e754671eb409",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "stand-support-001",
+      "category": "stand_supports",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "interface",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "iPhone MagSafe charger"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 4
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 76.0,
+            "y": 33.23599624633789,
+            "z": 106.61492919921875
+          },
+          "part_id": "magsafe_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "magsafepart.stl",
+          "selection_reason": "The PDF lists the MagSafe part as a required printed part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 86.0,
+            "y": 29.500555992126465,
+            "z": 127.02894592285156
+          },
+          "part_id": "stand_back",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "back.stl",
+          "selection_reason": "The PDF lists the back as a required printed part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 99.99846267700195,
+            "y": 90.0029296875,
+            "z": 20.0
+          },
+          "part_id": "stand_base",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "base.stl",
+          "selection_reason": "The PDF lists the base as a required printed part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 9.599276542663574,
+            "y": 5.0,
+            "z": 9.59963846206665
+          },
+          "part_id": "stand_peg",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "peg.stl",
+          "selection_reason": "The PDF lists the peg as a required printed part.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a multi-part stand for an iPhone with a MagSafe charger. It should support the phone at a useful viewing angle and keep the charger aligned.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.\n- Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.\n- Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.\n- Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.\n- interface: iPhone MagSafe charger descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "80ddd5206b6895b2be127f9e0fa4b6d474868c73bb704fa09d6eaa50447d1e21",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "stand-support-002",
+      "category": "stand_supports",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "keyboard",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Corsair K70/K65 RGB"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "phone_variant",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "descriptive",
+          "value": "77 mm phone thickness family variant"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 29.458260536193848,
+            "y": 50.0,
+            "z": 41.41041088104248
+          },
+          "part_id": "corsair_phone_holder_77x47",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "corsair_k70_phone_holder_77x47mm.stl",
+          "selection_reason": "The PDF documents a parameter family; one explicit 77 x 47 variant is selected by manual benchmark annotation and all other variants remain provenance.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a phone stand that attaches to or sits with a Corsair K70/K65 RGB keyboard. It should support a phone securely without interfering with normal keyboard use.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output corsair_phone_holder_77x47 should have an overall envelope of approximately 29.458260536193848 mm x 50.0 mm x 41.41041088104248 mm.\n- keyboard: Corsair K70/K65 RGB descriptive\n- phone_variant: 77 mm phone thickness family variant descriptive",
+      "reference_similarity_status": "replacement_required",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "7bc3d2c04183afbd3d7f18411edb613f30aab86d2b62804a7d7a40f0d0ca8eab",
+      "split_assignment": "development",
+      "status": "replacement_required"
+    },
+    {
+      "benchmark_id": "stand-support-003",
+      "category": "stand_supports",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "device",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "reMarkable 2 tablet"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 66.98625373840332,
+            "y": 70.0,
+            "z": 89.3500213623047
+          },
+          "part_id": "remarkable_stand",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "remarkable_stand.stl",
+          "selection_reason": "The standard STL is selected as the primary variant; no-folio STL and 3MF/FCStd remain provenance alternatives.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a stable stand for a reMarkable 2 tablet. It should support the tablet at a comfortable viewing angle and remain usable with or without a folio case.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output remarkable_stand should have an overall envelope of approximately 66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm.\n- device: reMarkable 2 tablet descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "dc981f4cd91d54ca776ac213cc54a91dc7db02984e6c78f5aa0e28f66ede8786",
+      "split_assignment": "development",
+      "status": "needs_spec_enrichment"
+    }
+  ],
+  "schema_version": "external-cad-comparison-specification-v1",
+  "source_benchmark_id": "external-cad-50-v1",
+  "split": "development"
+}

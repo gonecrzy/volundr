@@ -1,0 +1,446 @@
+{
+  "benchmark_id": "external-cad-50-v1.1",
+  "comparison_specs": {
+    "development": "benchmarks/external/cad-50-v1.1/comparison-specifications-development.json",
+    "holdout_sealed": "benchmarks/external/cad-50-v1.1/holdout-comparison-specifications-sealed.json",
+    "validation": "benchmarks/external/cad-50-v1.1/comparison-specifications-validation.json"
+  },
+  "historical_v1_manifest": "benchmarks/external/cad-50-v1/manifest.json",
+  "holdout_policy": "benchmarks/external/cad-50-v1/holdout-policy.json",
+  "methodology_version": "external-cad-comparison-extraction-v1",
+  "projects": [
+    {
+      "benchmark_id": "adapter-coupler-001",
+      "category": "adapter_coupler",
+      "comparison_ready": false,
+      "comparison_specification_hash": "d0f1caf0b89f379f7ab81d94ed8f02be236844400371004caa4f7328b5df289c",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "5e24f2ac7143597aa2de7c3332919a8f35a96e06b813c8a0c41888fdb981c681",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "adapter-coupler-002",
+      "category": "adapter_coupler",
+      "comparison_ready": true,
+      "comparison_specification_hash": "268a51d7030a53143cf2ee8f6987a88c7ff821fec27ea7cad41e17bc2f777611",
+      "comparison_specification_status": "comparison_ready",
+      "source_reference_set_sha256": "d30fc847990660b53e3476bb7e46c807f1e15d36ab579ef382db0bb8055617e9",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "adapter-coupler-003",
+      "category": "adapter_coupler",
+      "comparison_ready": false,
+      "comparison_specification_hash": "636e55a6149454c21258c79b3f6445d347060a5dc8f6c2e59d0a93b88d9d07b5",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "ac01a0affd303ef0b0cf4f873df78329ac98ae6198e1282b9c1b4230c11d060b",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "adapter-coupler-004",
+      "category": "adapter_coupler",
+      "comparison_ready": false,
+      "comparison_specification_hash": "b0a5f38fe59f4b1a77de61dbf27a266e81e25d38b0bef03cc57ab6072f23b712",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "8644735bb5c408c427a7a9fd2d6c4da59a28dee10fe2892abfdbddf6859002bd",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "adapter-coupler-005",
+      "category": "adapter_coupler",
+      "comparison_specification_hash": "ba6069c59b3dee2f0efc676de1021385093102485bd3a36343f9f46646829975",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "clamp-clip-001",
+      "category": "clamp_clip",
+      "comparison_ready": true,
+      "comparison_specification_hash": "469261826a849253ee139eafc18fefe33498079316896c0b5899a376655bb57d",
+      "comparison_specification_status": "comparison_ready",
+      "source_reference_set_sha256": "51a9b5c5b6f62d209291b6927b022194ea5e50281eecc22743651523358844f9",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "clamp-clip-002",
+      "category": "clamp_clip",
+      "comparison_ready": false,
+      "comparison_specification_hash": "aca2dd47b2993c74f1e31917a552c5ee1daf64176e1a9cbb1320ea97f1361025",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "fa68693a2eec67b10bff87f6196d118223423b2733f444bda80508fd32bf2c69",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "clamp-clip-003",
+      "category": "clamp_clip",
+      "comparison_ready": false,
+      "comparison_specification_hash": "51b9354354d4e0265b965c5d6fa62e5883649f8b3d3c2968f4d61136d9e10a1a",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "a6f8965cf2229916b0d90df8fa7d9a4d000fb864cdbe603f74fe4d2ecd068098",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "clamp-clip-004",
+      "category": "clamp_clip",
+      "comparison_ready": true,
+      "comparison_specification_hash": "5bbcb803d8e4df3f8ba89e8a0e86ee8f972da6be53e6ad3d1452c3895ff3dea1",
+      "comparison_specification_status": "comparison_ready",
+      "source_reference_set_sha256": "9116d209d58b8ff0b6ef4d613fcd7e0ae5ac9fa5c554ac680abcdead4b9188b9",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "clamp-clip-005",
+      "category": "clamp_clip",
+      "comparison_specification_hash": "4e82a6fe1bb03919eee7ac2da2a3acff885b69abea3b341fc5a08aac77af86fc",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "container-case-001",
+      "category": "container_cases",
+      "comparison_ready": false,
+      "comparison_specification_hash": "c71de82b52d38707bc29064a409e673a41a337f8131f5ed11b98cd6f9fb0a58b",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "21895cb048edc5aeb71c43a9b5086b8c90c9218a5b5787ca23e19b09c44663bf",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "container-case-002",
+      "category": "container_cases",
+      "comparison_ready": false,
+      "comparison_specification_hash": "c8ffc626ef0f5e5524fece275f5e3c39a42ddf027107656e737ad5cfbc4bc115",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "8e6b5a696921839036ae87f486ca69ba3af80f5b0da54d3a941aae3850614e89",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "container-case-003",
+      "category": "container_cases",
+      "comparison_ready": false,
+      "comparison_specification_hash": "1c838c835644fa095d709480887aedcff86d611b84b69e10d41fbba5b536f13f",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "5e71007baf5919b164cd929c73496d3e759da7f03de523595d1d0c1a2273b97c",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "container-case-004",
+      "category": "container_cases",
+      "comparison_ready": false,
+      "comparison_specification_hash": "703be9bc9f078783bb8ee353b99c1e1f7d6a653e5099a59720c71f1b479afcd4",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "18294a2e4500c41716c38f1478d1697f1dc0cfc1b1d0145dda95c02f9f168f58",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "container-case-005",
+      "category": "container_cases",
+      "comparison_specification_hash": "d39461d8d252c4e897d779c636b9fa3dcffd7afe47f1a2610374e5187783f010",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-001",
+      "category": "electronics_enclosures",
+      "comparison_ready": false,
+      "comparison_specification_hash": "b6ba02b63c1e97eb8a8ec8f808034bdc8107233b438fc00cca005309d401c2d9",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "c4662ce461163696b8c9c05cab316b2c22eb641a9d13c68236a262891f4c8ac7",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-002",
+      "category": "electronics_enclosures",
+      "comparison_ready": false,
+      "comparison_specification_hash": "ca252b59d505853880d15adcecb4e19c74a115730230df874c6052cf1f16e7da",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "d271587831b513c985f8ecc32397f07eaf8225acbd0e95333bb5552ffc7f6acc",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-003",
+      "category": "electronics_enclosures",
+      "comparison_ready": false,
+      "comparison_specification_hash": "c99097761568482b4ce0c8942d8bb3972b2014dafc6e60eace2690d0a6c40ec2",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "7cd1c3687486d7529b615ee39ff71afc07801c80125eee4c1e11fe0830435523",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-004",
+      "category": "electronics_enclosures",
+      "comparison_ready": false,
+      "comparison_specification_hash": "8356bb359c29216c4fc300f61eb4a5c55d53f238e40177c3d33f8e635505f423",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "4cc5a970a0138f8d3dc61e4327b64baf2d8711f4dd3b34c51a559c41daa12e7f",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-005",
+      "category": "electronics_enclosures",
+      "comparison_specification_hash": "4765d2e3fa124ea1994dda1bc0a0c37299e01ff2ee360cbb1d9e096926cd96cf",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "functional-assembly-001",
+      "category": "functional_assemblies",
+      "comparison_ready": false,
+      "comparison_specification_hash": "3c6d895e749537195406c2321a6d0a11089d35400024962af09e68701724838b",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "332422774dae0a7036c7ec1bf61ab43d18157cddf2496fd354a6d26967493ae4",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "functional-assembly-002",
+      "category": "functional_assemblies",
+      "comparison_ready": false,
+      "comparison_specification_hash": "9a8369a1556d18a63ae7af440586b205012749a2a07a0711e345d83498d64657",
+      "comparison_specification_status": "replacement_required",
+      "source_reference_set_sha256": "97fca3c55fd0d9d3588e752fdc95bdfb19d86eef7516a078d3f6f8d91669fd0a",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "functional-assembly-003",
+      "category": "functional_assemblies",
+      "comparison_ready": false,
+      "comparison_specification_hash": "71d92687f3ac07a2bf10c4c5549731f2de9c043d677cee919969da8a6f5fa833",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "17dbc85184579dec8e35bc06b58c74ad443594e65369eba83d55af29a94be076",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "functional-assembly-004",
+      "category": "functional_assemblies",
+      "comparison_ready": false,
+      "comparison_specification_hash": "5b8df8b34fe05abdf5abf9a15fb955864178ab66e1fb05efdddc4d637480c970",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "7e17329f5e51ffc048d3cee917a343bc69d70f032c77dba88c779cc653c0d48e",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "functional-assembly-005",
+      "category": "functional_assemblies",
+      "comparison_specification_hash": "26453f941e81cc112110ad4cb80cf7fff2fb8e30d27ffc0f639ad3a73e0a0e17",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "holder-organizer-001",
+      "category": "holders_organizers",
+      "comparison_ready": false,
+      "comparison_specification_hash": "de0b1b85af621a6745a8f927272999d44c7036beac04624f729cb6fa74209859",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "06f8956cc3fede382f3b2a90bb7d3eebe68044e2fdd82e7b31ddd8a25956bb07",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "holder-organizer-002",
+      "category": "holders_organizers",
+      "comparison_ready": false,
+      "comparison_specification_hash": "acf483392a8f7ad1a8907a1e711caeb7d58915ea1bee6caa1f90c9ad9cadabdf",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "8178426c9d256f88fa177e962709582868a04f770fe3c5b0d3fddbf729ac9cbf",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "holder-organizer-003",
+      "category": "holders_organizers",
+      "comparison_ready": false,
+      "comparison_specification_hash": "8477fa2a3ccda1f90b4fd2f49ca075c0243c8ff289b5b7ac955cbd1ff66e6123",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "147db19a6fb90cb03146d81730ec9ae889444158bd5072b18368840fba858233",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "holder-organizer-004",
+      "category": "holders_organizers",
+      "comparison_ready": false,
+      "comparison_specification_hash": "d04c97009bf3ddaf4f5ff033bbd2afb2c0c3a9917155790b1d6b4843d65fbb9e",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "ffa5363d7f7c741f8fad94f04b6dd024bed1a7d591cfcfe2afcb5ae18609d757",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "holder-organizer-005",
+      "category": "holders_organizers",
+      "comparison_specification_hash": "618da8bb753a4bb1147f0ad70bce35771ca7c80911b22e958aa8e3a91e91f89a",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "jig-guide-001",
+      "category": "jig_guides",
+      "comparison_ready": false,
+      "comparison_specification_hash": "61cc817a275bde8cdd5f17a31244cbee23705426bd72cc8339d99fdd960fce6e",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "f8d42b56222452775e5e5fa68f2ad741f3c1771d3d568117064f40da1600d83c",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "jig-guide-002",
+      "category": "jig_guides",
+      "comparison_ready": false,
+      "comparison_specification_hash": "3c0af9746629ae186fd4413b8cada352360258662f6a6ac5516bbdac9cd9f1d6",
+      "comparison_specification_status": "replacement_required",
+      "source_reference_set_sha256": "ff5f3859f6d65f7bb9f9ac64c439753083754ab70e26ecb6507405e034f2fd92",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "jig-guide-003",
+      "category": "jig_guides",
+      "comparison_ready": false,
+      "comparison_specification_hash": "06a503b0093d755d62cbf66f9761dfe8b20c88ee1297a11c497ad9126cc10ab8",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "36f55aa532f158a486c9c9d94114a3e7953ea834ea8b014013e396e0c46b25e1",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "jig-guide-004",
+      "category": "jig_guides",
+      "comparison_ready": false,
+      "comparison_specification_hash": "6d9cc8175f1bb4dcd7803a37fca5e088c080fc31dfb3c96c3bc2e7229014347e",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "bc68a98eb0b2f9cb826c2db2df5c212397bea57c55f16f38d26e1a80f4a7c80b",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "jig-guide-005",
+      "category": "jig_guides",
+      "comparison_specification_hash": "fe1c02a8da31f7d71d86b1f01ec67034604ab9877503e0cb41f0197497fc90d2",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "mounting-bracket-001",
+      "category": "mounting_brackets",
+      "comparison_ready": false,
+      "comparison_specification_hash": "d16b6505a8f274841435c1dcb5a374380a46c9557702bdd70b860b84ea3790d1",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "1308eab6133020635e988137183c171e839f9fb0df0ed0e1fe3172f257692d60",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "mounting-bracket-002",
+      "category": "mounting_brackets",
+      "comparison_ready": false,
+      "comparison_specification_hash": "63a4a7c1410ced842d14b1c906b7b917704288dfab5874e06f6740a3ef3dba9c",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "91ade80b36cb66643af6b8bfbe38e1214a197a668fa07be175c276c672f96b4c",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "mounting-bracket-003",
+      "category": "mounting_brackets",
+      "comparison_ready": false,
+      "comparison_specification_hash": "5207bf8f107a31a5164052242b7c922a5779546b2d2b595984e63f1a61359839",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "ee3ceaba662f8561636e21f7839104456592b68610bce6bf11e24af3df55d71c",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "mounting-bracket-004",
+      "category": "mounting_brackets",
+      "comparison_ready": true,
+      "comparison_specification_hash": "d2ed5434a75283bb3c876ab162b406dc5e028e6f7883e1ce98de1a16d67f5f76",
+      "comparison_specification_status": "comparison_ready",
+      "source_reference_set_sha256": "4b7c0db7760d4f196e1a339b7042ab4127f300b17286ae3082bcfc0b7b68edb7",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "mounting-bracket-005",
+      "category": "mounting_brackets",
+      "comparison_specification_hash": "385f05915e68539d8c59bd53e26bff3441cecabc491f61b9e245cae0586d5c71",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "replacement-part-001",
+      "category": "replacement_parts",
+      "comparison_ready": false,
+      "comparison_specification_hash": "ded07437067df54a4a1472827e410bca709875c7193eca5203f4eb922e1d385f",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "246800d4a757b1308bb9d364d2bfe97e60d30500f8ed1b20e5cde968cf46e73b",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "replacement-part-002",
+      "category": "replacement_parts",
+      "comparison_ready": false,
+      "comparison_specification_hash": "b90049cc75fdd7eb4053ac893f44f9a2c89c856fba351ec2e41a0b4184c4de1e",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "3aae9ae4da6bdaa1dce60ddfdf599d5dfa9f670b1e7ffd550144661c7824a0c8",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "replacement-part-003",
+      "category": "replacement_parts",
+      "comparison_ready": false,
+      "comparison_specification_hash": "314fc82e8aaa04ca1061bc0775fbfbe9f6bfea94d2a9e5963adbfb1a232f95b3",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "78b034e78445ea38bbdb093eb8ff45dd5f3c21868a3a3dac5428e754671eb409",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "replacement-part-004",
+      "category": "replacement_parts",
+      "comparison_ready": true,
+      "comparison_specification_hash": "f33cf4f608e03cac288ae45dab427bbfd28468d027b11d2b7a0b912ea8912929",
+      "comparison_specification_status": "comparison_ready",
+      "source_reference_set_sha256": "4c17c613eeeed3260da7aad2931ba39a2d99c2e68d628c267243a052f46f897a",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "replacement-part-005",
+      "category": "replacement_parts",
+      "comparison_specification_hash": "934ad9437713c05d3b0eb8f2f3a714f22ec4251440fda8fda282fe26c844924c",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "stand-support-001",
+      "category": "stand_supports",
+      "comparison_ready": false,
+      "comparison_specification_hash": "7756f3551a5575c7dfbe9877ea41a421b77fdd47cfca722732adb7a8e8dc1993",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "80ddd5206b6895b2be127f9e0fa4b6d474868c73bb704fa09d6eaa50447d1e21",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "stand-support-002",
+      "category": "stand_supports",
+      "comparison_ready": false,
+      "comparison_specification_hash": "c2dc60eb739662210d0e327daaada0f4603d730f09e6f03fe00aa4e41bb4c881",
+      "comparison_specification_status": "replacement_required",
+      "source_reference_set_sha256": "7bc3d2c04183afbd3d7f18411edb613f30aab86d2b62804a7d7a40f0d0ca8eab",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "stand-support-003",
+      "category": "stand_supports",
+      "comparison_ready": false,
+      "comparison_specification_hash": "31efba0936547ea00a46aba686242b04c89e0328fa0e1cde91e7c0efd78cd0a6",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "dc981f4cd91d54ca776ac213cc54a91dc7db02984e6c78f5aa0e28f66ede8786",
+      "split_assignment": "development"
+    },
+    {
+      "benchmark_id": "stand-support-004",
+      "category": "stand_supports",
+      "comparison_ready": false,
+      "comparison_specification_hash": "5afb5d062e1597e60ea9e7e88117fcff6ba5e3eb6f797aea61512ceab6be7db3",
+      "comparison_specification_status": "needs_spec_enrichment",
+      "source_reference_set_sha256": "ade5743af60371b401365485be27c4341115fc5f4a2fa8de87f708691cfffbd5",
+      "split_assignment": "validation"
+    },
+    {
+      "benchmark_id": "stand-support-005",
+      "category": "stand_supports",
+      "comparison_specification_hash": "5855a132f9db4497e1ebe3937cb0594e43b7dbc58fed7b931b15c668b51076a2",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    }
+  ],
+  "qualification_status": "comparison_specification_qualified",
+  "schema_version": "external-cad-benchmark-manifest-v1.1",
+  "source_benchmark_id": "external-cad-50-v1"
+}

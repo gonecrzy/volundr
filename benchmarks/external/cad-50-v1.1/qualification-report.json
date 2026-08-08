@@ -1,0 +1,23 @@
+{
+  "benchmark_id": "external-cad-50-v1.1",
+  "benchmark_runs": 0,
+  "development_audit": "benchmarks/external/cad-50-v1.1/development-audit-30.json",
+  "development_summary": {
+    "comparison_ready_without_changes": 0,
+    "enriched_to_comparison_ready": 2,
+    "replacement_required": 3,
+    "still_underconstrained": 25
+  },
+  "holdout_sealed_count": 10,
+  "holdout_values_exposed": false,
+  "methodology": "benchmarks/external/cad-50-v1.1/comparison-methodology.json",
+  "production_cad_changes": false,
+  "provider_calls": 0,
+  "reference_similarity_requires_ready": true,
+  "schema_version": "external-cad-comparison-qualification-report-v1",
+  "source_benchmark_id": "external-cad-50-v1",
+  "status": "qualified_for_review_before_live_development_survey",
+  "v1_preserved": true,
+  "validation_structurally_processed": 10,
+  "worker_generation_calls": 0
+}

@@ -1,0 +1,36 @@
+{
+  "allowed_geometry_facts": [
+    "per-part overall envelope",
+    "solid/component count when already reliable",
+    "existing explicit dimensional or interface facts"
+  ],
+  "fact_provenance": [
+    "creator_documented",
+    "reference_geometry_measured",
+    "manual_benchmark_annotation"
+  ],
+  "holdout_policy": "apply unchanged and persist only allowed metadata plus sealed hashes",
+  "input": "frozen manifest metadata plus persisted derived-reference.json",
+  "measurement_method_version": "external-cad-reference-derived-v1.geometry.bounding_box_mm",
+  "methodology_version": "external-cad-comparison-extraction-v1",
+  "prohibited_data": [
+    "vertices",
+    "faces",
+    "point_clouds",
+    "raw_mesh",
+    "source_cad",
+    "reference_render"
+  ],
+  "qualification_gate": {
+    "ambiguity": "fail closed; replacement or enrichment remains required",
+    "critical_interface_geometry": "at least one explicit dimensional constraint beyond output count",
+    "major_envelope": "coarse envelope for every canonical output",
+    "multi_part_relationships": "explicit output mapping or relationship facts for multi-part designs",
+    "output_identity": "explicit canonical part membership and count",
+    "principal_mating_geometry": "at least one explicit dimensional/interface fact",
+    "selected_variant": "explicit canonical filename and selection reason"
+  },
+  "schema_version": "external-cad-comparison-specification-methodology-v1",
+  "similarity_rule": "only comparison_ready projects receive interpreted reference-similarity metrics",
+  "validation_policy": "apply unchanged; do not tune per project after development results"
+}

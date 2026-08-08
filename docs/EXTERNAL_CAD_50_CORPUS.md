@@ -50,3 +50,8 @@ assignment, comparison preparation, and reporting. It does not own CAD
 generation, requirement semantics, repair behavior, or provider-specific
 logic. The next permitted activity after review is a frozen first-pass survey
 of the 30 development projects, with no holdout runs.
+
+Before that survey, comparison qualification is maintained separately as
+`external-cad-50-v1.1`. It preserves v1, audits the 30 development
+specifications, and permits interpreted reference-similarity metrics only for
+projects marked `comparison_ready`.

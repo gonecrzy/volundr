@@ -1,0 +1,77 @@
+{
+  "methodology_version": "external-cad-comparison-extraction-v1",
+  "projects": [
+    {
+      "benchmark_id": "adapter-coupler-005",
+      "category": "adapter_coupler",
+      "comparison_specification_hash": "ba6069c59b3dee2f0efc676de1021385093102485bd3a36343f9f46646829975",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "clamp-clip-005",
+      "category": "clamp_clip",
+      "comparison_specification_hash": "4e82a6fe1bb03919eee7ac2da2a3acff885b69abea3b341fc5a08aac77af86fc",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "container-case-005",
+      "category": "container_cases",
+      "comparison_specification_hash": "d39461d8d252c4e897d779c636b9fa3dcffd7afe47f1a2610374e5187783f010",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-005",
+      "category": "electronics_enclosures",
+      "comparison_specification_hash": "4765d2e3fa124ea1994dda1bc0a0c37299e01ff2ee360cbb1d9e096926cd96cf",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "functional-assembly-005",
+      "category": "functional_assemblies",
+      "comparison_specification_hash": "26453f941e81cc112110ad4cb80cf7fff2fb8e30d27ffc0f639ad3a73e0a0e17",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "holder-organizer-005",
+      "category": "holders_organizers",
+      "comparison_specification_hash": "618da8bb753a4bb1147f0ad70bce35771ca7c80911b22e958aa8e3a91e91f89a",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "jig-guide-005",
+      "category": "jig_guides",
+      "comparison_specification_hash": "fe1c02a8da31f7d71d86b1f01ec67034604ab9877503e0cb41f0197497fc90d2",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "mounting-bracket-005",
+      "category": "mounting_brackets",
+      "comparison_specification_hash": "385f05915e68539d8c59bd53e26bff3441cecabc491f61b9e245cae0586d5c71",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "replacement-part-005",
+      "category": "replacement_parts",
+      "comparison_specification_hash": "934ad9437713c05d3b0eb8f2f3a714f22ec4251440fda8fda282fe26c844924c",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    },
+    {
+      "benchmark_id": "stand-support-005",
+      "category": "stand_supports",
+      "comparison_specification_hash": "5855a132f9db4497e1ebe3937cb0594e43b7dbc58fed7b931b15c668b51076a2",
+      "split_assignment": "holdout",
+      "status": "sealed"
+    }
+  ],
+  "schema_version": "external-cad-holdout-comparison-specifications-sealed-v1",
+  "source_benchmark_id": "external-cad-50-v1"
+}

@@ -1,0 +1,632 @@
+{
+  "methodology_version": "external-cad-comparison-extraction-v1",
+  "projects": [
+    {
+      "benchmark_id": "adapter-coupler-004",
+      "category": "adapter_coupler",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "tool",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Makita router"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 120.0,
+            "y": 120.0,
+            "z": 5.0
+          },
+          "part_id": "makita_router_table_adapter",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "makita-router-table-adapter.stl",
+          "selection_reason": "The PDF lists the single STL as the model file.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design an adapter plate that mounts a Makita router to a router table. It should align the router, provide a stable interface, and leave the important mounting access clear.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output makita_router_table_adapter should have an overall envelope of approximately 120.0 mm x 120.0 mm x 5.0 mm.\n- tool: Makita router descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "8644735bb5c408c427a7a9fd2d6c4da59a28dee10fe2892abfdbddf6859002bd",
+      "split_assignment": "validation",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "clamp-clip-004",
+      "category": "clamp_clip",
+      "comparison_ready": true,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "pole_diameter",
+          "provenance": "creator_documented",
+          "unit": "mm",
+          "value": 22
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 33.15582275390625,
+            "y": 39.24683380126953,
+            "z": 10.0
+          },
+          "part_id": "grow_tent_single_cable_clamp",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "22mm-ID-Grow-Tent-Single-Cable-Clamp.stl",
+          "selection_reason": "The PDF documents 16 mm/22 mm and multiple accessory variants; one 22 mm single-cable-clamp STL is selected by manual annotation and all other versions remain provenance.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a clamp that attaches accessories or cables to a round grow-tent pole. It should grip the pole securely and support a practical cable-management attachment.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output grow_tent_single_cable_clamp should have an overall envelope of approximately 33.15582275390625 mm x 39.24683380126953 mm x 10.0 mm.\n- pole_diameter: 22 mm",
+      "reference_similarity_status": "eligible",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "9116d209d58b8ff0b6ef4d613fcd7e0ae5ac9fa5c554ac680abcdead4b9188b9",
+      "split_assignment": "validation",
+      "status": "comparison_ready"
+    },
+    {
+      "benchmark_id": "container-case-004",
+      "category": "container_cases",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "closure",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "print-and-place hinge"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 44.94700050354004,
+            "y": 56.512001037597656,
+            "z": 13.487000465393066
+          },
+          "part_id": "toothbrush_case",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "selected_variant": "toothbrush_case.stl",
+          "selection_reason": "The PDF lists the single STL as the model file.",
+          "solid_count": null
+        }
+      ],
+      "prompt": "Design a portable toothbrush case that protects the brush during travel. It should close securely, be easy to clean, and allow repeated opening without a fragile hinge.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output toothbrush_case should have an overall envelope of approximately 44.94700050354004 mm x 56.512001037597656 mm x 13.487000465393066 mm.\n- closure: print-and-place hinge descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "18294a2e4500c41716c38f1478d1697f1dc0cfc1b1d0145dda95c02f9f168f58",
+      "split_assignment": "validation",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-004",
+      "category": "electronics_enclosures",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "load_cell_fastener",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "M4 mounting hardware"
+        },
+        {
+          "id": "load_cell_size",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "80 mm x 12.7 mm x 12.7 mm"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 5
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry",
+        "output_relationship_mapping"
+      ],
+      "outputs": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 13.0,
+            "y": 80.0,
+            "z": 5.588000199999998
+          },
+          "part_id": "gage_spacer",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "gagespacer.stp",
+          "selection_reason": "The STEP/STP member is the analytic source for the spacer; matching STL is retained as provenance.",
+          "solid_count": 2
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 101.6000002,
+            "y": 101.60000019999998,
+            "z": 8.382000199999998
+          },
+          "part_id": "gage_top_plate",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "gagetopplate.stp",
+          "selection_reason": "The STEP/STP member is the analytic source for the top plate.",
+          "solid_count": 1
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 139.70000000000002,
+            "y": 148.336,
+            "z": 20.320000200000003
+          },
+          "part_id": "openscale_base",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "openscalebase.stp",
+          "selection_reason": "The STEP/STP member is the analytic source for the base.",
+          "solid_count": 1
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 144.77999704361048,
+            "y": 153.41600044250572,
+            "z": 12.7000001
+          },
+          "part_id": "openscale_base_feet",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "openscalebasefeet.stp",
+          "selection_reason": "The STEP/STP member is the analytic source for the feet.",
+          "solid_count": 4
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "overall_envelope_mm": {
+            "x": 139.69999653500994,
+            "y": 148.33600044250693,
+            "z": 7.6200001
+          },
+          "part_id": "openscale_top",
+          "quality_classification": "analytic_brep_authoritative",
+          "selected_variant": "openscaletop.stp",
+          "selection_reason": "The STEP/STP member is the analytic source for the top enclosure.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a multi-part enclosure for a Sparkfun Openscale board and a strain-gauge load cell. Include a base, top, feet, spacer, and load-cell plate so the electronics and sensor can be assembled into a protected scale module.\n\nFor this comparison specification:\n- Provide exactly 5 printed output(s).\n- Output gage_spacer should have an overall envelope of approximately 13.0 mm x 80.0 mm x 5.588000199999998 mm.\n- Output gage_top_plate should have an overall envelope of approximately 101.6000002 mm x 101.60000019999998 mm x 8.382000199999998 mm.\n- Output openscale_base should have an overall envelope of approximately 139.70000000000002 mm x 148.336 mm x 20.320000200000003 mm.\n- Output openscale_base_feet should have an overall envelope of approximately 144.77999704361048 mm x 153.41600044250572 mm x 12.7000001 mm.\n- Output openscale_top should have an overall envelope of approximately 139.69999653500994 mm x 148.33600044250693 mm x 7.6200001 mm.\n- load_cell_fastener: M4 mounting hardware descriptive\n- load_cell_size: 80 mm x 12.7 mm x 12.7 mm descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "4cc5a970a0138f8d3dc61e4327b64baf2d8711f4dd3b34c51a559c41daa12e7f",
+      "split_assignment": "validation",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "functional-assembly-004",
+      "category": "functional_assemblies",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "battery",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "4S LiFePO4, 128 Wh"
+        },
+        {
+          "id": "connector_facts",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "QC/PD, DC jack, PowerPole, fuse interfaces"
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 328.8732604980469,
+            "y": 290.2250061035156,
+            "z": 187.75
+          },
+          "part_id": "portable_power_box",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "rugged-power-box.stl",
+          "selection_reason": "The PDF lists the STL as the printable enclosure; 3MF variants remain provenance alternatives.",
+          "solid_count": 11
+        }
+      ],
+      "prompt": "Design a rugged enclosure for a 12 V portable power bank using a 4S LiFePO4 battery pack. It should protect the electronics and provide openings for the documented charging and power connectors.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output portable_power_box should have an overall envelope of approximately 328.8732604980469 mm x 290.2250061035156 mm x 187.75 mm.\n- battery: 4S LiFePO4, 128 Wh descriptive\n- connector_facts: QC/PD, DC jack, PowerPole, fuse interfaces descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "7e17329f5e51ffc048d3cee917a343bc69d70f032c77dba88c779cc653c0d48e",
+      "split_assignment": "validation",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "holder-organizer-004",
+      "category": "holders_organizers",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "supported_battery",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Bafang or REENTION Polly DP-5"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 53.0,
+            "y": 15.0,
+            "z": 184.88424682617188
+          },
+          "part_id": "battery_holder",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "bafang_battery.stl",
+          "selection_reason": "The PDF lists the single STL as the supplied model file.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a holder for a Bafang-style e-bike battery or a REENTION Polly DP-5. It should retain the battery in its intended mounting position and remain practical to install and remove.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output battery_holder should have an overall envelope of approximately 53.0 mm x 15.0 mm x 184.88424682617188 mm.\n- supported_battery: Bafang or REENTION Polly DP-5 descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "ffa5363d7f7c741f8fad94f04b6dd024bed1a7d591cfcfe2afcb5ae18609d757",
+      "split_assignment": "validation",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "jig-guide-004",
+      "category": "jig_guides",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 1
+        },
+        {
+          "id": "tool",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Makita RT0700CX2J edge router"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 80.0,
+            "y": 80.52231216430664,
+            "z": 15.0
+          },
+          "part_id": "makita_drilling_guide",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "makita_bohrlehre_v02.stl",
+          "selection_reason": "The PDF lists the STL as the printed guide; FCStd is native source provenance.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a drilling guide for a Makita RT0700CX2J edge router. It should locate the drill accurately against the tool or workpiece and be easy to use repeatedly.\n\nFor this comparison specification:\n- Provide exactly 1 printed output(s).\n- Output makita_drilling_guide should have an overall envelope of approximately 80.0 mm x 80.52231216430664 mm x 15.0 mm.\n- tool: Makita RT0700CX2J edge router descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "bc68a98eb0b2f9cb826c2db2df5c212397bea57c55f16f38d26e1a80f4a7c80b",
+      "split_assignment": "validation",
+      "status": "needs_spec_enrichment"
+    },
+    {
+      "benchmark_id": "mounting-bracket-004",
+      "category": "mounting_brackets",
+      "comparison_ready": true,
+      "facts": [
+        {
+          "id": "dial_indicator_mount_envelope",
+          "measurement_method": "external-cad-reference-derived-v1.geometry.bounding_box_mm",
+          "provenance": "reference_geometry_measured",
+          "unit": "mm",
+          "value": {
+            "x": 20.0,
+            "y": 97.0,
+            "z": 18.0
+          }
+        },
+        {
+          "id": "hardware",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "M4 clamping hardware and M6 indicator-mounting hardware"
+        },
+        {
+          "id": "lead_screw_clearance",
+          "provenance": "creator_documented",
+          "unit": "boolean",
+          "value": true
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 2
+        },
+        {
+          "id": "rail_clamp_envelope",
+          "measurement_method": "external-cad-reference-derived-v1.geometry.bounding_box_mm",
+          "provenance": "reference_geometry_measured",
+          "unit": "mm",
+          "value": {
+            "x": 10.0,
+            "y": 72.0,
+            "z": 11.0
+          }
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 20.0,
+            "y": 96.999999,
+            "z": 18.0
+          },
+          "part_id": "dial_indicator_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "Dial Indicator Mount V1.3.stl",
+          "selection_reason": "locked pilot canonical membership",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 10.0,
+            "y": 71.99632740020752,
+            "z": 11.0
+          },
+          "part_id": "rail_clamp",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "Dial Indicator Clamp V1.3.stl",
+          "selection_reason": "locked pilot canonical membership",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a two-part dial-indicator mounting system for a small Unimat-style lathe. The mount should clamp securely across the machine's two rails, provide clearance for the lead screw, and support a standard dial indicator. Use M4 hardware for clamping and M6 hardware for attaching the indicator. The separate clamp should also be usable as a carriage or slide stop.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output dial_indicator_mount should have an overall envelope of approximately 20.0 mm x 96.999999 mm x 18.0 mm.\n- Output rail_clamp should have an overall envelope of approximately 10.0 mm x 71.99632740020752 mm x 11.0 mm.\n- dial_indicator_mount_envelope: {'x': 20.0, 'y': 97.0, 'z': 18.0} mm\n- hardware: M4 clamping hardware and M6 indicator-mounting hardware descriptive\n- lead_screw_clearance: True boolean\n- rail_clamp_envelope: {'x': 10.0, 'y': 72.0, 'z': 11.0} mm",
+      "reference_similarity_status": "eligible",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "4b7c0db7760d4f196e1a339b7042ab4127f300b17286ae3082bcfc0b7b68edb7",
+      "split_assignment": "validation",
+      "status": "comparison_ready"
+    },
+    {
+      "benchmark_id": "replacement-part-004",
+      "category": "replacement_parts",
+      "comparison_ready": true,
+      "facts": [
+        {
+          "id": "appliance",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "Electrolux refrigerator"
+        },
+        {
+          "id": "mounting_spacing",
+          "provenance": "creator_documented",
+          "unit": "mm",
+          "value": 104
+        },
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 2
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 96.1152114868164,
+            "y": 59.5,
+            "z": 30.0
+          },
+          "part_id": "handle_bottom",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "selected_variant": "fridge_hanlde_strengthened_bottom.stl",
+          "selection_reason": "The strengthened bottom is selected as the updated lower print component described by the package.",
+          "solid_count": null
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 96.1152114868164,
+            "y": 59.5,
+            "z": 50.0
+          },
+          "part_id": "handle_top",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "selected_variant": "fridge_hanlde_strengthened_top.stl",
+          "selection_reason": "The strengthened top is selected as the updated upper print component described by the package.",
+          "solid_count": null
+        }
+      ],
+      "prompt": "Design a replacement handle for an Electrolux refrigerator. It should fit mounting points 104 mm apart and be strengthened around the screw attachment regions.\n\nFor this comparison specification:\n- Provide exactly 2 printed output(s).\n- Output handle_bottom should have an overall envelope of approximately 96.1152114868164 mm x 59.5 mm x 30.0 mm.\n- Output handle_top should have an overall envelope of approximately 96.1152114868164 mm x 59.5 mm x 50.0 mm.\n- appliance: Electrolux refrigerator descriptive\n- mounting_spacing: 104 mm",
+      "reference_similarity_status": "eligible",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "4c17c613eeeed3260da7aad2931ba39a2d99c2e68d628c267243a052f46f897a",
+      "split_assignment": "validation",
+      "status": "comparison_ready"
+    },
+    {
+      "benchmark_id": "stand-support-004",
+      "category": "stand_supports",
+      "comparison_ready": false,
+      "facts": [
+        {
+          "id": "output_count",
+          "provenance": "manual_benchmark_annotation",
+          "unit": "count",
+          "value": 4
+        },
+        {
+          "id": "sensor",
+          "provenance": "creator_documented",
+          "unit": "descriptive",
+          "value": "S-beam load cell"
+        }
+      ],
+      "methodology_version": "external-cad-comparison-extraction-v1",
+      "missing_design_driving_facts": [
+        "principal_mating_geometry",
+        "critical_hardware_or_interface_geometry"
+      ],
+      "outputs": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 80.0,
+            "y": 50.5,
+            "z": 130.0
+          },
+          "part_id": "engine_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "enginemount.stl",
+          "selection_reason": "The PDF lists the engine mount as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 7.5,
+            "y": 40.0,
+            "z": 4.5
+          },
+          "part_id": "engine_mount_pin",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "enginemountpin.stl",
+          "selection_reason": "The PDF lists the pin as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 80.0,
+            "y": 50.0,
+            "z": 30.0
+          },
+          "part_id": "load_cell_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "loadcellmount.stl",
+          "selection_reason": "The PDF lists the load-cell mount as a printed design part.",
+          "solid_count": 1
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "overall_envelope_mm": {
+            "x": 150.0,
+            "y": 75.5,
+            "z": 245.0
+          },
+          "part_id": "stand_base",
+          "quality_classification": "watertight_mesh_reference",
+          "selected_variant": "base.stl",
+          "selection_reason": "The PDF lists the base as a printed design part.",
+          "solid_count": 1
+        }
+      ],
+      "prompt": "Design a multi-part test stand for a model rocket engine with an S-beam load cell. It should support the engine, transfer load to the sensor, and remain stable during testing.\n\nFor this comparison specification:\n- Provide exactly 4 printed output(s).\n- Output engine_mount should have an overall envelope of approximately 80.0 mm x 50.5 mm x 130.0 mm.\n- Output engine_mount_pin should have an overall envelope of approximately 7.5 mm x 40.0 mm x 4.5 mm.\n- Output load_cell_mount should have an overall envelope of approximately 80.0 mm x 50.0 mm x 30.0 mm.\n- Output stand_base should have an overall envelope of approximately 150.0 mm x 75.5 mm x 245.0 mm.\n- sensor: S-beam load cell descriptive",
+      "reference_similarity_status": "specification_underconstrained",
+      "schema_version": "external-cad-comparison-specification-v1",
+      "source_reference_set_sha256": "ade5743af60371b401365485be27c4341115fc5f4a2fa8de87f708691cfffbd5",
+      "split_assignment": "validation",
+      "status": "needs_spec_enrichment"
+    }
+  ],
+  "schema_version": "external-cad-comparison-specification-v1",
+  "source_benchmark_id": "external-cad-50-v1",
+  "split": "validation"
+}
