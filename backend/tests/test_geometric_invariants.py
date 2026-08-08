@@ -180,25 +180,29 @@ def test_build_plate_below_violation_blocks_and_above_is_unprintable() -> None:
     assert next(f for f in above if f.rule_id == "geometry.build_plate_contact").is_blocking is True
 
 
-def test_hole_group_count_spacing_and_diameter_verify() -> None:
+def test_hole_group_candidate_evidence_is_not_authoritative_verification() -> None:
     mesh = two_hole_wall_mesh(spacing=50, diameter=5, height=6, segments=48)
 
     result = GeometryAnalyzerRegistry.default().analyze(context(mesh))
 
-    assert state(result, "geometry.protected_hole_count") == "verified"
-    assert state(result, "geometry.protected_hole_spacing") == "verified"
-    assert state(result, "geometry.protected_hole_diameter") == "verified"
+    assert state(result, "geometry.protected_hole_count") == "unverifiable"
+    assert state(result, "geometry.protected_hole_spacing") == "unverifiable"
+    assert state(result, "geometry.protected_hole_diameter") == "unverifiable"
+    finding = next(finding for finding in result.findings if finding.rule_id == "geometry.protected_hole_count")
+    assert finding.metadata["evidence_authority"] == "derived_stl_candidate"
+    assert finding.metadata["physical_feature_count"] is None
 
 
-def test_high_confidence_hole_spacing_violation_blocks() -> None:
+def test_high_confidence_hole_spacing_candidate_is_not_a_measured_violation() -> None:
     mesh = two_hole_wall_mesh(spacing=60, diameter=5, height=6, segments=48)
 
     result = HoleGroupAnalyzer().analyze(context(mesh))
 
     spacing = next(finding for finding in result if finding.rule_id == "geometry.protected_hole_spacing")
-    assert spacing.verification_state == "violated"
-    assert spacing.is_blocking is True
-    assert spacing.detected_value == 60
+    assert spacing.verification_state == "unverifiable"
+    assert spacing.is_blocking is False
+    assert spacing.detected_value is None
+    assert spacing.metadata["evidence_authority"] == "derived_stl_candidate"
 
 
 def test_low_confidence_hole_diameter_mismatch_is_unverifiable_not_blocking() -> None:

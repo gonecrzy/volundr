@@ -9,7 +9,10 @@ import numpy as np
 import trimesh
 
 from app.services.geometry.feature_measurements import _ray_parameters
-from app.services.geometry.invariants import _detect_axis_aligned_holes
+from app.services.geometry.invariants import (
+    _detect_axis_aligned_hole_candidates,
+    _hole_candidate_measurements,
+)
 from app.services.executable_cadquery.semantic_contract import (
     normalize_executable_cadquery_requirement,
 )
@@ -263,41 +266,34 @@ def evaluate_executable_cadquery_semantics(
     expected_holes = _expected(requirements, "mounting_hole_pattern")
     expected_offsets = _expected(requirements, "mounting_hole_edge_offsets")
     expected_asymmetric = _expected(requirements, "asymmetric_through_hole")
-    detected_holes = [
-        hole for hole in _detect_axis_aligned_holes(mesh, "z", _tolerance_profile())
+    hole_candidates = [
+        hole for hole in _detect_axis_aligned_hole_candidates(mesh, "z", _tolerance_profile())
         if hole.confidence >= 0.55
     ]
     if expected_holes:
-        holes = detected_holes
         expected_count = int(expected_holes.get("count") or 0)
         diameter = float(expected_holes.get("diameter") or 0)
-        matching = [hole for hole in holes if abs(float(hole.diameter) - diameter) <= _tolerance(requirements, "mounting_hole_pattern")]
-        passed = len(matching) == expected_count
         findings.append(
-            _finding(
+            _stl_candidate_unverifiable_finding(
                 "mounting_hole_pattern",
-                passed,
-                {
-                    "expected_count": expected_count,
-                    "detected_count": len(matching),
-                    "detected_diameters_mm": sorted(round(float(hole.diameter), 3) for hole in holes),
-                },
+                hole_candidates,
+                expected_count=expected_count,
+                expected_diameter=diameter,
+                tolerance=_tolerance(requirements, "mounting_hole_pattern"),
             )
         )
-        if passed and expected_offsets:
-            offset = float(expected_offsets.get("nearest_edge_offset") or 0)
-            min_x, min_y = float(bounds[0][0]), float(bounds[0][1])
-            max_x, max_y = float(bounds[1][0]), float(bounds[1][1])
-            offsets = [
-                min(float(hole.center[0]) - min_x, max_x - float(hole.center[0]),
-                    float(hole.center[1]) - min_y, max_y - float(hole.center[1]))
-                for hole in matching
-            ]
+        if expected_offsets:
             findings.append(
-                _finding(
+                _stl_candidate_unverifiable_finding(
                     "mounting_hole_edge_offsets",
-                    bool(offsets) and all(abs(value - offset) <= _tolerance(requirements, "mounting_hole_edge_offsets") for value in offsets),
-                    {"expected_offset_mm": offset, "detected_offsets_mm": _rounded(offsets)},
+                    hole_candidates,
+                    expected_count=expected_count,
+                    expected_diameter=diameter,
+                    tolerance=_tolerance(requirements, "mounting_hole_pattern"),
+                    extra_measurements={
+                        "expected_offset_mm": expected_offsets.get("nearest_edge_offset"),
+                        "reason": "candidate_centers_cannot_establish_physical_hole_identity",
+                    },
                 )
             )
     if expected_asymmetric:
@@ -313,12 +309,12 @@ def evaluate_executable_cadquery_semantics(
                 {
                     "probe_mm": [round(x, 3), round(y, 3)],
                     "through": hole_result,
-                    "detected_holes": [
+                    "circular_profile_candidates": [
                         {
                             "center": _rounded(hole.center),
                             "diameter_mm": round(float(hole.diameter), 3),
                         }
-                        for hole in detected_holes
+                        for hole in hole_candidates
                     ],
                 },
             )
@@ -827,36 +823,64 @@ def _verify_bounds_requirement(
     )
 
 
+def _stl_candidate_unverifiable_finding(
+    requirement_id: str,
+    candidates: list[Any],
+    *,
+    expected_count: int | None = None,
+    expected_diameter: float | None = None,
+    tolerance: float = 0.25,
+    extra_measurements: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Expose mesh candidates without treating them as physical-hole evidence."""
+    matching_count = (
+        sum(abs(float(candidate.diameter) - expected_diameter) <= tolerance for candidate in candidates)
+        if expected_diameter is not None
+        else None
+    )
+    measurements: dict[str, Any] = {
+        "evidence_authority": "derived_stl_candidate",
+        "candidate_evidence_type": "stl_circular_profile_candidate",
+        "raw_candidate_count": len(candidates),
+        "matching_candidate_count": matching_count,
+        "physical_feature_count": None,
+        "candidate_measurements": _hole_candidate_measurements(candidates),
+        "expected_count": expected_count,
+        "expected_diameter_mm": expected_diameter,
+        "tolerance_mm": tolerance,
+        "reason": "stl_candidate_evidence_not_authoritative",
+    }
+    if extra_measurements:
+        measurements.update(dict(extra_measurements))
+    return _semantic_finding(
+        requirement_id,
+        status="unverifiable",
+        measurement_available=False,
+        evidence_source="derived_stl_candidate",
+        measurements=measurements,
+    )
+
+
 def _verify_opening_requirement(
     requirement_id: str,
     mesh: trimesh.Trimesh,
     expected: Mapping[str, Any],
     tolerance: float,
 ) -> dict[str, Any]:
-    holes = [hole for hole in _detect_axis_aligned_holes(mesh, "z", _tolerance_profile()) if hole.confidence >= 0.55]
-    diameter = expected.get("hole_diameter")
-    expected_count = int(expected["hole_count"]) if expected.get("hole_count") is not None else None
-    matching = holes if diameter is None else [
-        hole for hole in holes if abs(float(hole.diameter) - float(diameter)) <= tolerance
+    candidates = [
+        candidate
+        for candidate in _detect_axis_aligned_hole_candidates(mesh, "z", _tolerance_profile())
+        if candidate.confidence >= 0.55
     ]
-    selected = matching[:expected_count] if expected_count is not None else matching[:1]
-    through = bool(selected) and all(
-        _probe_through(mesh, (float(hole.center[0]), float(hole.center[1])))
-        for hole in selected
-    )
-    passed = (
-        (len(matching) == expected_count if expected_count is not None else bool(matching))
-        and (expected.get("through") is not True or through)
-    )
-    return _semantic_finding(
+    return _stl_candidate_unverifiable_finding(
         requirement_id,
-        status="passed" if passed else "failed",
-        measurement_available=True,
-        measurements={
-            "expected_count": expected_count,
-            "detected_count": len(matching),
-            "detected_diameters_mm": sorted(round(float(hole.diameter), 3) for hole in holes),
-            "through": through,
+        candidates,
+        expected_count=int(expected["hole_count"]) if expected.get("hole_count") is not None else None,
+        expected_diameter=float(expected["hole_diameter"]) if expected.get("hole_diameter") is not None else None,
+        tolerance=tolerance,
+        extra_measurements={
+            "expected_through": expected.get("through"),
+            "through_measurement_available": False,
         },
     )
 
@@ -867,40 +891,20 @@ def _verify_opening_centers_requirement(
     expected: Mapping[str, Any],
     tolerance: float,
 ) -> dict[str, Any]:
-    holes = [hole for hole in _detect_axis_aligned_holes(mesh, "z", _tolerance_profile()) if hole.confidence >= 0.55]
-    diameter = float(expected["hole_diameter"]) if expected.get("hole_diameter") is not None else None
-    if diameter is None:
-        return _semantic_finding(
-            requirement_id,
-            status="unverifiable",
-            measurement_available=False,
-            measurements={"reason": "hole diameter is required for opening-center measurement"},
-        )
-    matching = [hole for hole in holes if abs(float(hole.diameter) - diameter) <= tolerance]
-    expected_count = int(expected["hole_count"]) if expected.get("hole_count") is not None else None
-    detected_pitch = None
-    pitch_ok = True
-    if matching:
-        center = np.mean([[float(hole.center[0]), float(hole.center[1])] for hole in matching], axis=0)
-        radii = [float(np.linalg.norm(np.asarray([hole.center[0], hole.center[1]]) - center)) for hole in matching]
-        detected_pitch = 2.0 * float(np.mean(radii))
-        if expected.get("pitch_circle_diameter") is not None:
-            pitch_ok = abs(detected_pitch - float(expected["pitch_circle_diameter"])) <= tolerance
-    count_matches = (
-        len(matching) == expected_count
-        if expected_count is not None
-        else bool(matching)
-    )
-    passed = count_matches and pitch_ok
-    return _semantic_finding(
+    candidates = [
+        candidate
+        for candidate in _detect_axis_aligned_hole_candidates(mesh, "z", _tolerance_profile())
+        if candidate.confidence >= 0.55
+    ]
+    return _stl_candidate_unverifiable_finding(
         requirement_id,
-        status="passed" if passed else "failed",
-        measurement_available=True,
-        measurements={
-            "expected_count": expected_count,
-            "detected_count": len(matching),
+        candidates,
+        expected_count=int(expected["hole_count"]) if expected.get("hole_count") is not None else None,
+        expected_diameter=float(expected["hole_diameter"]) if expected.get("hole_diameter") is not None else None,
+        tolerance=tolerance,
+        extra_measurements={
             "expected_pitch_circle_diameter_mm": expected.get("pitch_circle_diameter"),
-            "detected_pitch_circle_diameter_mm": round(detected_pitch, 3) if detected_pitch is not None else None,
+            "pitch_measurement_available": False,
         },
     )
 
@@ -947,23 +951,20 @@ def _verify_recess_requirement(
     expected: Mapping[str, Any],
     tolerance: float,
 ) -> dict[str, Any]:
-    holes = [hole for hole in _detect_axis_aligned_holes(mesh, "z", _tolerance_profile()) if hole.confidence >= 0.55]
-    diameter = float(expected.get("diameter") or 0)
-    matches = [hole for hole in holes if abs(float(hole.diameter) - diameter) <= tolerance]
-    expected_depth = float(expected.get("depth") or 0)
-    depth = _cylindrical_surface_depth(
-        mesh,
-        diameter / 2.0,
-        matches[0] if matches else None,
-        tolerance,
-        expected_depth=expected_depth,
-    )
-    passed = bool(matches) and depth is not None and abs(depth - expected_depth) <= tolerance
-    return _semantic_finding(
+    candidates = [
+        candidate
+        for candidate in _detect_axis_aligned_hole_candidates(mesh, "z", _tolerance_profile())
+        if candidate.confidence >= 0.55
+    ]
+    return _stl_candidate_unverifiable_finding(
         requirement_id,
-        status="passed" if passed else "failed",
-        measurement_available=True,
-        measurements={"expected_depth_mm": expected_depth, "detected_depth_mm": depth, "detected_diameter_mm": [float(hole.diameter) for hole in matches]},
+        candidates,
+        expected_diameter=float(expected.get("diameter")) if expected.get("diameter") is not None else None,
+        tolerance=tolerance,
+        extra_measurements={
+            "expected_depth_mm": expected.get("depth"),
+            "depth_measurement_available": False,
+        },
     )
 
 

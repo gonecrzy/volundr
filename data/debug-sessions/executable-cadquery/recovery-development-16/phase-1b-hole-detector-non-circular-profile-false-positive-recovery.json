@@ -1,0 +1,244 @@
+{
+  "schema_version": "phase-1b-hole-detector-recovery-v1",
+  "recorded_at": "2026-08-08T00:00:00Z",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "base_checkpoint": "5effbba",
+  "checkpoint": "hole_detector_non_circular_profile_false_positive",
+  "phase": "1B",
+  "holdout_access": false,
+  "development_05_status": "parked_unresolved_due_to_missing_authoritative_artifacts",
+  "scope": "generic detector characterization and recovery; no development-05 geometry evidence was used",
+  "detector_contract": {
+    "claimed_input": "derived STL mesh",
+    "stages": [
+      {
+        "stage": "face_normal_filtering",
+        "selector": "abs(face_normal[axis]) < 0.35",
+        "assumption": "axis-transverse faces may describe a circular opening wall",
+        "failure": "empty selection returns no candidates"
+      },
+      {
+        "stage": "adjacency_grouping",
+        "selector": "connected selected mesh faces",
+        "assumption": "one connected component is one hole-like profile",
+        "limit": "at most max_hole_candidates (24) components"
+      },
+      {
+        "stage": "projected_profile",
+        "selector": "unique component vertices projected orthogonal to the requested axis",
+        "metric": "mean projected center and mean radial distance"
+      },
+      {
+        "stage": "profile_confidence",
+        "metrics": ["radial standard deviation", "24-bin angular coverage", "inward normal score", "segment vertex count"],
+        "formula": "inward*0.45 + coverage*0.25 + circularity*0.20 + segment_confidence*0.10",
+        "failure": "components with non-positive radius or insufficient usable normals are skipped"
+      },
+      {
+        "stage": "candidate_classification",
+        "output": "center, derived diameter, confidence",
+        "important_limit": "no analytic circular edge, cylindrical surface, opening identity, through-state, or physical-hole grouping is established"
+      },
+      {
+        "stage": "semantic_filtering",
+        "historical_behavior": "callers filtered candidates by confidence and expected diameter, then used the result for PASS/FAIL and count",
+        "corrected_behavior": "candidate observations remain diagnostics; candidate-only machine verification is unverifiable"
+      }
+    ],
+    "known_false_positive_cause": "The projected radial summary treats near-square, ellipse, polygon, and irregular curved profiles as circular enough. A connected mesh component is also not a physical-hole identity, so multiple bands of one stepped hole become multiple candidates."
+  },
+  "production_callers": [
+    {
+      "caller": "semantic._verify_opening_requirement",
+      "policies": ["final_mesh_opening_profiles"],
+      "historical_use": "candidate diameter/count and ray probe could directly produce PASS/FAIL",
+      "current_use": "candidate evidence only; returns UNVERIFIABLE without authoritative B-Rep feature evidence",
+      "independent_corroboration": false,
+      "b_rep_feature_evidence": false
+    },
+    {
+      "caller": "semantic._verify_opening_centers_requirement",
+      "policies": ["final_mesh_opening_centers"],
+      "historical_use": "candidate centers/count/pitch could directly produce PASS/FAIL",
+      "current_use": "candidate evidence only; returns UNVERIFIABLE",
+      "independent_corroboration": false,
+      "b_rep_feature_evidence": false
+    },
+    {
+      "caller": "semantic._verify_recess_requirement",
+      "policies": ["final_mesh_recess_profile"],
+      "historical_use": "candidate diameter and a mesh depth proxy could directly produce PASS/FAIL",
+      "current_use": "candidate evidence only; depth remains unavailable for authoritative verification",
+      "independent_corroboration": false,
+      "b_rep_feature_evidence": false
+    },
+    {
+      "caller": "CylindricalHoleAnalyzer",
+      "use": "protected hole diameter",
+      "historical_use": "high-confidence candidate median could be verified/violated",
+      "current_use": "UNVERIFIABLE candidate finding"
+    },
+    {
+      "caller": "HoleGroupAnalyzer",
+      "use": "protected hole count, spacing, diameter",
+      "historical_use": "candidate count/centers/dimensions could be verified/violated",
+      "current_use": "UNVERIFIABLE candidate findings; physical_feature_count remains null"
+    },
+    {
+      "caller": "MountingHoleVerifier",
+      "use": "functional mounting-hole axis/count/positions/spacing/diameter",
+      "historical_use": "candidate geometry could directly satisfy functional findings",
+      "current_use": "blocking UNVERIFIABLE findings until authoritative feature evidence exists"
+    },
+    {
+      "caller": "package_review._hole_measurements",
+      "use": "neutral package evidence",
+      "historical_use": "serialized hole_or_cylinder_measurements without authority label",
+      "current_use": "retained as stl_circular_profile_candidate with physical_feature_verified=false"
+    },
+    {
+      "caller": "semantic.evaluate_executable_cadquery_semantics mounting_hole_pattern",
+      "use": "legacy top-level mounting-hole count/diameter/offset checks",
+      "current_use": "candidate-only findings are UNVERIFIABLE; asymmetric explicit ray probing remains a separate path"
+    }
+  ],
+  "synthetic_shape_matrix": [
+    {"case": "single_true_circle", "physical_intent": "one circular profile", "raw_candidate_count": 1, "candidate_diameters_mm": [11.0], "confidence": [1.0], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "multiple_true_circles", "physical_intent": "two circular profiles", "raw_candidate_count": 2, "candidate_diameters_mm": [9.0, 9.0], "confidence": [1.0, 1.0], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "different_true_circle_diameter", "physical_intent": "one circular profile", "raw_candidate_count": 1, "candidate_diameters_mm": [14.5], "confidence": [1.0], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "coarse_true_circle", "physical_intent": "one coarsely tessellated circular profile", "raw_candidate_count": 1, "candidate_diameters_mm": [11.0], "confidence": [0.848], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "fine_true_circle", "physical_intent": "one finely tessellated circular profile", "raw_candidate_count": 1, "candidate_diameters_mm": [11.0], "confidence": [1.0], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "circle_near_tolerance_boundary", "physical_intent": "candidate diameter near an arbitrary requirement tolerance", "raw_candidate_count": 1, "candidate_diameters_mm": [11.0], "confidence": [1.0], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "square_negative_control", "physical_intent": "square opening", "raw_candidate_count": 0, "candidate_diameters_mm": [], "confidence": [], "semantic_status": "unverifiable"},
+    {"case": "near_square_false_positive", "physical_intent": "14 x 14 rounded-corner non-circular opening", "raw_candidate_count": 1, "candidate_diameters_mm": [19.267], "confidence": [0.794], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "rounded_rectangle", "physical_intent": "16 x 10 rounded rectangle", "raw_candidate_count": 1, "candidate_diameters_mm": [16.42], "confidence": [0.79], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "elongated_slot", "physical_intent": "elongated slot", "raw_candidate_count": 0, "candidate_diameters_mm": [], "confidence": [], "semantic_status": "unverifiable"},
+    {"case": "ellipse", "physical_intent": "elliptical opening", "raw_candidate_count": 1, "candidate_diameters_mm": [13.174], "confidence": [0.955], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "regular_polygon", "physical_intent": "octagonal opening", "raw_candidate_count": 1, "candidate_diameters_mm": [12.0], "confidence": [0.779], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "irregular_curved_profile", "physical_intent": "irregular curved opening", "raw_candidate_count": 1, "candidate_diameters_mm": [13.184], "confidence": [0.934], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "counterbored_physical_hole", "physical_intent": "one stepped physical hole with two circular bands", "raw_candidate_count": 2, "candidate_diameters_mm": [12.0, 6.0], "confidence": [1.0, 1.0], "physical_feature_count": 1, "semantic_status": "unverifiable_candidate_only"},
+    {"case": "countersunk_physical_hole", "physical_intent": "one countersunk physical hole with three bands", "raw_candidate_count": 3, "candidate_diameters_mm": [12.0, 10.0, 6.0], "confidence": [1.0, 1.0, 1.0], "physical_feature_count": 1, "semantic_status": "unverifiable_candidate_only"},
+    {"case": "stepped_cylindrical_opening", "physical_intent": "one stepped cylindrical opening", "raw_candidate_count": 2, "candidate_diameters_mm": [12.0, 6.0], "confidence": [1.0, 1.0], "physical_feature_count": 1, "semantic_status": "unverifiable_candidate_only"},
+    {"case": "multiple_surface_bands_one_feature", "physical_intent": "one physical feature with three cylindrical bands", "raw_candidate_count": 3, "candidate_diameters_mm": [12.0, 10.0, 6.0], "confidence": [1.0, 1.0, 1.0], "physical_feature_count": 1, "semantic_status": "unverifiable_candidate_only"},
+    {"case": "indistinguishable_rounded_exterior_profile", "physical_intent": "rounded exterior profile, not a hole", "raw_candidate_count": 1, "candidate_diameters_mm": [19.267], "confidence": [0.794], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "nearby_curved_features", "physical_intent": "two nearby non-hole curved profiles", "raw_candidate_count": 2, "candidate_diameters_mm": [19.267, 19.267], "confidence": [0.794, 0.794], "semantic_status": "unverifiable_candidate_only"},
+    {"case": "circular_feature_without_region_scope", "physical_intent": "circular feature with no legal region selector", "raw_candidate_count": 1, "candidate_diameters_mm": [11.0], "confidence": [1.0], "semantic_status": "unverifiable_candidate_only"}
+  ],
+  "red_reproductions": {
+    "test_file": "backend/tests/test_hole_detector_characterization.py",
+    "before_recovery": "20 passed, 2 failed",
+    "failed_cases": [
+      "clean circular candidate alone incorrectly returned passed",
+      "near-square candidate incorrectly returned failed instead of remaining unverifiable"
+    ],
+    "interpretation": "The RED assertions demonstrate that the old semantic path treated the same candidate mechanism as authoritative for both positive and negative decisions."
+  },
+  "shape_characterization": {
+    "radial_cv": {
+      "result": "insufficient discriminator",
+      "observations": "clean circle was approximately 0 while the near-square rounded control was approximately 0.005; the projected vertex sampling hides straight-edge behavior"
+    },
+    "convex_hull_perimeter_area_circularity": {
+      "result": "useful characterization but not selected as a production threshold",
+      "observations": {
+        "circle_48": 0.99857,
+        "circle_12": 0.97705,
+        "rounded_near_square": 0.80771,
+        "square": 0.7854,
+        "ellipse": 0.89126,
+        "polygon_8": 0.94806,
+        "irregular": 0.86658
+      }
+    },
+    "conclusion": "A threshold could separate the chosen controls only with a shape-classification policy that would need broader evidence and still would not establish physical-hole identity or distinguish an interior opening from an exterior curved wall."
+  },
+  "stl_authority_assessment": {
+    "direction": "B",
+    "decision": "downgrade STL detector to candidate evidence",
+    "reason": "The detector is useful for coarse discovery and diagnostics, but the tested mesh evidence cannot defensibly establish physical-hole identity, circular analytic geometry, through-state, or grouping of stepped-hole bands. Candidate-only PASS/FAIL is therefore unsafe."
+  },
+  "b_rep_availability_audit": {
+    "authoritative_domain": "CadQuery/OpenCascade B-Rep and STEP",
+    "current_topology_evidence": "topology-evidence-v2 exposes valid shape, solid count, volume, shells/faces, bounds, centroids, and solid relationships",
+    "analytic_feature_fields_available": false,
+    "available_fields": ["cylindrical surfaces", "cylinder radii", "cylinder axes", "circular edges", "closed cylindrical void identity"],
+    "current_status": "not exposed to semantic verification",
+    "decision": "No broad B-Rep hole verifier was implemented in this checkpoint. A future B-Rep-backed neutral feature contract is required before authoritative circular-hole machine PASS."
+  },
+  "physical_feature_identity_analysis": {
+    "raw_candidate_count_is_physical_count": false,
+    "evidence": "two- and three-band synthetic representations of one stepped/counterbored/countersunk physical hole produce two or three raw candidates",
+    "grouping_status": "not deterministically available from the current detector",
+    "separate_subcluster": "hole_candidate_physical_identity_aggregation_gap",
+    "prohibited_workaround": "Do not select only candidates matching the expected diameter to manufacture physical identity or count."
+  },
+  "diagnostic_correction": {
+    "candidate_fields": ["evidence_type=stl_circular_profile_candidate", "raw candidate count", "matching candidate count", "candidate diameters", "confidence"],
+    "physical_identity_field": "physical_feature_verified=false; physical_feature_count=null",
+    "user_meaning": "Candidate observations cannot by themselves support a statement that the CAD contains the requested physical holes.",
+    "technical_reason": "stl_candidate_evidence_not_authoritative"
+  },
+  "before_after": {
+    "raw_candidate_extraction": "unchanged; true circular and false-positive profiles remain observable candidates",
+    "candidate_only_semantic_paths_before": "could return PASS or FAIL from candidate count/diameter/center/depth",
+    "candidate_only_semantic_paths_after": "UNVERIFIABLE with measurement_available=false and derived_stl_candidate evidence",
+    "geometry": "unchanged",
+    "requirements": "unchanged",
+    "false_pass_prevention": "candidate-only evidence cannot produce authoritative PASS"
+  },
+  "regression_audit": {
+    "focused_tests": "72 passed",
+    "full_backend_suite": "1513 passed, 1 skipped, 1 warning",
+    "changed_historical_expectations": "candidate-authoritative hole PASS/FAIL assertions changed to intentional fail-closed UNVERIFIABLE; one complete-source workflow fixture no longer declares the unsupported candidate-only mounting-hole requirement",
+    "classification": "intended fail-closed downgrade; no unintended regression identified",
+    "unaffected_paths": ["explicit asymmetric through-hole ray probing", "non-hole dimensional/axisymmetric measurements", "topology evidence", "output scope resolution"]
+  },
+  "ownership": {
+    "observed_stage": "semantic_measurement",
+    "failure_class": "measurement_false_positive / non_authoritative_candidate_evidence",
+    "first_incorrect_owner": "application geometry measurement/verifier boundary",
+    "historical_development_05_ownership": "unresolved_due_to_missing_authoritative_artifacts"
+  },
+  "anti_overfitting": {
+    "passed": true,
+    "checks": [
+      "no project IDs in production behavior or synthetic tests",
+      "no development-05 source, dimensions, or artifact used",
+      "no source-name or feature-name matching",
+      "no prompt/model/settings/credential/repair-ceiling changes",
+      "no holdout access",
+      "no geometry-specific exception",
+      "no requirement weakening or UNKNOWN-to-PASS conversion"
+    ]
+  },
+  "operations": {
+    "provider_calls": 0,
+    "frozen_worker_executions": 0,
+    "synthetic_geometry_executions": 21,
+    "synthetic_geometry_scope": "19 matrix cases plus 2 semantic candidate-authority gates"
+  },
+  "files_changed": [
+    "backend/app/services/geometry/invariants.py",
+    "backend/app/services/executable_cadquery/semantic.py",
+    "backend/app/services/geometry/functional.py",
+    "backend/app/services/executable_cadquery/package_review.py",
+    "backend/tests/test_hole_detector_characterization.py",
+    "backend/tests/test_geometric_invariants.py",
+    "backend/tests/test_executable_cadquery_semantic_contract.py",
+    "backend/tests/test_executable_cadquery_semantic_measurements.py",
+    "backend/tests/test_constraint_modes.py",
+    "backend/tests/test_executable_cadquery_workflow.py"
+  ],
+  "product_path_audit": {
+    "requirement_ledger": "count, diameter, scope, and revision identity remain contract fields; no hidden mesh convention was added",
+    "validation": "candidate evidence is surfaced as candidate evidence, while authoritative pass/fail waits for stronger geometry evidence",
+    "diagnostics": "raw and matching candidate observations are distinguishable from verified physical-feature count",
+    "revision": "a future revision can target the stable requirement identity without depending on detector internals",
+    "manufacturing_boundary": "no printer, build-volume, splitting, or other manufacturing concepts introduced"
+  },
+  "new_subclusters": [
+    "hole_candidate_physical_identity_aggregation_gap",
+    "raw_hole_candidate_count_vs_matching_count_ambiguity"
+  ],
+  "recommended_next_action": "Address physical candidate identity/grouping as a separate generic evidence problem, or document the required B-Rep-backed neutral feature contract before any authoritative circular-hole verifier is added. Keep feature-profile production work parked unless new independent evidence changes its NO-GO."
+}

@@ -18,7 +18,10 @@ from zipfile import ZipFile
 import numpy as np
 import trimesh
 
-from app.services.geometry.invariants import GeometricToleranceProfile, _detect_axis_aligned_holes
+from app.services.geometry.invariants import (
+    GeometricToleranceProfile,
+    _detect_axis_aligned_hole_candidates,
+)
 
 
 NEUTRAL_MEASUREMENT_REPORT_VERSION = "executable-cadquery-neutral-measurement-v1"
@@ -114,10 +117,12 @@ def _hole_measurements(mesh: trimesh.Trimesh) -> list[dict[str, Any]]:
     tolerance = GeometricToleranceProfile()
     measurements: list[dict[str, Any]] = []
     for axis in ("x", "y", "z"):
-        for hole in _detect_axis_aligned_holes(mesh, axis, tolerance):
+        for hole in _detect_axis_aligned_hole_candidates(mesh, axis, tolerance):
             measurements.append(
                 {
                     "axis": axis,
+                    "evidence_type": "stl_circular_profile_candidate",
+                    "physical_feature_verified": False,
                     "center_mm": _rounded(hole.center),
                     "diameter_mm": round(float(hole.diameter), 4),
                     "confidence": round(float(hole.confidence), 4),
@@ -262,4 +267,3 @@ def _rounded(values: Any) -> list[float]:
 
 def _number_or_none(value: float | None) -> float | None:
     return None if value is None or not math.isfinite(value) else round(value, 6)
-

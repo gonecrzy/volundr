@@ -128,7 +128,7 @@ def test_output_scope_resolver_receives_normalized_requirement_without_scope_gue
     assert result["output_ids"] == ["upper", "lower"]
 
 
-def test_measured_failure_remains_failure_after_canonical_normalization() -> None:
+def test_stl_hole_candidate_does_not_become_authoritative_failure() -> None:
     mesh = trimesh.creation.box(extents=(10.0, 10.0, 2.0))
     finding = _generic_requirement_finding(
         _requirement(
@@ -140,8 +140,10 @@ def test_measured_failure_remains_failure_after_canonical_normalization() -> Non
         meshes={"primary": mesh},
     )
 
-    assert finding["status"] == "failed"
-    assert finding["measurement_available"] is True
+    assert finding["status"] == "unverifiable"
+    assert finding["measurement_available"] is False
+    assert finding["evidence_source"] == "derived_stl_candidate"
+    assert finding["measurements"]["physical_feature_count"] is None
 
 
 def test_unsupported_qualifier_does_not_become_pass() -> None:

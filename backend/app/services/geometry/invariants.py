@@ -258,8 +258,8 @@ class CylindricalHoleAnalyzer:
         if expected is None:
             return []
         axis = mapping.attributes.get("axis", "z")
-        holes = _detect_axis_aligned_holes(analysis_context.mesh, axis, analysis_context.tolerance)
-        high = [hole for hole in holes if hole.confidence >= analysis_context.tolerance.high_confidence]
+        candidates = _detect_axis_aligned_hole_candidates(analysis_context.mesh, axis, analysis_context.tolerance)
+        high = [candidate for candidate in candidates if candidate.confidence >= analysis_context.tolerance.high_confidence]
         if not high:
             return [
                 _finding(
@@ -270,37 +270,42 @@ class CylindricalHoleAnalyzer:
                     detected=None,
                     unit="mm",
                     tolerance=analysis_context.tolerance.hole_diameter_abs_mm,
-                    confidence=max([hole.confidence for hole in holes], default=0.0),
+                    confidence=max([candidate.confidence for candidate in candidates], default=0.0),
                     blocking=False,
                     title="Hole diameter",
-                    explanation="Volundr could not verify this protected hole diameter from the generated mesh.",
+                    explanation="Volundr could not verify physical hole diameter from derived STL profile candidates.",
                     correction="Review the hole diameter manually or revise with clearer hole geometry.",
                     feature_id=mapping.feature_id,
-                    metadata={"axis": axis, "candidate_count": len(holes)},
+                    metadata={
+                        "axis": axis,
+                        "evidence_authority": "derived_stl_candidate",
+                        "candidate_count": len(candidates),
+                        "candidate_measurements": _hole_candidate_measurements(candidates),
+                    },
                 )
             ]
-        detected = round(float(np.median([hole.diameter for hole in high])), 3)
-        violated = abs(detected - expected) > analysis_context.tolerance.hole_diameter_abs_mm
         return [
             _finding(
                 rule_id=self.rule_id,
                 requirement_id=diameter_requirement,
-                state="violated" if violated else "verified",
+                state="unverifiable",
                 expected=expected,
-                detected=detected,
+                detected=None,
                 unit="mm",
                 tolerance=analysis_context.tolerance.hole_diameter_abs_mm,
-                confidence=min(hole.confidence for hole in high),
-                blocking=violated,
+                confidence=min(candidate.confidence for candidate in high),
+                blocking=False,
                 title="Hole diameter",
-                explanation=(
-                    "Detected protected hole diameter differs from the Design Specification."
-                    if violated
-                    else "Detected protected hole diameter matches the Design Specification."
-                ),
+                explanation="STL profile candidates are insufficient to verify physical hole diameter without authoritative B-Rep feature evidence.",
                 correction="Revise the hole geometry to match the protected diameter.",
                 feature_id=mapping.feature_id,
-                metadata={"axis": axis, "candidate_count": len(holes)},
+                metadata={
+                    "axis": axis,
+                    "evidence_authority": "derived_stl_candidate",
+                    "candidate_count": len(candidates),
+                    "candidate_measurements": _hole_candidate_measurements(candidates),
+                    "physical_feature_count": None,
+                },
             )
         ]
 
@@ -314,85 +319,66 @@ class HoleGroupAnalyzer:
         if mapping is None:
             return []
         axis = mapping.attributes.get("axis", "z")
-        holes = [
-            hole
-            for hole in _detect_axis_aligned_holes(analysis_context.mesh, axis, analysis_context.tolerance)
-            if hole.confidence >= analysis_context.tolerance.high_confidence
+        candidates = [
+            candidate
+            for candidate in _detect_axis_aligned_hole_candidates(analysis_context.mesh, axis, analysis_context.tolerance)
+            if candidate.confidence >= analysis_context.tolerance.high_confidence
         ]
         findings: list[GeometricFinding] = []
         expected_count = _int(mapping.attributes.get("count"))
         if expected_count is not None:
-            if not holes:
-                findings.append(
-                    _unverifiable_group_finding(
-                        "geometry.protected_hole_count",
-                        mapping,
-                        expected_count,
-                        "Hole count",
-                        "Volundr could not confidently isolate the declared hole group.",
-                    )
+            findings.append(
+                _unverifiable_group_finding(
+                    "geometry.protected_hole_count",
+                    mapping,
+                    expected_count,
+                    "Hole count",
+                    "STL profile candidates cannot establish physical-hole identity or count without authoritative B-Rep feature evidence.",
+                    metadata={
+                        "axis": axis,
+                        "evidence_authority": "derived_stl_candidate",
+                        "candidate_count": len(candidates),
+                        "candidate_measurements": _hole_candidate_measurements(candidates),
+                        "physical_feature_count": None,
+                    },
                 )
-            else:
-                violated = len(holes) != expected_count
-                findings.append(
-                    _finding(
-                        rule_id="geometry.protected_hole_count",
-                        requirement_id=mapping.feature_id,
-                        state="violated" if violated else "verified",
-                        expected=expected_count,
-                        detected=len(holes),
-                        unit="holes",
-                        tolerance=0,
-                        confidence=min(hole.confidence for hole in holes),
-                        blocking=violated,
-                        title="Hole count",
-                        explanation=(
-                            "Detected protected hole count differs from the declared feature."
-                            if violated
-                            else "Detected protected hole count matches the declared feature."
-                        ),
-                        correction="Revise the hole pattern so the count matches the Design Specification.",
-                        feature_id=mapping.feature_id,
-                        metadata={"axis": axis},
-                    )
-                )
+            )
         expected_spacing = _expected_value(analysis_context, mapping.attributes.get("spacing"))
         if expected_spacing is not None:
-            if len(holes) != 2:
-                findings.append(
-                    _unverifiable_group_finding(
-                        "geometry.protected_hole_spacing",
-                        mapping,
-                        expected_spacing,
-                        "Hole spacing",
-                        "Volundr could not isolate exactly two holes for spacing verification.",
-                    )
+            findings.append(
+                _unverifiable_group_finding(
+                    "geometry.protected_hole_spacing",
+                    mapping,
+                    expected_spacing,
+                    "Hole spacing",
+                    "STL profile candidates cannot establish physical-hole identity or spacing without authoritative B-Rep feature evidence.",
+                    metadata={
+                        "axis": axis,
+                        "evidence_authority": "derived_stl_candidate",
+                        "candidate_count": len(candidates),
+                        "candidate_measurements": _hole_candidate_measurements(candidates),
+                        "physical_feature_count": None,
+                    },
                 )
-            else:
-                detected_spacing = round(float(np.linalg.norm(holes[0].center - holes[1].center)), 3)
-                violated = abs(detected_spacing - expected_spacing) > analysis_context.tolerance.hole_spacing_abs_mm
-                findings.append(
-                    _finding(
-                        rule_id="geometry.protected_hole_spacing",
-                        requirement_id=mapping.attributes.get("spacing"),
-                        state="violated" if violated else "verified",
-                        expected=expected_spacing,
-                        detected=detected_spacing,
-                        unit="mm",
-                        tolerance=analysis_context.tolerance.hole_spacing_abs_mm,
-                        confidence=min(hole.confidence for hole in holes),
-                        blocking=violated,
-                        title="Hole spacing",
-                        explanation=(
-                            "Detected protected hole spacing differs from the Design Specification."
-                            if violated
-                            else "Detected protected hole spacing matches the Design Specification."
-                        ),
-                        correction="Revise the hole centers to match the protected spacing.",
-                        feature_id=mapping.feature_id,
-                        metadata={"axis": axis},
-                    )
+            )
+        expected_diameter = _expected_value(analysis_context, mapping.attributes.get("diameter"))
+        if expected_diameter is not None:
+            findings.append(
+                _unverifiable_group_finding(
+                    "geometry.protected_hole_diameter",
+                    mapping,
+                    expected_diameter,
+                    "Hole diameter",
+                    "STL profile candidates cannot establish physical-hole identity or diameter without authoritative B-Rep feature evidence.",
+                    metadata={
+                        "axis": axis,
+                        "evidence_authority": "derived_stl_candidate",
+                        "candidate_count": len(candidates),
+                        "candidate_measurements": _hole_candidate_measurements(candidates),
+                        "physical_feature_count": None,
+                    },
                 )
+            )
         return findings
 
 
@@ -446,7 +432,7 @@ class WallThicknessAnalyzer:
 
 
 @dataclass(frozen=True)
-class _DetectedHole:
+class _DetectedHoleCandidate:
     center: np.ndarray
     diameter: float
     confidence: float
@@ -459,18 +445,26 @@ def mesh_hash(mesh: Trimesh) -> str:
     return digest.hexdigest()
 
 
-def _detect_axis_aligned_holes(
+def _detect_axis_aligned_hole_candidates(
     mesh: Trimesh,
     axis: str,
     tolerance: GeometricToleranceProfile,
-) -> list[_DetectedHole]:
+) -> list[_DetectedHoleCandidate]:
+    """Extract derived STL circular-profile candidates, not physical holes.
+
+    The mesh path has no analytic B-Rep identity or reliable distinction
+    between an interior opening, an exterior curved wall, and one band of a
+    stepped hole.  Callers must therefore treat the returned components as
+    candidate evidence only and must not use them as authoritative physical
+    hole verification.
+    """
     axis_index = {"x": 0, "y": 1, "z": 2}.get(axis.lower())
     if axis_index is None or len(mesh.faces) == 0 or len(mesh.faces) > tolerance.max_triangle_count:
         return []
     face_normals = np.asarray(mesh.face_normals)
     side_face_indexes = np.where(np.abs(face_normals[:, axis_index]) < 0.35)[0]
     components = _face_components(mesh, side_face_indexes.tolist())
-    holes: list[_DetectedHole] = []
+    candidates: list[_DetectedHoleCandidate] = []
     projection = [index for index in range(3) if index != axis_index]
     for component in components[: tolerance.max_hole_candidates]:
         face_vertices = mesh.faces[component].reshape(-1)
@@ -510,8 +504,31 @@ def _detect_axis_aligned_holes(
         full_center = np.zeros(3)
         full_center[projection] = center
         full_center[axis_index] = float((points[:, axis_index].min() + points[:, axis_index].max()) / 2)
-        holes.append(_DetectedHole(center=full_center, diameter=round(radius * 2, 3), confidence=confidence))
-    return holes
+        candidates.append(
+            _DetectedHoleCandidate(
+                center=full_center,
+                diameter=round(radius * 2, 3),
+                confidence=confidence,
+            )
+        )
+    return candidates
+
+
+def _hole_candidate_measurements(
+    candidates: list[_DetectedHoleCandidate],
+) -> list[dict[str, Any]]:
+    """Serialize derived STL observations without claiming physical identity."""
+
+    return [
+        {
+            "evidence_type": "stl_circular_profile_candidate",
+            "physical_feature_verified": False,
+            "center_mm": [round(float(value), 3) for value in candidate.center],
+            "diameter_mm": round(float(candidate.diameter), 3),
+            "confidence": round(float(candidate.confidence), 3),
+        }
+        for candidate in candidates
+    ]
 
 
 def _face_components(mesh: Trimesh, face_indexes: list[int]) -> list[np.ndarray]:
@@ -601,6 +618,7 @@ def _unverifiable_group_finding(
     expected: float | int,
     title: str,
     explanation: str,
+    metadata: dict[str, Any] | None = None,
 ) -> GeometricFinding:
     return _finding(
         rule_id=rule_id,
@@ -616,7 +634,7 @@ def _unverifiable_group_finding(
         explanation=explanation,
         correction="Review the declared hole group manually before accepting the candidate.",
         feature_id=mapping.feature_id,
-        metadata={"mapping_line": mapping.line},
+        metadata={"mapping_line": mapping.line, **(metadata or {})},
     )
 
 

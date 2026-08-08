@@ -24,7 +24,7 @@ def _frozen(project: str) -> tuple[dict, dict[str, Path]]:
     return contract, paths
 
 
-def test_generic_mesh_measurements_cover_single_output_requirement_policies() -> None:
+def test_mesh_measurements_distinguish_authoritative_and_candidate_only_policies() -> None:
     contract, paths = _frozen("02")
 
     result = evaluate_executable_cadquery_semantics_for_outputs(
@@ -34,10 +34,21 @@ def test_generic_mesh_measurements_cover_single_output_requirement_policies() ->
 
     findings = {item["requirement_id"]: item for item in result["findings"]}
     assert set(findings) >= {item["requirement_id"] for item in contract["requirements"]}
-    assert all(findings[item["requirement_id"]].get("measurement_available") is True for item in contract["requirements"])
+    for requirement in contract["requirements"]:
+        finding = findings[requirement["requirement_id"]]
+        if requirement.get("verification_policy") in {
+            "final_mesh_opening_profiles",
+            "final_mesh_opening_centers",
+            "final_mesh_recess_profile",
+        }:
+            assert finding["status"] == "unverifiable"
+            assert finding["measurement_available"] is False
+            assert finding["evidence_source"] == "derived_stl_candidate"
+        else:
+            assert finding["measurement_available"] is True
     assert findings["coaxial_diameters"]["status"] == "passed"
-    assert findings["through_bore"]["status"] == "passed"
-    assert findings["bolt_circle"]["status"] == "passed"
+    assert findings["through_bore"]["status"] == "unverifiable"
+    assert findings["bolt_circle"]["status"] == "unverifiable"
 
 
 def test_generic_mesh_measurements_cover_multi_output_requirement_policies() -> None:
@@ -51,4 +62,15 @@ def test_generic_mesh_measurements_cover_multi_output_requirement_policies() -> 
 
         findings = {item["requirement_id"]: item for item in result["findings"]}
         assert set(findings) >= {item["requirement_id"] for item in contract["requirements"]}
-        assert all(findings[item["requirement_id"]].get("measurement_available") is True for item in contract["requirements"])
+        for requirement in contract["requirements"]:
+            finding = findings[requirement["requirement_id"]]
+            if requirement.get("verification_policy") in {
+                "final_mesh_opening_profiles",
+                "final_mesh_opening_centers",
+                "final_mesh_recess_profile",
+            }:
+                assert finding["status"] == "unverifiable"
+                assert finding["measurement_available"] is False
+                assert finding["evidence_source"] == "derived_stl_candidate"
+            else:
+                assert finding["measurement_available"] is True

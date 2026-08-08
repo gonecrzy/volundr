@@ -37,6 +37,11 @@ def test_neutral_measurement_report_contains_standardized_geometry_and_hash_fact
     assert output["artifact_hashes"]["stl"]["declared_sha256"]
     assert output["artifact_hashes"]["stl"]["observed_sha256"] == output["artifact_hashes"]["stl"]["declared_sha256"]
     assert output["hole_or_cylinder_measurements"]
+    assert all(
+        measurement["evidence_type"] == "stl_circular_profile_candidate"
+        and measurement["physical_feature_verified"] is False
+        for measurement in output["hole_or_cylinder_measurements"]
+    )
     assert output["planar_face_measurements"]
     assert report["relationships"] == []
 

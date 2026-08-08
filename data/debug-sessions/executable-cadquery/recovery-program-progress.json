@@ -111,6 +111,10 @@
     ,"alembic_phase_1b_no_machine_measurement_definition_checkpoint_clean"
     ,"phase_1b_geometry_owned_measured_discrepancy_reconstructed_and_split"
     ,"phase_1b_development_05_zero_call_source_artifact_forensics_completed_without_provider_or_worker"
+    ,"phase_1b_hole_detector_shape_matrix_red_then_green"
+    ,"phase_1b_hole_detector_downgraded_to_non_authoritative_candidate_evidence"
+    ,"phase_1b_hole_detector_anti_overfitting_passed"
+    ,"full_backend_phase_1b_hole_detector_checkpoint_1513_passed"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -185,8 +189,8 @@
     "target_eventual_independent_pass": "16/16",
     "current_cluster": "geometry_owned_measured_discrepancy",
     "current_cluster_projects": ["development-03","development-05","development-06","development-07","development-08","development-13","development-15","development-16"],
-    "current_cluster_status": "development-05 organizer_wall_mount forensic search completed with zero provider and worker operations; authoritative source, STEP/BREP/STL, worker job, and execution manifest were not recoverable, so historical ownership remains parked; generic non-circular-profile hole-detector false positive remains queued",
-    "current_hypothesis": "Do not classify four mesh-derived candidate values as four physical holes without B-Rep/source evidence; distinguish raw candidates from diameter-matching candidates and keep the historical geometry owner unresolved due to missing authoritative artifacts.",
+    "current_cluster_status": "development-05 organizer_wall_mount forensic search completed with zero provider and worker operations; historical ownership remains parked; the generic STL hole detector is now recovered as non-authoritative candidate evidence, while physical-hole identity/grouping remains a separate queued subcluster",
+    "current_hypothesis": "Do not classify mesh-derived candidate values as physical holes without authoritative B-Rep feature evidence; preserve raw and matching candidate diagnostics, but keep candidate-only machine verification fail-closed.",
     "provider_calls_current_cluster": 0,
     "repair_operations_current_cluster": 0,
     "unsupported_findings_before": 26,
@@ -204,8 +208,8 @@
     },
     "new_rule_metric_assignment": "The one cluster-level generic rule is assigned to the first affected project order; it was not counted as eight project-specific rules.",
     "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
-    "remaining_subclusters": ["feature_profile_capability_gap","hole_detector_non_circular_profile_false_positive","raw_hole_candidate_count_vs_matching_count_ambiguity","requirement_representation_insufficient","reference_geometry_clearance_undefined","reference_geometry_interface_undefined"],
-    "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","slot_sample_dimension_aggregation_false_positive","topology_required_output_policy_routing"],
+    "remaining_subclusters": ["feature_profile_capability_gap","hole_candidate_physical_identity_aggregation_gap","raw_hole_candidate_count_vs_matching_count_ambiguity","requirement_representation_insufficient","reference_geometry_clearance_undefined","reference_geometry_interface_undefined"],
+    "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","slot_sample_dimension_aggregation_false_positive","topology_required_output_policy_routing","hole_detector_non_circular_profile_false_positive"],
     "completed_reconstructions": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
     "current_subcluster_status": "development-05 source/artifact forensics completed with no authoritative artifacts recovered; historical owner remains unresolved and parked, generic detector false-positive is proven synthetically but not yet recovered; feature-profile and reference-geometry production work remain parked",
     "feature_profile_capability_gap": {
@@ -322,7 +326,26 @@
       "forensic_frozen_worker_executions": 0,
       "forensic_synthetic_executions": 0,
       "tracker_substantive_head_reconciled_to": "1e68fd4 Reconstruct development-05 geometry discrepancy",
-      "next_action": "Keep historical development-05 ownership parked; separately develop the generic hole_detector_non_circular_profile_false_positive recovery with project-independent evidence."
+      "next_action": "Keep historical development-05 ownership parked; the non-circular-profile detector defect is recovered as candidate-only evidence. Address physical candidate identity/grouping separately or define the required B-Rep neutral feature contract."
+    },
+    "hole_detector_non_circular_profile_false_positive": {
+      "status": "complete_recovered_as_non_authoritative_candidate_evidence",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "measurement_false_positive / non_authoritative_candidate_evidence",
+      "first_incorrect_owner": "application geometry measurement/verifier boundary",
+      "direction": "B",
+      "root_cause": "STL projected radial profiles can classify near-square, elliptical, polygonal, irregular, and exterior curved components as circular-hole candidates; connected bands of one stepped hole can become multiple candidates",
+      "recovery": "Rename the primitive as a candidate extractor, preserve candidate diagnostics, and prevent STL candidate-only evidence from producing authoritative hole PASS/FAIL or physical-hole count",
+      "true_circle_controls_preserved_as_candidates": true,
+      "physical_feature_count": "null until authoritative feature identity exists",
+      "provider_calls": 0,
+      "frozen_worker_executions": 0,
+      "synthetic_geometry_executions": 21,
+      "focused_tests": "72 passed",
+      "anti_overfitting": "passed",
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-hole-detector-non-circular-profile-false-positive-recovery.json",
+      "tests": "backend/tests/test_hole_detector_characterization.py",
+      "next_action": "separate hole_candidate_physical_identity_aggregation_gap; do not infer physical count from raw or matching candidates"
     },
     "verifier_field_mismatch": {
       "affected_findings": 4,
@@ -382,8 +405,8 @@
     "target_eventual_independent_pass": "8/8",
     "per_project_tuning_allowed": false
   },
-  "application_fix_count": 20,
-  "application_fix_count_since_previous_checkpoint": 0,
+  "application_fix_count": 21,
+  "application_fix_count_since_previous_checkpoint": 1,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
     "new_calls_in_current_checkpoint": 16,
@@ -405,6 +428,7 @@
     ,"phase_1b_slot_sample_aggregation_provider_calls": 0
     ,"phase_1b_requirement_no_machine_measurement_definition_provider_calls": 0
     ,"phase_1b_geometry_owned_measured_discrepancy_provider_calls": 0
+    ,"phase_1b_hole_detector_non_circular_profile_false_positive_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -489,7 +513,9 @@
     "phase_1b_topology_required_output_tests": "backend/tests/test_executable_cadquery_topology_policy.py; four project-independent topology-policy cases pass",
     "phase_1b_geometry_owned_measured_discrepancy_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-geometry-owned-measured-discrepancy-reconstruction.json",
     "phase_1b_development_05_zero_call_source_artifact_forensics": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-development-05-zero-call-source-artifact-forensics.json",
+    "phase_1b_hole_detector_non_circular_profile_false_positive_recovery": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-hole-detector-non-circular-profile-false-positive-recovery.json",
+    "phase_1b_hole_detector_characterization_tests": "backend/tests/test_hole_detector_characterization.py; 22 passed including RED reproduction gates after recovery; focused geometry/semantic suite 72 passed",
     "phase_1b_geometry_measurement_characterization": "28 synthetic CadQuery/STL executions; 61 focused existing geometry/semantic tests passed; no production files changed",
-    "verification_current_checkpoint": "backend 1491 passed, 1 skipped, 1 warning remains the latest full regression; focused geometry/semantic suite 61 passed; provider_calls=0; frozen_worker_executions=0; production_changes=0"
+    "verification_current_checkpoint": "backend 1513 passed, 1 skipped, 1 warning; focused geometry/semantic suite 72 passed; provider_calls=0; frozen_worker_executions=0; production changes are limited to generic STL candidate authority/diagnostics"
   }
 }

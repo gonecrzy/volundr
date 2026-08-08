@@ -664,7 +664,11 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
     workflow_contract["requirements"] = [
         requirement
         for requirement in workflow_contract["requirements"]
-        if requirement["requirement_id"] not in {"mounting_hole_edge_offsets", "asymmetric_through_hole"}
+        if requirement["requirement_id"] not in {
+            "mounting_hole_pattern",
+            "mounting_hole_edge_offsets",
+            "asymmetric_through_hole",
+        }
     ]
     manifest_path.write_text(
         json.dumps(

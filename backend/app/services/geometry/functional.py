@@ -12,7 +12,8 @@ from app.services.cad.source_metadata import SourceMetadata
 from app.services.geometry.invariants import (
     GeometricFinding,
     GeometricToleranceProfile,
-    _detect_axis_aligned_holes,
+    _detect_axis_aligned_hole_candidates,
+    _hole_candidate_measurements,
 )
 
 
@@ -65,69 +66,43 @@ class MountingHoleVerifier:
             interface_id = str(interface.get("id") or "mounting_interface")
             expected_axis = str(interface.get("hole_axis") or "").lower()
             count = _number(interface.get("fastener_count"))
-            holes = _detect_axis_aligned_holes(
+            candidates = _detect_axis_aligned_hole_candidates(
                 context.output_shape,
                 expected_axis,
                 context.tolerance,
             )
-            confident = [hole for hole in holes if hole.confidence >= context.tolerance.medium_confidence]
-            if not confident:
-                alternate_axes = {
-                    axis: len(
-                        [
-                            hole
-                            for hole in _detect_axis_aligned_holes(
-                                context.output_shape, axis, context.tolerance
-                            )
-                            if hole.confidence >= context.tolerance.medium_confidence
-                        ]
-                    )
-                    for axis in ("x", "y", "z")
-                    if axis != expected_axis
-                }
-                detected_axis = max(alternate_axes, key=alternate_axes.get) if alternate_axes else None
-                findings.append(
-                    _finding(
-                        "functional.mounting_hole_axis",
-                        state="violated" if detected_axis else "unverifiable",
-                        expected=expected_axis or None,
-                        detected=detected_axis,
-                        blocking=True,
-                        title="Mounting-hole direction",
-                        explanation=(
-                            f"Mounting holes were detected along {detected_axis.upper()} instead of the required {expected_axis.upper()} axis."
-                            if detected_axis
-                            else "Volundr could not verify mounting holes along the required mounting-plane normal."
-                        ),
-                        feature_id=interface_id,
-                        metadata={"interface_id": interface_id, "alternate_axes": alternate_axes},
-                    )
-                )
-                continue
+            candidate_metadata = {
+                "interface_id": interface_id,
+                "evidence_authority": "derived_stl_candidate",
+                "candidate_count": len(candidates),
+                "candidate_measurements": _hole_candidate_measurements(candidates),
+                "physical_feature_count": None,
+            }
             findings.append(
                 _finding(
                     "functional.mounting_hole_axis",
-                    state="verified",
+                    state="unverifiable",
                     expected=expected_axis,
-                    detected=expected_axis,
-                    blocking=False,
+                    detected=None,
+                    blocking=True,
                     title="Mounting-hole direction",
-                    explanation="Mounting holes are aligned with the required mounting-plane normal.",
+                    explanation="Derived STL profile candidates cannot establish physical mounting-hole direction without authoritative B-Rep feature evidence.",
                     feature_id=interface_id,
+                    metadata=candidate_metadata,
                 )
             )
             if count is not None:
-                actual_count = len(confident)
                 findings.append(
                     _finding(
                         "functional.mounting_hole_count",
-                        state="verified" if actual_count == count else "violated",
+                        state="unverifiable",
                         expected=count,
-                        detected=actual_count,
-                        blocking=actual_count != count,
+                        detected=None,
+                        blocking=True,
                         title="Mounting-hole count",
-                        explanation=f"Detected {actual_count} mounting holes; expected {count}.",
+                        explanation="Derived STL profile candidates cannot establish physical mounting-hole count.",
                         feature_id=interface_id,
+                        metadata=candidate_metadata,
                     )
                 )
             layout = _layout_for_mounting_interface(context.product_plan, interface)
@@ -136,83 +111,51 @@ class MountingHoleVerifier:
                     position for position in (layout or {}).get("positions", []) or []
                     if isinstance(position, dict)
                 ]
-                matched = _match_fixed_positions(
-                    confident,
-                    expected_positions,
-                    expected_axis,
-                    context.tolerance.hole_spacing_abs_mm,
-                )
                 required_count = int((layout or {}).get("required_count") or count or len(expected_positions))
-                positions_pass = len(expected_positions) == required_count and len(confident) == required_count and matched
                 findings.append(
                     _finding(
                         "functional.mounting_hole_positions",
-                        state="verified" if positions_pass else "violated",
+                        state="unverifiable",
                         expected=required_count,
-                        detected=len(confident),
-                        blocking=not positions_pass,
+                        detected=None,
+                        blocking=True,
                         title="Mounting-hole positions",
-                        explanation=(
-                            "Mounting-hole centers match the approved fixed layout."
-                            if positions_pass
-                            else "Mounting-hole centers do not match every approved position in the fixed layout."
-                        ),
+                        explanation="Derived STL profile candidates cannot establish physical mounting-hole positions.",
                         feature_id=interface_id,
-                        metadata={
-                            "layout_mode": "fixed_positions",
-                            "approved_positions": expected_positions,
-                            "detected_positions": [
-                                [round(float(value), 3) for value in hole.center]
-                                for hole in confident
-                            ],
-                        },
+                        metadata={**candidate_metadata, "layout_mode": "fixed_positions", "approved_positions": expected_positions},
                     )
                 )
             spacing = _number((interface.get("spacing") or {}).get("value"))
-            if spacing is not None and len(confident) == 2:
-                arrangement_axis = str(interface.get("arrangement_axis") or "z").lower()
-                axis_index = {"x": 0, "y": 1, "z": 2}.get(arrangement_axis)
-                detected_spacing = abs(
-                    float(confident[0].center[axis_index]) - float(confident[1].center[axis_index])
-                ) if axis_index is not None else None
-                if detected_spacing is None:
-                    continue
+            if spacing is not None:
                 findings.append(
                     _finding(
                         "functional.mounting_hole_spacing",
-                        state="verified"
-                        if abs(detected_spacing - spacing) <= context.tolerance.hole_spacing_abs_mm
-                        else "violated",
+                        state="unverifiable",
                         expected=spacing,
-                        detected=round(detected_spacing, 3),
-                        blocking=abs(detected_spacing - spacing) > context.tolerance.hole_spacing_abs_mm,
+                        detected=None,
+                        blocking=True,
                         title="Mounting-hole spacing",
-                        explanation="Detected mounting-hole center spacing matches the approved interface."
-                        if abs(detected_spacing - spacing) <= context.tolerance.hole_spacing_abs_mm
-                        else "Detected mounting-hole center spacing differs from the approved interface.",
+                        explanation="Derived STL profile candidates cannot establish physical mounting-hole spacing.",
                         feature_id=interface_id,
+                        metadata=candidate_metadata,
                     )
                 )
 
             diameter = _number(interface.get("hole_diameter"))
             if diameter is None:
                 diameter = _parameter_value(context, interface.get("hole_diameter_parameter_id"))
-            if diameter is not None and confident:
-                detected_diameter = float(np.median([hole.diameter for hole in confident]))
+            if diameter is not None:
                 findings.append(
                     _finding(
                         "functional.mounting_hole_diameter",
-                        state="verified"
-                        if abs(detected_diameter - diameter) <= context.tolerance.hole_diameter_abs_mm
-                        else "violated",
+                        state="unverifiable",
                         expected=diameter,
-                        detected=round(detected_diameter, 3),
-                        blocking=abs(detected_diameter - diameter) > context.tolerance.hole_diameter_abs_mm,
+                        detected=None,
+                        blocking=True,
                         title="Mounting-hole diameter",
-                        explanation="Detected mounting-hole diameter matches the approved interface."
-                        if abs(detected_diameter - diameter) <= context.tolerance.hole_diameter_abs_mm
-                        else "Detected mounting-hole diameter differs from the approved interface.",
+                        explanation="Derived STL profile candidates cannot establish physical mounting-hole diameter.",
                         feature_id=interface_id,
+                        metadata=candidate_metadata,
                     )
                 )
         return findings

@@ -92,7 +92,7 @@ def test_fixed_layout_functional_verification_matches_irregular_positions(monkey
         SimpleNamespace(center=(12.0, 3.0, -8.0), diameter=4.2, confidence=0.95),
         SimpleNamespace(center=(-4.0, 3.0, 31.0), diameter=4.2, confidence=0.95),
     ]
-    monkeypatch.setattr(functional_geometry, "_detect_axis_aligned_holes", lambda *_args: holes)
+    monkeypatch.setattr(functional_geometry, "_detect_axis_aligned_hole_candidates", lambda *_args: holes)
     plan = {
         "feature_layouts": [{
             "feature_id": "holes",
@@ -116,4 +116,5 @@ def test_fixed_layout_functional_verification_matches_irregular_positions(monkey
         functional_geometry.FunctionalGeometryContext(product_plan=plan, output_shape=object())
     )
     position_finding = next(item for item in findings if item.rule_id == "functional.mounting_hole_positions")
-    assert position_finding.verification_state == "verified"
+    assert position_finding.verification_state == "unverifiable"
+    assert position_finding.metadata["evidence_authority"] == "derived_stl_candidate"
