@@ -1,0 +1,330 @@
+{
+  "schema_version": "phase-1b-brep-physical-hole-evidence-contract-reconstruction-v1",
+  "checkpoint": "B-Rep physical-hole evidence contract reconstruction",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "methodology": {
+    "playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
+    "reconstruction_only": true,
+    "production_recognition_implemented": false,
+    "provider_calls": 0,
+    "frozen_worker_executions": 0,
+    "holdouts_inspected": false
+  },
+  "evidence_sources_examined": [
+    "docs/CADQUERY_BACKEND.md",
+    "backend/app/services/cad/topology_evidence.py",
+    "backend/app/services/cad/cadquery_runner.py",
+    "backend/app/services/cad/worker_execution.py",
+    "backend/app/services/cad/jobs.py",
+    "backend/app/services/projects/service.py",
+    "backend/app/models/revision.py",
+    "backend/app/models/revision_output.py",
+    "backend/app/services/executable_cadquery/workflow.py",
+    "backend/app/services/executable_cadquery/recovery_executor.py",
+    "backend/app/services/executable_cadquery/semantic.py",
+    "backend/app/services/geometry/invariants.py",
+    "backend/app/services/geometry/functional.py",
+    "backend/tests/test_topology_evidence.py",
+    "backend/tests/test_cad_worker.py",
+    "backend/tests/test_executable_cadquery_worker_integration.py",
+    "backend/tests/test_hole_detector_characterization.py",
+    "backend/tests/test_brep_physical_hole_characterization.py"
+  ],
+  "pipeline_audit": {
+    "authority_order": ["CadQuery source", "OpenCascade B-Rep", "STEP", "derived STL"],
+    "boundaries": [
+      {
+        "boundary": "CadQuery Shape / OpenCascade result",
+        "available": [
+          "shape validity",
+          "solids, shells, faces, edges, wires",
+          "face geomType",
+          "cylindrical surface adaptor",
+          "cylinder radius",
+          "cylinder axis location and direction",
+          "face bounding box",
+          "face orientation",
+          "face edges and wires",
+          "edge geomType",
+          "circle radius and center",
+          "edge bounding box",
+          "face-to-edge adjacency reconstructed by TopoDS IsSame"
+        ],
+        "discarded_or_not_persisted": [
+          "analytic face and edge records are not emitted by current topology-evidence-v2",
+          "cylinder identity and constituent-face relationships are not emitted",
+          "circular opening identity is not emitted",
+          "through/blind classification is not emitted"
+        ]
+      },
+      {
+        "boundary": "worker topology-evidence-v2",
+        "available": [
+          "schema and policy validity",
+          "solid validity and count",
+          "shell and face counts",
+          "volume",
+          "solid bounding box",
+          "centroid",
+          "solid pair distance/intersection/overlap/touching"
+        ],
+        "not_available": [
+          "cylinder radius or axis",
+          "circular edge records",
+          "face orientation/adjacency graph",
+          "physical-feature groups",
+          "through/blind state"
+        ]
+      },
+      {
+        "boundary": "worker result manifest",
+        "available": [
+          "output_id",
+          "STEP path and hash",
+          "optional BREP path and hash",
+          "STL path and hash",
+          "topology metadata",
+          "mesh metadata",
+          "feature trace",
+          "execution diagnostics"
+        ],
+        "gap": "The manifest identifies authoritative artifacts but contains no neutral analytic B-Rep feature evidence."
+      },
+      {
+        "boundary": "RevisionOutput and output manifest",
+        "available": [
+          "output identity and component identity",
+          "STEP/BREP/STL paths and hashes",
+          "topology_metadata_json",
+          "feature_trace_json",
+          "output-scoped execution and validation state"
+        ],
+        "gap": "Existing persistence can retain artifact references and global topology but has no physical-feature evidence field or evidence schema."
+      },
+      {
+        "boundary": "executable semantic verifier",
+        "available": [
+          "topology_by_output keyed by output_id",
+          "STL paths keyed by output_id",
+          "global topology policy checks",
+          "non-authoritative stl_circular_profile_candidate diagnostics"
+        ],
+        "gap": "Hole-like semantic checks do not receive BREP/STEP analytic evidence; candidate-only hole claims remain fail-closed."
+      }
+    ],
+    "conclusion": "The worker has access to the required analytic facts, but the current neutral evidence and semantic boundaries discard them before verification."
+  },
+  "analytic_brep_api_characterization": {
+    "face": [
+      "Face.geomType() returns CYLINDER for analytic cylindrical surfaces.",
+      "Face._geomAdaptor() returns an OpenCascade cylindrical surface adaptor.",
+      "The adaptor exposes Radius() and Axis() with location and direction.",
+      "Face.BoundingBox(), Face.Edges(), Face.Wires(), Center(), and wrapped.Orientation() are available."
+    ],
+    "edge": [
+      "Edge.geomType() returns CIRCLE for circular boundary edges.",
+      "Edge.radius(), arcCenter(), and BoundingBox() expose analytic circle facts.",
+      "Face-to-edge ownership can be reconstructed by matching TopoDS edges with wrapped.IsSame.",
+      "Edge.Faces() did not provide usable face ownership in this characterization and is not treated as the adjacency contract."
+    ],
+    "important_limitations": [
+      "Face orientation alone does not identify a hole: the filleted-host control contained both forward and reversed exterior cylindrical faces.",
+      "Circular edge count is boundary-loop count, not physical-hole count.",
+      "A cylindrical face is not by itself a hole; bosses, pins, recesses, fillets, counterbores, and transitions also produce cylinders."
+    ]
+  },
+  "synthetic_brep_matrix": {
+    "dimensions_policy": "All shapes were created synthetically with arbitrary dimensions and no development-project identifiers, names, source, or frozen dimensions.",
+    "cases": [
+      {"case": "single_clean_through_hole", "cylindrical_faces": 1, "circular_edges": 2, "axis": "Z", "intended_physical_hole_like_features": 1, "observation": "one analytic cylindrical band with two circular boundaries"},
+      {"case": "two_clean_through_holes", "cylindrical_faces": 2, "circular_edges": 4, "axis": "Z", "intended_physical_hole_like_features": 2, "observation": "two independent analytic cylinders with separate centers"},
+      {"case": "blind_cylindrical_hole", "cylindrical_faces": 1, "circular_edges": 2, "axis": "Z", "intended_physical_hole_like_features": 1, "observation": "one exterior circular boundary and one internal cap boundary in the planar-host control"},
+      {"case": "counterbored_through_hole", "cylindrical_faces": 2, "circular_edges": 4, "axis": "Z", "intended_physical_hole_like_features": 1, "observation": "two radii and a shared annular transition face"},
+      {"case": "countersunk_hole", "cylindrical_faces": 2, "circular_edges": 5, "axis": "Z", "intended_physical_hole_like_features": 1, "observation": "cylindrical bands plus a conical transition; transition-aware grouping is required"},
+      {"case": "stepped_cylindrical_hole", "cylindrical_faces": 2, "circular_edges": 4, "axis": "Z", "intended_physical_hole_like_features": 1, "observation": "same-axis contiguous bands linked through an annular transition"},
+      {"case": "exterior_cylindrical_boss", "cylindrical_faces": 1, "circular_edges": 2, "axis": "Z", "intended_physical_hole_like_features": 0, "observation": "analytic cylinder with exterior solid geometry"},
+      {"case": "solid_cylindrical_pin", "cylindrical_faces": 1, "circular_edges": 2, "axis": "Z", "intended_physical_hole_like_features": 0, "observation": "standalone solid cylinder, not a void"},
+      {"case": "cylindrical_recess", "cylindrical_faces": 1, "circular_edges": 2, "axis": "Z", "intended_physical_hole_like_features": 1, "observation": "hole-like cavity but not equivalent to a through hole"},
+      {"case": "through_hole_adjacent_to_exterior_fillets", "cylindrical_faces": 5, "circular_edges": 10, "axis": "Z", "intended_physical_hole_like_features": 1, "observation": "one hole plus four exterior fillet cylinders; orientation is not a sufficient selector"},
+      {"case": "two_coaxial_physically_separate_cylindrical_features", "cylindrical_faces": 2, "circular_edges": 4, "axis": "Z", "intended_physical_hole_like_features": 2, "observation": "same axis line but disjoint axial intervals and no shared transition topology"},
+      {"case": "one_stepped_hole_with_multiple_cylindrical_bands", "cylindrical_faces": 2, "circular_edges": 4, "axis": "Z", "intended_physical_hole_like_features": 1, "observation": "same-axis contiguous bands connected through one transition face"},
+      {"case": "multiple_holes_with_different_diameters", "cylindrical_faces": 3, "circular_edges": 6, "axis": "Z", "intended_physical_hole_like_features": 3, "observation": "three independently measurable radii; identity must precede expected-diameter matching"},
+      {"case": "through_hole_along_X", "cylindrical_faces": 1, "circular_edges": 2, "axis": "X", "intended_physical_hole_like_features": 1, "observation": "analytic axis direction is preserved, with sign normalized only for axis-line comparison"},
+      {"case": "through_hole_along_Y", "cylindrical_faces": 1, "circular_edges": 2, "axis": "Y", "intended_physical_hole_like_features": 1, "observation": "analytic axis direction is preserved, with sign normalized only for axis-line comparison"},
+      {"case": "through_hole_along_Z", "cylindrical_faces": 1, "circular_edges": 2, "axis": "Z", "intended_physical_hole_like_features": 1, "observation": "analytic axis direction is preserved"}
+    ],
+    "synthetic_execution_count": 16,
+    "test_execution_count": 16,
+    "focused_test_result": "23 passed"
+  },
+  "physical_hole_identity_analysis": {
+    "supported_subset_candidate": "analytic_cylindrical_opening",
+    "minimum_facts": [
+      "analytic cylindrical surface and radius",
+      "axis line and axial interval",
+      "circular boundary edges",
+      "face-to-edge/topology adjacency",
+      "conservative cavity/opening relationship to the containing solid",
+      "output_id"
+    ],
+    "not_sufficient_alone": [
+      "cylindrical face",
+      "circular edge",
+      "face orientation",
+      "axis coincidence",
+      "expected diameter matching"
+    ],
+    "identity_before_measurement": "Feature extraction must identify all supported physical candidates from B-Rep facts before any requirement diameter, count, or spacing is used for comparison.",
+    "negative_controls": [
+      "boss and pin demonstrate solid cylindrical geometry without a hole",
+      "filleted host demonstrates exterior cylindrical surfaces and orientation ambiguity",
+      "recess demonstrates that a cylindrical cavity is not automatically a through hole"
+    ]
+  },
+  "stepped_and_coaxial_grouping": {
+    "stepped_or_counterbored": {
+      "observed": "two cylindrical faces share a common axis line, have contiguous axial intervals, and meet a transition planar face whose boundary edges belong to both bands",
+      "safe_grouping_basis_candidate": ["same canonical axis line", "contiguous or connected axial extent", "shared transition topology", "connected constituent face graph"],
+      "status": "supported as a future explicit stepped/counterbored subset, not implemented"
+    },
+    "coaxial_separate": {
+      "observed": "two cylindrical faces share an axis line but have disjoint axial intervals and no shared transition topology",
+      "conclusion": "axis coincidence alone cannot group physical features"
+    },
+    "countersink": {
+      "observed": "a conical transition participates in one opening while cylindrical bands alone do not capture the complete feature",
+      "conclusion": "requires a separate transition-aware feature type or remains unverifiable"
+    }
+  },
+  "through_blind_analysis": {
+    "planar_host_control": {
+      "through": "each circular boundary was adjacent, through a reconstructed face-edge graph, to an exterior planar face with two wires",
+      "blind": "one boundary was adjacent to an exterior planar face with two wires and the other to a one-wire internal planar cap",
+      "result": "the relationship distinguishes the simple synthetic through/blind controls"
+    },
+    "limitations": [
+      "Edge.Faces() is not a reliable exposed ownership API in the tested CadQuery wrapper; adjacency must be reconstructed from face edges or lower-level OCC topology",
+      "wire-count and planar-face rules do not generalize automatically to curved or non-planar host surfaces",
+      "through_state must therefore support unresolved and should be a separate capability gate from clean cylindrical identity"
+    ],
+    "decision": "Do not make universal through/blind claims in the first neutral contract without a broader topology characterization."
+  },
+  "proposed_neutral_evidence_contract": {
+    "status": "proposal_only",
+    "schema_name": "brep-physical-feature-evidence-v1",
+    "scope": "one executed revision and one canonical output_id",
+    "fields": {
+      "schema_version": "evidence schema identifier",
+      "output_id": "canonical output scope; required",
+      "authority": "authoritative_brep",
+      "evidence_scope": "revision_local",
+      "physical_feature_id": "deterministic identifier only within this revision/output evidence package",
+      "feature_type": "analytic_cylindrical_opening initially; stepped/counterbored and transition types explicit when supported",
+      "axis": "canonical axis line with direction normalization rules",
+      "reference_point": "analytic center/reference point for the feature",
+      "radius_mm": "analytic cylinder radius",
+      "diameter_mm": "derived from analytic radius, not an independently selected target",
+      "axial_interval_mm": "analytic extent for each constituent surface and/or grouped feature",
+      "circular_opening_refs": "revision-local circular-edge references, centers, and radii",
+      "constituent_surface_refs": "revision-local face references, surface types, and topology relationships",
+      "opening_count": "number of independently evidenced exterior openings when determinable",
+      "through_state": "through, blind, or unresolved",
+      "grouping_basis": "deterministic topology/axis/interval facts used for a supported group",
+      "classification_status": "supported, unsupported, or ambiguous; no requirement-targeted confidence score"
+    },
+    "explicit_exclusions": [
+      "expected requirement diameter, count, or spacing must not be extractor inputs",
+      "persistent face IDs across arbitrary revisions are not promised",
+      "STL candidate counts are not physical_feature_id values",
+      "unresolved ambiguity must not become PASS"
+    ]
+  },
+  "identity_and_scope": {
+    "revision_local_identity": "A physical_feature_id may be a deterministic signature/ordinal over canonicalized B-Rep facts within one executed revision and output evidence package.",
+    "user_identity": "The requirement ledger requirement_id remains stable across revisions and is separate from physical_feature_id.",
+    "output_identity": "Every feature record is attached to exactly one canonical output_id; no cross-output feature matching is legal.",
+    "revision_change": "A regenerated model may receive a different revision-local physical_feature_id while satisfying the same persistent requirement.",
+    "current_integration": "The existing workflow already keys topology and STL paths by output_id; proposed B-Rep evidence should use the same centralized output-scope resolver."
+  },
+  "stl_candidate_role": {
+    "current_type": "stl_circular_profile_candidate",
+    "authoritative_for_physical_hole_verification": false,
+    "permitted_future_roles": [
+      "preview/debug diagnostics",
+      "secondary cross-check evidence",
+      "coarse candidate discovery when B-Rep evidence is unavailable"
+    ],
+    "prohibited_role": "STL raw or matching candidate count must not establish physical-hole identity, count, authoritative diameter, centers, patterns, or through/blind state."
+  },
+  "decision": {
+    "overall": "SPLIT",
+    "clean_analytic_cylindrical_opening": {
+      "decision": "GO_RECOMMENDATION",
+      "basis": "Synthetic controls show a reusable, requirement-independent analytic fact set for clean cylindrical openings, and the worker already has access to those facts.",
+      "implementation_this_checkpoint": false
+    },
+    "stepped_counterbored": {
+      "decision": "SEPARATE_FUTURE_SUBSET",
+      "basis": "Connected transition topology plus contiguous same-axis bands is promising, but it needs an explicit grouping extractor and independent tests.",
+      "implementation_this_checkpoint": false
+    },
+    "countersunk_and_general_transitions": {
+      "decision": "NO_GO_FOR_CURRENT_IMPLEMENTATION",
+      "basis": "The feature includes non-cylindrical transition surfaces not represented by a cylinder-only identity rule.",
+      "implementation_this_checkpoint": false
+    },
+    "universal_through_blind": {
+      "decision": "NO_GO_FOR_CURRENT_IMPLEMENTATION",
+      "basis": "The simple planar control is distinguishable, but the current evidence does not establish a general rule for arbitrary host topology.",
+      "implementation_this_checkpoint": false
+    },
+    "broad_physical_hole_ontology": {
+      "decision": "NO_GO",
+      "basis": "Bosses, pins, fillets, recesses, transitions, and stepped features prevent a single cylinder-face heuristic from being authoritative."
+    }
+  },
+  "implementation": {
+    "production_files_changed": [],
+    "production_schema_changed": false,
+    "production_verifier_changed": false,
+    "production_extractor_added": false,
+    "characterization_test_added": "backend/tests/test_brep_physical_hole_characterization.py",
+    "reason_deferred": "The proposed neutral record requires worker emission and durable output-evidence persistence; reconstruction established the supported split but did not yet validate a complete production persistence contract."
+  },
+  "product_path_assessment": {
+    "result": "The proposed evidence belongs to the core CAD contract and can support user-facing requirement, measured result, scope, and diagnostic messages without exposing OpenCascade internals.",
+    "future_messages": {
+      "pass": "Two circular holes verified at the requested diameter.",
+      "fail": "Expected two circular holes at the requested diameter; measured analytic feature evidence differs.",
+      "unverifiable": "The hole geometry is too complex for deterministic verification in the supported feature subset."
+    },
+    "revision_support": "Requirement identity remains ledger-stable while revision-local B-Rep feature identities are regenerated and compared within each evidence package.",
+    "manufacturing_boundary": "No printer, build-volume, orientation, splitting, support, plate, or connector semantics were introduced."
+  },
+  "anti_overfitting_audit": {
+    "passed": true,
+    "project_ids_in_code": false,
+    "frozen_dimensions_in_code": false,
+    "source_name_matching": false,
+    "expected_requirement_values_used_for_extraction": false,
+    "holdout_access": false,
+    "provider_or_model_changes": false,
+    "repair_or_prompt_changes": false,
+    "cad_strategy_changes": false,
+    "note": "The synthetic matrix uses arbitrary shapes and dimensions and tests analytic relationships rather than any development project."
+  },
+  "execution_and_verification": {
+    "provider_calls": 0,
+    "frozen_worker_executions": 0,
+    "synthetic_cadquery_executions": 16,
+    "focused_tests": "23 passed",
+    "next_required_verification": "Run the applicable full backend suite after evidence/tracker persistence; no semantic behavior should change."
+  },
+  "tracker_reconciliation": {
+    "stale_statement": "generic detector false-positive is proven synthetically but not yet recovered",
+    "corrected_statement": "generic STL detector false-positive recovery is complete as non-authoritative candidate evidence; B-Rep physical-hole identity/grouping remains a separate reconstruction split with no production extractor yet",
+    "historical_evidence_preserved": true
+  },
+  "recommended_next_action": "After this reconstruction checkpoint, implement only the narrow analytic_cylindrical_opening neutral evidence subset if a worker-to-persistence design is approved, with output-scoped synthetic tests and fail-closed unsupported transitions. Keep stepped/counterbored grouping, countersinks, and universal through/blind classification as separate subclusters; do not group STL candidates or call Gemini."
+}

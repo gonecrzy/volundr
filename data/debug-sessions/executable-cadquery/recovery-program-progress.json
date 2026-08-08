@@ -210,8 +210,8 @@
     "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
     "remaining_subclusters": ["feature_profile_capability_gap","hole_candidate_physical_identity_aggregation_gap","raw_hole_candidate_count_vs_matching_count_ambiguity","requirement_representation_insufficient","reference_geometry_clearance_undefined","reference_geometry_interface_undefined"],
     "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","slot_sample_dimension_aggregation_false_positive","topology_required_output_policy_routing","hole_detector_non_circular_profile_false_positive"],
-    "completed_reconstructions": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
-    "current_subcluster_status": "development-05 source/artifact forensics completed with no authoritative artifacts recovered; historical owner remains unresolved and parked, generic detector false-positive is proven synthetically but not yet recovered; feature-profile and reference-geometry production work remain parked",
+    "completed_reconstructions": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy","brep_physical_hole_evidence_contract"],
+    "current_subcluster_status": "development-05 source/artifact forensics completed with no authoritative artifacts recovered; historical owner remains unresolved and parked; generic STL detector false-positive recovery is complete as non-authoritative candidate evidence; B-Rep physical-hole identity/grouping reconstruction produced a split decision with no production extractor yet; feature-profile and reference-geometry production work remain parked",
     "feature_profile_capability_gap": {
       "affected_findings": 1,
       "projects": ["development-03"],
@@ -347,6 +347,28 @@
       "tests": "backend/tests/test_hole_detector_characterization.py",
       "next_action": "separate hole_candidate_physical_identity_aggregation_gap; do not infer physical count from raw or matching candidates"
     },
+    "brep_physical_hole_evidence_contract": {
+      "status": "reconstructed_split_no_production_implementation",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "missing_authoritative_brep_feature_evidence",
+      "first_incorrect_owner": "application CAD evidence boundary",
+      "direction": "SPLIT",
+      "root_cause": "OpenCascade exposes analytic cylinder, circle, axis, interval, and topology-adjacency facts in the worker, but topology-evidence-v2 and semantic verification persist/consume only global topology and derived STL candidate evidence.",
+      "clean_cylindrical_opening": "future narrow GO recommendation; identity must be extracted from B-Rep facts before expected requirement matching",
+      "stepped_counterbored": "separate future subset requiring connected transition topology and contiguous same-axis bands",
+      "countersunk_and_general_transitions": "separate unsupported transition subcluster",
+      "through_blind": "simple planar controls distinguishable; universal classification remains a separate unresolved capability",
+      "neutral_contract": "proposed brep-physical-feature-evidence-v1, revision-local and output-scoped",
+      "production_extractor_implemented": false,
+      "provider_calls": 0,
+      "frozen_worker_executions": 0,
+      "synthetic_executions": 16,
+      "focused_tests": "23 passed",
+      "anti_overfitting": "passed",
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-brep-physical-hole-evidence-contract-reconstruction.json",
+      "tests": "backend/tests/test_brep_physical_hole_characterization.py",
+      "next_action": "Keep STL grouping non-authoritative; separately design and test the narrow B-Rep analytic_cylindrical_opening evidence emission/persistence path before production integration."
+    },
     "verifier_field_mismatch": {
       "affected_findings": 4,
       "projects": ["development-03", "development-05", "development-07"],
@@ -429,6 +451,7 @@
     ,"phase_1b_requirement_no_machine_measurement_definition_provider_calls": 0
     ,"phase_1b_geometry_owned_measured_discrepancy_provider_calls": 0
     ,"phase_1b_hole_detector_non_circular_profile_false_positive_provider_calls": 0
+    ,"phase_1b_brep_physical_hole_evidence_contract_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -516,6 +539,7 @@
     "phase_1b_hole_detector_non_circular_profile_false_positive_recovery": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-hole-detector-non-circular-profile-false-positive-recovery.json",
     "phase_1b_hole_detector_characterization_tests": "backend/tests/test_hole_detector_characterization.py; 22 passed including RED reproduction gates after recovery; focused geometry/semantic suite 72 passed",
     "phase_1b_geometry_measurement_characterization": "28 synthetic CadQuery/STL executions; 61 focused existing geometry/semantic tests passed; no production files changed",
-    "verification_current_checkpoint": "backend 1513 passed, 1 skipped, 1 warning; focused geometry/semantic suite 72 passed; provider_calls=0; frozen_worker_executions=0; production changes are limited to generic STL candidate authority/diagnostics"
+    "phase_1b_brep_physical_hole_evidence_contract_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-brep-physical-hole-evidence-contract-reconstruction.json; 16 synthetic B-Rep cases; 23 characterization tests passed; split decision; no production extractor; provider_calls=0; frozen_worker_executions=0",
+    "verification_current_checkpoint": "backend 1536 passed, 1 skipped, 1 warning; B-Rep characterization 23 passed; adjacent topology/worker/semantic/geometry suites 112 passed; provider_calls=0; frozen_worker_executions=0; no production recognition changes"
   }
 }
