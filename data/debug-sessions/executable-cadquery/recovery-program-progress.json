@@ -5,8 +5,8 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "84d0fd0 Recover canonical envelope requirements",
-  "origin_experimental_head": "84d0fd0 Recover canonical envelope requirements",
+  "experimental_head": "35da0e0 Confirm envelope source identity live",
+  "origin_experimental_head": "35da0e0 Confirm envelope source identity live",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete; the 30-project development first-pass survey is complete on frozen code checkpoint 8dd0d8d with 60 preserved cells, 54 live workflows, and 6 replacement exclusions; no validation or holdout work has started",
@@ -392,7 +392,7 @@
     "next_action": "Stop for review; do not implement fixes or begin validation/holdout work."
   },
   "external_cad_envelope_canonicalization_recovery_status": {
-    "status": "live_confirmation_pipeline_defect",
+    "status": "live_confirmed",
     "recovery_category": "A_canonicalization_failure_only",
     "implementation": "shared envelope tuple canonicalization before ledger/contract materialization",
     "a_requirements_recovered_offline": 9,
@@ -401,13 +401,13 @@
     "remaining_b_after": 41,
     "remaining_c_after": 43,
     "remaining_e_after": 11,
-    "provider_calls": 3,
+    "provider_calls": 4,
     "worker_executions": 1,
     "production_behavior_scope": "no clarification, concept eligibility, candidate policy, B, C, D, E, F, or G changes",
     "concept_vs_final_guardrail": "verified; flexible envelopes remain unprotected and final verification remains fail-closed",
     "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-envelope-canonicalization-recovery.json",
     "replay": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-envelope-canonicalization-replay.json",
-    "tests": "backend/tests/test_requirement_envelope_canonicalization.py; focused 71 passed; full backend 1600 tests completed",
+    "tests": "backend/tests/test_requirement_envelope_canonicalization.py and ledger persistence; focused 45 passed; full backend 1608 passed, 1 skipped",
     "production_files": [
       "backend/app/schemas/project.py",
       "backend/app/services/requirements/trace.py",
@@ -418,21 +418,21 @@
     "validation_access": false,
     "holdout_access": false,
     "live_confirmation": {
-      "decision": "RECOVERY_A_PIPELINE_DEFECT",
-      "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-a-live-synthetic-confirmation/live-confirmation-assessment.json",
-      "requirement_extraction_calls": 1,
-      "requirement_schema_retries": 0,
-      "cad_generation_calls": 1,
+      "decision": "RECOVERY_A_LIVE_CONFIRMED",
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-a-live-synthetic-confirmation-source-identity/live-confirmation-assessment.json",
+      "requirement_extraction_calls": 2,
+      "requirement_schema_retries": 1,
+      "cad_generation_calls": 2,
       "cad_repair_calls": 1,
       "fallback_calls": 0,
       "worker_executions": 1,
       "corpus_manifest": "unset",
-      "canonical_envelope_preserved": false,
+      "canonical_envelope_preserved": true,
       "generated_bounds_mm": {"width": 80, "depth": 60, "height": 25},
-      "semantic_envelope_result": "unsupported_verifier; no PASS claimed",
+      "semantic_envelope_result": "verified by final_mesh_bounds",
       "separate_policy_observation": "qualitative/feature obligations remained machine_required and unsupported; no Recovery B change"
     },
-    "next_action": "reconstruct and fix the generic live envelope source-identity/normalization gap before any further confirmation; do not begin Recovery B or C"
+    "next_action": "Stop for review after Recovery A confirmation; do not begin Recovery B or C"
   },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
@@ -772,7 +772,7 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "84d0fd0 Recover canonical envelope requirements",
+  "latest_substantive_commit": "cba1c0f Recover envelope source fact identity",
   "evidence": {
     "methodology_playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
     "methodology_update": "seed stabilization → frozen diverse development corpus → first-blocker survey → generic clustering → breadth-first recovery → policy freeze → unseen holdout",
