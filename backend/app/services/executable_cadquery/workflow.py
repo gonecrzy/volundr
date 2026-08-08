@@ -1096,6 +1096,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                     semantic_result = evaluate_executable_cadquery_semantics_for_outputs(
                         stl_paths=stl_paths,
                         design_contract=contract,
+                        topology_by_output=topology_by_output,
                     )
                     semantic_result = complete_executable_semantic_coverage(
                         semantic_result,
@@ -1848,6 +1849,7 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
                 evaluate_executable_cadquery_semantics_for_outputs(
                     stl_paths=stl_paths,
                     design_contract=contract,
+                    topology_by_output=topology_by_output,
                 ),
                 contract,
             )

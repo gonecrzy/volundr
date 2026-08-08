@@ -1,0 +1,412 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-no-machine-measurement-definition-reconstruction-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "checkpoint": "requirement_has_no_machine_measurement_definition",
+  "recorded_at": "2026-08-08T00:23:22Z",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "base_commit": "3feb68ec6dc152ed0d28e5d855d1f84392131094",
+  "holdout_boundary": {
+    "phase_2_inspected": false,
+    "phase_2_accessed": false,
+    "notes": "Only the frozen development corpus, permanent seed/debug evidence, production implementations, and synthetic tests were examined."
+  },
+  "evidence_sources_examined": [
+    "data/debug-sessions/executable-cadquery/recovery-development-16/corpus-manifest.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/project-06-reconciled-first-pass.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/project-07-reconciled-first-pass.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/project-08-reconciled-first-pass.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-subclusters.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-scope-reconstruction.json",
+    "backend/app/services/executable_cadquery/semantic.py",
+    "backend/app/services/executable_cadquery/semantic_policy.py",
+    "backend/app/services/executable_cadquery/semantic_contract.py",
+    "backend/app/services/requirements/trace.py",
+    "backend/app/services/executable_cadquery/workflow.py",
+    "backend/app/services/executable_cadquery/recovery_executor.py",
+    "backend/app/services/cad/topology_evidence.py",
+    "backend/app/services/executable_cadquery/package_review.py",
+    "backend/app/services/executable_cadquery/review.py",
+    "backend/app/services/geometry/feature_measurements.py",
+    "backend/app/services/geometry/feature_evidence.py",
+    "backend/tests/test_executable_cadquery_topology_policy.py"
+  ],
+  "historical_preservation": {
+    "phase_1a_matrix_rewritten": false,
+    "phase_1b_semantic_subclusters_rewritten": false,
+    "prior_unsupported_findings_rewritten": false,
+    "historical_records_are_classification_evidence_only": true,
+    "frozen_worker_replay_performed": false
+  },
+  "affected_requirements": [
+    {
+      "project": "development-06",
+      "requirement_id": "battery_holder_output",
+      "user_intent": "A holder for four 18650 cells keeps the cells separated, allows top removal, and is attachable to a flat workshop surface; the required output is battery_holder and retaining_lid is optional.",
+      "origin": "user_explicit",
+      "authority": "protected",
+      "classification": "machine_required",
+      "kind": "mixed identity, capacity, and functional-access claim",
+      "operator": null,
+      "expected": {
+        "cell_count": 4,
+        "cell_format": "18650",
+        "top_removal": true
+      },
+      "tolerance": 0.0,
+      "verification_policy": "blind_review",
+      "output_scope": "battery_holder",
+      "plan_or_feature_trace": "No authoritative cavity feature, cell reference geometry, cavity diameter/spacing/depth, or top-access test is present in the frozen contract.",
+      "generated_output_evidence": {
+        "output_ids": ["battery_holder", "retaining_lid"],
+        "topology": "both persisted outputs valid with one solid each",
+        "neutral_evidence": "persisted output/topology evidence exists; it does not identify four cell cavities or prove an access operation"
+      },
+      "current_dispatch": "blind_review is not a deterministic machine verifier for this machine_required claim; no generic verifier is registered for the requirement.",
+      "current_result": "unverifiable / unsupported_verifier",
+      "what_must_be_proven": [
+        "the required output identity exists",
+        "four separated, compatible cell locations are represented",
+        "the cell format has a machine geometry definition rather than only a product label",
+        "top removal is defined by an explicit access or clearance relation"
+      ],
+      "missing_evidence": [
+        "reference geometry or standardized cell dimensions in the contract",
+        "cavity/profile identity and count",
+        "separation criterion",
+        "top-removal/access measurement semantics"
+      ],
+      "machine_verifiable_in_principle": "partially; output identity/topology is machine-verifiable, but the remaining protected claim is not sufficiently represented for deterministic geometry verification",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable / unsupported_verifier",
+      "current_first_incorrect_owner": "application requirement/verifier coverage",
+      "reconstruction_owner": "contract_representation_insufficient for the capacity/access portion; existing output/topology capability is sufficient only for a decomposed identity/topology obligation",
+      "subcluster": "requirement_representation_insufficient"
+    },
+    {
+      "project": "development-07",
+      "requirement_id": "guide_output",
+      "user_intent": "Produce one connected printable curved_cable_guide output for a cable guide.",
+      "origin": "user_explicit",
+      "authority": "protected",
+      "classification": "machine_required",
+      "kind": "identity and topology claim",
+      "operator": null,
+      "expected": {
+        "count": 1,
+        "connected": true
+      },
+      "tolerance": 0.0,
+      "verification_policy": "topology_and_required_output",
+      "output_scope": "curved_cable_guide",
+      "plan_or_feature_trace": "The output is explicitly declared in the contract and the required output identity is resolvable through the centralized output-scope resolver.",
+      "generated_output_evidence": {
+        "output_ids": ["curved_cable_guide"],
+        "topology": {
+          "schema": "topology-evidence-v2",
+          "valid": true,
+          "overall_shape_valid": true,
+          "detected_solid_count": 1
+        },
+        "neutral_evidence": "persisted topology evidence is sufficient for the stated one-connected-solid claim"
+      },
+      "current_dispatch": "the policy string resolves to no registered generic verifier in the previous path, even though output identity and topology evidence are already available",
+      "current_result": "unverifiable / unsupported_verifier",
+      "what_must_be_proven": [
+        "the required output identity resolves uniquely",
+        "the output has the required connected one-solid topology"
+      ],
+      "missing_evidence": "none for the stated contract claim; the missing item was the application route from policy to persisted topology evidence",
+      "machine_verifiable_in_principle": true,
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable / unsupported_verifier",
+      "current_first_incorrect_owner": "application policy dispatch/integration",
+      "reconstruction_owner": "application policy routing gap; no geometry contradiction established",
+      "subcluster": "verification_policy_routing_gap",
+      "recovery_decision": "GO for a narrow generic route: use the centralized output resolver, required-output identity check, and authoritative topology-evidence-v2 per-output records; fail closed when topology evidence or connected semantics are absent."
+    },
+    {
+      "project": "development-07",
+      "requirement_id": "guide_clearance",
+      "user_intent": "Guide a bundle up to 20 mm diameter through a smooth turn, prevent escape during ordinary use, and preserve generous cable clearance and a practical insertion opening.",
+      "origin": "user_explicit",
+      "authority": "protected",
+      "classification": "machine_required",
+      "kind": "dimensional and qualitative clearance/function claim",
+      "operator": null,
+      "expected": {
+        "maximum_bundle_diameter": 20.0,
+        "clearance": "must_not_pin_bundle"
+      },
+      "tolerance": 0.5,
+      "verification_policy": "neutral_measurement_plus_review",
+      "output_scope": "curved_cable_guide",
+      "plan_or_feature_trace": "No cable/reference object, centerline, direction, minimum gap, exact/maximum operator, insertion path, or escape criterion is represented in the contract.",
+      "generated_output_evidence": {
+        "output_ids": ["curved_cable_guide"],
+        "topology": "one valid solid",
+        "neutral_evidence": "generic package/topology evidence does not establish cable clearance or non-pinning along a curved path"
+      },
+      "current_dispatch": "neutral_measurement_plus_review has no registered deterministic verifier; blind review cannot upgrade a machine_required unsupported finding",
+      "current_result": "unverifiable / unsupported_verifier",
+      "what_must_be_proven": [
+        "which geometry represents the cable or reference envelope",
+        "where along the curved path clearance is measured",
+        "the minimum/exact/maximum relationship and tolerance",
+        "what constitutes insertion and non-pinning"
+      ],
+      "missing_evidence": [
+        "entity A and entity B/reference geometry",
+        "measurement direction/path",
+        "numeric clearance criterion or explicitly defined envelope test",
+        "escape and insertion semantics"
+      ],
+      "machine_verifiable_in_principle": "yes only after the contract explicitly represents a reference geometry/envelope and measurement rule; not from the current claim alone",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable / unsupported_verifier",
+      "current_first_incorrect_owner": "application requirement/verifier coverage",
+      "reconstruction_owner": "contract/reference-geometry representation is insufficient; a new general clearance abstraction would be required",
+      "subcluster": "reference_geometry_clearance_undefined",
+      "recovery_decision": "NO-GO for production recovery in this cycle; do not use nearest-surface heuristics or infer semantics from the word clearance."
+    },
+    {
+      "project": "development-08",
+      "requirement_id": "clamp_tube_interface",
+      "user_intent": "Two named clamp outputs meet around a round tube with nominal 25 mm outside diameter, avoid sharp interference, hold securely during handling, and remain easy to assemble.",
+      "origin": "user_explicit",
+      "authority": "protected",
+      "classification": "machine_required",
+      "kind": "multi-output interface/fit and qualitative handling claim",
+      "operator": null,
+      "expected": {
+        "tube_outside_diameter": 25.0,
+        "round_interface": true,
+        "secure_during_handling": true
+      },
+      "tolerance": 0.5,
+      "verification_policy": "neutral_measurement_plus_review",
+      "output_scope": "tube_clamp_upper/tube_clamp_lower",
+      "plan_or_feature_trace": "The pair and relationship are named, but no external tube reference object, shared axis/center, radial or diametral clearance, contact/wrap criterion, assembly state, or secure-handling metric is represented.",
+      "generated_output_evidence": {
+        "output_ids": ["tube_clamp_upper", "tube_clamp_lower"],
+        "topology": "both persisted outputs valid with one solid each",
+        "neutral_evidence": "output identity/topology exists; pair topology and bounding boxes cannot prove fit around an absent external tube or secure handling"
+      },
+      "current_dispatch": "neutral_measurement_plus_review has no registered deterministic interface verifier; output scope is resolvable but the relationship is not measurable from current contract/evidence",
+      "current_result": "unverifiable / unsupported_verifier",
+      "what_must_be_proven": [
+        "the explicit external reference geometry and its axis",
+        "the intended radial/diametral fit rule and tolerance",
+        "the pair's noninterference/mating relationship",
+        "a deterministic meaning for secure handling, or a separate review obligation"
+      ],
+      "missing_evidence": [
+        "reference geometry/interface target",
+        "axis and assembly pose",
+        "fit and clearance operator",
+        "contact or retention criterion"
+      ],
+      "machine_verifiable_in_principle": "partially; explicit reference geometry could support a general fit verifier, while secure handling remains a likely separate review or explicitly modeled retention obligation",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable / unsupported_verifier",
+      "current_first_incorrect_owner": "application requirement/verifier coverage",
+      "reconstruction_owner": "contract/reference-geometry representation is insufficient; no geometry contradiction established",
+      "subcluster": "reference_geometry_interface_undefined",
+      "recovery_decision": "NO-GO for production recovery in this cycle; do not infer a tube-specific verifier from the project name or nominal diameter."
+    }
+  ],
+  "semantic_classification_matrix": [
+    {
+      "requirement": "battery_holder_output",
+      "category": "mixed identity/capacity/access",
+      "machine_obligation_available_now": "required output/artifact identity only after decomposition",
+      "review_or_contract_obligation": "cell capacity and top removal need explicit geometry/access semantics"
+    },
+    {
+      "requirement": "guide_output",
+      "category": "identity/topology",
+      "machine_obligation_available_now": "yes, using output identity plus topology-evidence-v2",
+      "review_or_contract_obligation": "none for the stated count/connected claim"
+    },
+    {
+      "requirement": "guide_clearance",
+      "category": "clearance/function relationship",
+      "machine_obligation_available_now": "no; reference geometry and measurement operator absent",
+      "review_or_contract_obligation": "the qualitative non-pinning/escape claim cannot be silently downgraded while classification remains machine_required"
+    },
+    {
+      "requirement": "clamp_tube_interface",
+      "category": "multi-output interface/fit relationship",
+      "machine_obligation_available_now": "no; external target and fit semantics absent",
+      "review_or_contract_obligation": "secure handling is not a scalar geometric claim as currently represented"
+    }
+  ],
+  "verification_policy_audit": [
+    {
+      "policy": "topology_and_required_output",
+      "requirements": ["guide_output"],
+      "finding": "semantically appropriate for the explicit claim but previously unregistered in semantic dispatch",
+      "action": "route to existing output identity and authoritative topology evidence"
+    },
+    {
+      "policy": "blind_review",
+      "requirements": ["battery_holder_output"],
+      "finding": "blind review is an independent audit and cannot satisfy a machine_required claim; current contract also mixes machine and qualitative semantics",
+      "action": "no production verifier; future contract decomposition required"
+    },
+    {
+      "policy": "neutral_measurement_plus_review",
+      "requirements": ["guide_clearance", "clamp_tube_interface"],
+      "finding": "no registered deterministic measurement exists and review cannot override unsupported machine evidence",
+      "action": "no production verifier until explicit reference/relationship semantics are added through a general contract decision"
+    }
+  ],
+  "existing_capability_audit": [
+    {
+      "capability": "centralized executable output-scope resolver",
+      "can_prove": "explicit output IDs, declared aliases/components, slash-delimited multi-output scopes, and explicit global/assembly scope",
+      "cannot_prove": "geometric fit, clearance, cavity capacity, or access",
+      "reusable_for": ["guide_output", "future interface scope"]
+    },
+    {
+      "capability": "required output identity verifier",
+      "can_prove": "expected count, identity, and independent output IDs",
+      "cannot_prove": "connected B-Rep topology",
+      "reusable_for": ["guide_output", "battery_holder output identity", "clamp output identity"]
+    },
+    {
+      "capability": "topology-evidence-v2",
+      "can_prove": "valid shape, one-solid connectivity proxy, solid count, B-Rep bounds/volume and pair topology where applicable",
+      "cannot_prove": "external-object fit, cable non-pinning, cell access, or secure handling",
+      "reusable_for": ["guide_output"]
+    },
+    {
+      "capability": "neutral package measurements and existing feature measurements",
+      "can_prove": "mesh/package facts, holes, planar/opening evidence, selected feature measurements",
+      "cannot_prove": "the absent reference geometry and relationship semantics in guide_clearance or clamp_tube_interface",
+      "reusable_for": ["future explicitly defined requirements; no current production integration justified"]
+    },
+    {
+      "capability": "cross-output clearance verifier",
+      "can_prove": "its existing rectangular two-mesh pocket contract only",
+      "cannot_prove": "a single-output cable envelope or a clamp around an external tube; reusing it would be semantically incorrect",
+      "reusable_for": []
+    },
+    {
+      "capability": "blind review policy",
+      "can_prove": "independent human/AI audit evidence",
+      "cannot_prove": "a machine_required deterministic obligation or upgrade an unsupported finding to PASS",
+      "reusable_for": ["qualitative obligations when contract classification is review_required"]
+    }
+  ],
+  "root_cause_subclusters": [
+    {
+      "id": "verification_policy_routing_gap",
+      "affected": ["development-07/guide_output"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable / unsupported_verifier",
+      "first_incorrect_owner": "application policy dispatch/integration",
+      "evidence_supported": true,
+      "implementation_decision": "GO: narrow generic topology-backed route implemented"
+    },
+    {
+      "id": "requirement_representation_insufficient",
+      "affected": ["development-06/battery_holder_output"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable / unsupported_verifier",
+      "first_incorrect_owner": "contract representation for the capacity/access portion",
+      "evidence_supported": true,
+      "implementation_decision": "NO-GO: do not invent battery dimensions, cavities, or access tests"
+    },
+    {
+      "id": "reference_geometry_clearance_undefined",
+      "affected": ["development-07/guide_clearance"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable / unsupported_verifier",
+      "first_incorrect_owner": "contract/reference-geometry representation",
+      "evidence_supported": true,
+      "implementation_decision": "NO-GO: no nearest-surface or project-specific clearance inference"
+    },
+    {
+      "id": "reference_geometry_interface_undefined",
+      "affected": ["development-08/clamp_tube_interface"],
+      "observed_stage": "semantic_measurement",
+      "failure_class": "semantic_requirement_unverifiable / unsupported_verifier",
+      "first_incorrect_owner": "contract/reference-geometry representation",
+      "evidence_supported": true,
+      "implementation_decision": "NO-GO: no tube-specific fit schema or geometry heuristic"
+    }
+  ],
+  "synthetic_test_plan": {
+    "guide_output": [
+      "one explicitly scoped output with one valid solid passes",
+      "missing required output fails or remains unverifiable according to identity evidence",
+      "count mismatch fails",
+      "disconnected or invalid authoritative topology fails",
+      "missing topology evidence remains unverifiable",
+      "ambiguous output scope remains unverifiable"
+    ],
+    "battery_holder_output": [
+      "decomposed output identity/topology obligation",
+      "explicit repeated cavity/reference geometry contract with count",
+      "missing cell geometry semantics remains unverifiable",
+      "top-removal access relation remains unverifiable unless explicitly modeled"
+    ],
+    "guide_clearance": [
+      "explicit two-entity reference/envelope clearance pass",
+      "minimum-clearance failure and exact tolerance boundary",
+      "ambiguous entities or missing reference object fail closed",
+      "scope remains output-local through the centralized resolver",
+      "qualitative non-pinning remains a separate obligation when not machine-defined"
+    ],
+    "clamp_tube_interface": [
+      "explicit concentric cylindrical target and radial/diametral clearance pass/fail",
+      "nonconcentric interface fails",
+      "overlap/interference fails",
+      "missing reference target or assembly pose remains unverifiable",
+      "multi-output scope is resolved before relationship measurement"
+    ]
+  },
+  "product_path_audit": {
+    "identity_and_topology": "can be persisted and surfaced as required output, measured solid count, and connected/invalid diagnostic",
+    "clearance": "requires a user-understandable reference object, location/path, operator, tolerance, measured value, and failure explanation before frontend integration",
+    "interface": "requires a user-understandable target/reference geometry, assembly pose, fit operator, and a separate treatment of secure handling",
+    "revision_support": "explicit contract fields could support changing count, dimensions, target, or fit after a future schema decision; hidden verifier conventions would not",
+    "diagnostics": "normal workflow should state the user claim and measured/missing evidence; verifier implementation names remain technical details"
+  },
+  "core_cad_boundary_audit": {
+    "in_core_cad": ["output identity", "solid validity", "topology", "dimensions", "clearance", "mating relationship", "component placement"],
+    "deferred_manufacturing": ["printer profiles", "build-volume fit", "print orientation", "supports", "layer height", "plate planning", "automatic splitting", "multi-plate connectors"],
+    "result": "All proposed future abstractions are framed as core solid-design/reference-geometry semantics; no printer or multi-plate assumptions were introduced."
+  },
+  "anti_overfitting_precheck": {
+    "project_id_logic": false,
+    "project_name_or_feature_name_matching": false,
+    "frozen_dimensions_in_behavior": false,
+    "known_source_or_selector_matching": false,
+    "prompt_changes": false,
+    "model_settings_credentials_or_repair_ceiling_changes": false,
+    "feature_profile_schema_reopened": false,
+    "holdout_access": false,
+    "geometry_replay": false,
+    "conclusion": "The only production change is a generic contract-policy route for explicit topology and output identity; the other three subclusters remain fail-closed without new semantics."
+  },
+  "provider_operations": {
+    "gemini_calls": 0,
+    "fallback_calls": 0,
+    "repair_operations": 0
+  },
+  "worker_executions": {
+    "frozen_worker_executions": 0,
+    "frozen_replays": 0,
+    "synthetic_geometry_executions": 4,
+    "synthetic_execution_note": "Four focused tests construct arbitrary box STL fixtures; these are test fixtures, not frozen project worker runs."
+  },
+  "decision": {
+    "guide_output": "GO narrow generic integration; recovered through topology-evidence-v2 and output identity",
+    "battery_holder_output": "NO-GO for new production verifier; contract decomposition required",
+    "guide_clearance": "NO-GO for new production verifier; explicit reference geometry and clearance semantics required",
+    "clamp_tube_interface": "NO-GO for new production verifier; explicit reference geometry and interface semantics required",
+    "cluster_status": "reconstructed and split; broad cluster is not one recoverable geometry capability"
+  },
+  "next_action": "Validate the topology-backed required-output route in the full regression suite, then leave the three representation/reference-geometry subclusters parked. The next Phase 1B target should be selected from the remaining generic cluster queue without inventing clearance or interface semantics."
+}

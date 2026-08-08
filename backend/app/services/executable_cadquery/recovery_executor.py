@@ -6,6 +6,7 @@ orchestrator-owned bridge to existing verifier and worker retry authorities.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
@@ -95,12 +96,23 @@ class RecoveryActionExecutor:
                 "findings": [],
             }
         stl_paths: dict[str, Path] = {}
+        topology_by_output: dict[str, Mapping[str, Any]] = {}
         for output in getattr(revision, "outputs", ()):
             raw_path = getattr(output, "stl_path", None)
-            if not raw_path:
-                continue
-            stl_paths[str(output.output_id)] = safe_relative_artifact_path(self.data_dir, raw_path)
+            if raw_path:
+                stl_paths[str(output.output_id)] = safe_relative_artifact_path(self.data_dir, raw_path)
+            raw_topology = getattr(output, "topology_metadata_json", None)
+            if isinstance(raw_topology, Mapping):
+                topology_by_output[str(output.output_id)] = dict(raw_topology)
+            elif isinstance(raw_topology, str):
+                try:
+                    parsed_topology = json.loads(raw_topology)
+                except json.JSONDecodeError:
+                    parsed_topology = None
+                if isinstance(parsed_topology, Mapping):
+                    topology_by_output[str(output.output_id)] = dict(parsed_topology)
         return evaluate_executable_cadquery_semantics_for_outputs(
             stl_paths=stl_paths,
             design_contract=contract,
+            topology_by_output=topology_by_output,
         )

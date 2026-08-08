@@ -351,8 +351,14 @@ def evaluate_executable_cadquery_semantics_for_outputs(
     *,
     stl_paths: Mapping[str, Path],
     design_contract: Mapping[str, Any],
+    topology_by_output: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Evaluate generic contract policies across one or more final outputs."""
+    """Evaluate generic contract policies across one or more final outputs.
+
+    Topology-sensitive policies consume the authoritative per-output topology
+    evidence produced before semantic evaluation. They do not infer a B-Rep
+    topology verdict from a derived STL when that evidence is absent.
+    """
 
     meshes: dict[str, trimesh.Trimesh] = {}
     load_errors: dict[str, str] = {}
@@ -456,6 +462,16 @@ def evaluate_executable_cadquery_semantics_for_outputs(
                 _verify_required_output_identity(
                     requirement,
                     resolved_output_ids=list(selected_meshes),
+                )
+            )
+            findings[-1]["measurements"]["scope_resolution"] = scope_resolution
+            continue
+        if policy == "topology_and_required_output":
+            findings.append(
+                _verify_topology_and_required_output(
+                    requirement,
+                    resolved_output_ids=list(selected_meshes),
+                    topology_by_output=topology_by_output,
                 )
             )
             findings[-1]["measurements"]["scope_resolution"] = scope_resolution
@@ -604,6 +620,86 @@ def _verify_required_output_identity(
             "count_matches": count_matches,
             "identities_match": identities_match,
             "independent_matches": independent_matches,
+        },
+    )
+
+
+def _verify_topology_and_required_output(
+    requirement: Mapping[str, Any],
+    *,
+    resolved_output_ids: list[str],
+    topology_by_output: Mapping[str, Mapping[str, Any]] | None,
+) -> dict[str, Any]:
+    requirement_id = str(requirement["requirement_id"])
+    expected = requirement.get("expected") if isinstance(requirement.get("expected"), Mapping) else {}
+    if not isinstance(expected.get("connected"), bool):
+        return _semantic_finding(
+            requirement_id,
+            status="unverifiable",
+            measurement_available=False,
+            evidence_source="topology_evidence_v2",
+            measurements={
+                "resolved_output_ids": resolved_output_ids,
+                "reason": "connected_expectation_missing",
+            },
+        )
+
+    topology = topology_by_output or {}
+    missing_output_ids = [output_id for output_id in resolved_output_ids if output_id not in topology]
+    if missing_output_ids:
+        return _semantic_finding(
+            requirement_id,
+            status="unverifiable",
+            measurement_available=False,
+            evidence_source="topology_evidence_v2",
+            measurements={
+                "resolved_output_ids": resolved_output_ids,
+                "missing_output_ids": missing_output_ids,
+                "reason": "authoritative_topology_evidence_missing",
+            },
+        )
+
+    identity = _verify_required_output_identity(
+        requirement,
+        resolved_output_ids=resolved_output_ids,
+    )
+    topology_measurements: dict[str, dict[str, Any]] = {}
+    for output_id in resolved_output_ids:
+        evidence = topology[output_id]
+        connected = bool(
+            evidence.get("valid") is True
+            and evidence.get("overall_shape_valid") is True
+            and evidence.get("detected_solid_count") == 1
+        )
+        topology_measurements[output_id] = {
+            "valid": evidence.get("valid"),
+            "overall_shape_valid": evidence.get("overall_shape_valid"),
+            "detected_solid_count": evidence.get("detected_solid_count"),
+            "connected": connected,
+            "expected_connected": expected["connected"],
+            "connected_matches": connected is expected["connected"],
+        }
+
+    topology_matches = all(
+        item["connected_matches"] for item in topology_measurements.values()
+    )
+    identity_status = identity["status"]
+    if identity_status == "unverifiable":
+        status = "unverifiable"
+        measurement_available = False
+    else:
+        status = "passed" if identity_status == "passed" and topology_matches else "failed"
+        measurement_available = True
+    return _semantic_finding(
+        requirement_id,
+        status=status,
+        measurement_available=measurement_available,
+        evidence_source="topology_evidence_v2",
+        measurements={
+            "resolved_output_ids": resolved_output_ids,
+            "identity": identity["measurements"],
+            "topology": topology_measurements,
+            "topology_matches": topology_matches,
         },
     )
 

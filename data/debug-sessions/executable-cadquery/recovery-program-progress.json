@@ -9,7 +9,7 @@
   "origin_experimental_head": "b3baf52 Implement canonical semantic requirement field normalization",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample dimension aggregation false-positive recovered generically with no provider or worker operations",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings reconstructed into one topology-policy route and three representation/reference-geometry subclusters",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -105,6 +105,10 @@
     ,"phase_1b_slot_sample_aggregation_red_then_green_tests_passed"
     ,"phase_1b_slot_sample_aggregation_recovered_generically"
     ,"full_backend_phase_1b_slot_sample_aggregation_1487_passed"
+    ,"phase_1b_no_machine_measurement_definition_reconstructed_and_split"
+    ,"phase_1b_topology_required_output_policy_routing_recovered_generically"
+    ,"full_backend_phase_1b_no_machine_measurement_definition_1491_passed"
+    ,"alembic_phase_1b_no_machine_measurement_definition_checkpoint_clean"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -177,10 +181,10 @@
     "requires_first_blocker_survey_complete": true,
     "breadth_first_by_generic_failure_class": true,
     "target_eventual_independent_pass": "16/16",
-    "current_cluster": "semantic_requirement_unverifiable",
+    "current_cluster": "requirement_has_no_machine_measurement_definition",
     "current_cluster_projects": ["development-03","development-05","development-06","development-07","development-08","development-13","development-15","development-16"],
-    "current_cluster_status": "classification_normalization, output scope/identity, and verifier field normalization recovered generically; remaining subclusters queued",
-    "current_hypothesis": "Normalize policy-specific legacy semantic fields into canonical verifier inputs once, preserve unsupported qualifiers and original contracts, remove implicit defaults, and fail closed on missing or conflicting information.",
+    "current_cluster_status": "missing-machine-measurement-definition reconstructed into one topology-policy routing gap and three representation/reference-geometry subclusters; only the topology route was eligible for narrow generic recovery",
+    "current_hypothesis": "For explicit output identity plus connected-one-solid claims, route the centralized output resolver and authoritative topology-evidence-v2 records into semantic verification; do not invent geometry semantics for under-specified capacity, clearance, or interface claims.",
     "provider_calls_current_cluster": 0,
     "repair_operations_current_cluster": 0,
     "unsupported_findings_before": 26,
@@ -190,7 +194,7 @@
       "development-03": 1,
       "development-05": 1,
       "development-06": 0,
-      "development-07": 0,
+      "development-07": 1,
       "development-08": 0,
       "development-13": 0,
       "development-15": 0,
@@ -198,10 +202,10 @@
     },
     "new_rule_metric_assignment": "The one cluster-level generic rule is assigned to the first affected project order; it was not counted as eight project-specific rules.",
     "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
-    "remaining_subclusters": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
-    "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","slot_sample_dimension_aggregation_false_positive"],
-    "completed_reconstructions": ["feature_profile_capability_gap"],
-    "current_subcluster_status": "slot-sample dimension aggregation false-positive recovered at the shared measurement boundary; feature-profile production recovery remains parked after NO-GO; next target is missing machine measurement definition",
+    "remaining_subclusters": ["feature_profile_capability_gap","geometry_owned_measured_discrepancy","requirement_representation_insufficient","reference_geometry_clearance_undefined","reference_geometry_interface_undefined"],
+    "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","slot_sample_dimension_aggregation_false_positive","topology_required_output_policy_routing"],
+    "completed_reconstructions": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition"],
+    "current_subcluster_status": "missing-machine-measurement-definition reconstructed and split; guide_output recovered through a generic topology-policy route; battery-holder representation, cable-clearance reference geometry, and clamp-interface reference geometry remain fail-closed NO-GO; feature-profile production recovery remains parked after NO-GO",
     "feature_profile_capability_gap": {
       "affected_findings": 1,
       "projects": ["development-03"],
@@ -255,7 +259,41 @@
       "feature_profile_schema_changed": false,
       "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-slot-sample-aggregation-recovery.json",
       "tests": "backend/tests/test_slot_sample_aggregation.py",
-      "next_action": "investigate requirement_has_no_machine_measurement_definition"
+      "next_action": "reassess feature-profile evidence only after unrelated contract evidence; otherwise continue with the remaining representation/reference-geometry queue"
+    },
+    "requirement_has_no_machine_measurement_definition": {
+      "status": "reconstructed_and_split",
+      "affected_findings": 4,
+      "projects": ["development-06", "development-07", "development-08"],
+      "requirements": ["battery_holder_output", "guide_output", "guide_clearance", "clamp_tube_interface"],
+      "subclusters": {
+        "verification_policy_routing_gap": {
+          "requirements": ["guide_output"],
+          "owner": "application policy dispatch/integration",
+          "decision": "recovered_generically_with_authoritative_topology_evidence_v2_and_output_identity"
+        },
+        "requirement_representation_insufficient": {
+          "requirements": ["battery_holder_output"],
+          "owner": "contract representation for capacity/access semantics",
+          "decision": "no_go_for_new_verifier"
+        },
+        "reference_geometry_clearance_undefined": {
+          "requirements": ["guide_clearance"],
+          "owner": "contract/reference-geometry representation",
+          "decision": "no_go_for_new_verifier"
+        },
+        "reference_geometry_interface_undefined": {
+          "requirements": ["clamp_tube_interface"],
+          "owner": "contract/reference-geometry representation",
+          "decision": "no_go_for_new_verifier"
+        }
+      },
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-requirement-no-machine-measurement-definition-reconstruction.json",
+      "provider_calls": 0,
+      "frozen_worker_executions": 0,
+      "synthetic_executions": 4,
+      "feature_profile_reopened": false,
+      "next_action": "do not invent clearance/interface semantics; select the next generic Phase 1B target after validating the topology route"
     },
     "verifier_field_mismatch": {
       "affected_findings": 4,
@@ -315,7 +353,7 @@
     "target_eventual_independent_pass": "8/8",
     "per_project_tuning_allowed": false
   },
-  "application_fix_count": 19,
+  "application_fix_count": 20,
   "application_fix_count_since_previous_checkpoint": 1,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
@@ -336,6 +374,7 @@
     ,"phase_1b_feature_profile_capability_gap_provider_calls": 0
     ,"phase_1b_feature_profile_evidence_acquisition_provider_calls": 0
     ,"phase_1b_slot_sample_aggregation_provider_calls": 0
+    ,"phase_1b_requirement_no_machine_measurement_definition_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -416,6 +455,8 @@
     "phase_1b_feature_profile_characterization_tests": "backend/tests/test_feature_profile_characterization.py; 8 passed; combined focused semantic/geometry suite 64 passed",
     "phase_1b_slot_sample_aggregation_recovery": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-slot-sample-aggregation-recovery.json",
     "phase_1b_slot_sample_aggregation_tests": "backend/tests/test_slot_sample_aggregation.py; 14 synthetic cases; RED 9 failures then GREEN 14 passed",
-    "verification_current_checkpoint": "backend 1487 passed, 1 skipped, 1 warning; focused slot aggregation/feature measurement/feature evidence suite 36 passed; frontend unchanged; provider_calls=0; frozen_worker_executions=0"
+    "phase_1b_requirement_no_machine_measurement_definition_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-requirement-no-machine-measurement-definition-reconstruction.json",
+    "phase_1b_topology_required_output_tests": "backend/tests/test_executable_cadquery_topology_policy.py; four project-independent topology-policy cases pass",
+    "verification_current_checkpoint": "backend 1491 passed, 1 skipped, 1 warning; focused topology-policy and executable-CadQuery semantic/workflow suite passed; Alembic no new upgrade operations; frontend unchanged; provider_calls=0; frozen_worker_executions=0"
   }
 }
