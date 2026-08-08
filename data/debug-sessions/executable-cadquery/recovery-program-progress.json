@@ -5,11 +5,11 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "b7eed2da28c67bea6e99a952d458706788d15032 Freeze 50-project external CAD benchmark corpus",
-  "origin_experimental_head": "b7eed2da28c67bea6e99a952d458706788d15032 Freeze 50-project external CAD benchmark corpus",
+  "experimental_head": "5805f257ed714e67899aa6cf7ae2719888b378ed Qualify external CAD comparison specifications",
+  "origin_experimental_head": "5805f257ed714e67899aa6cf7ae2719888b378ed Qualify external CAD comparison specifications",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete for review and the live development survey has not started",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -121,6 +121,7 @@
     ,"executable_user_requirement_contract_boundary_offline_verified"
     ,"external_real_world_benchmark_mounting_bracket_001_product_requirement_path_clarification_valid"
     ,"external_real_world_cad_50_corpus_frozen_without_provider_or_worker_calls"
+    ,"external_real_world_cad_50_comparison_specs_qualified_without_provider_or_worker_calls"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -239,7 +240,32 @@
     "provider_calls": 0,
     "worker_executions": 0,
     "benchmark_runs": 0,
-    "next_action": "Review corpus freeze, then conduct the frozen first-pass survey of the 30 development projects without inspecting holdout details."
+    "next_action": "Review the v1.1 comparison-specification qualification before conducting the frozen first-pass survey of the 30 development projects without inspecting holdout details."
+  },
+  "external_real_world_cad_50_comparison_qualification_status": {
+    "status": "qualified_for_review_before_live_development_survey",
+    "benchmark_id": "external-cad-50-v1.1",
+    "source_benchmark_id": "external-cad-50-v1",
+    "historical_v1_preserved": true,
+    "methodology_version": "external-cad-comparison-extraction-v1",
+    "manifest": "benchmarks/external/cad-50-v1.1/manifest.json",
+    "development_audit": "benchmarks/external/cad-50-v1.1/development-audit-30.json",
+    "methodology": "benchmarks/external/cad-50-v1.1/comparison-methodology.json",
+    "qualification_report": "benchmarks/external/cad-50-v1.1/qualification-report.json",
+    "development_summary": {
+      "comparison_ready_without_changes": 0,
+      "enriched_to_comparison_ready": 2,
+      "still_underconstrained": 25,
+      "replacement_required": 3
+    },
+    "validation_structurally_processed": 10,
+    "holdout_sealed_count": 10,
+    "holdout_values_exposed": false,
+    "reference_similarity_underconstrained_status": "specification_underconstrained",
+    "provider_calls": 0,
+    "worker_executions": 0,
+    "benchmark_runs": 0,
+    "next_action": "Review v1.1 qualification; do not start the live development survey until approved."
   },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
@@ -557,6 +583,9 @@
     ,"external_real_world_cad_50_corpus_provider_calls": 0
     ,"external_real_world_cad_50_corpus_worker_executions": 0
     ,"external_real_world_cad_50_corpus_benchmark_runs": 0
+    ,"external_real_world_cad_50_comparison_spec_provider_calls": 0
+    ,"external_real_world_cad_50_comparison_spec_worker_executions": 0
+    ,"external_real_world_cad_50_comparison_spec_benchmark_runs": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -569,7 +598,7 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "b7eed2da28c67bea6e99a952d458706788d15032 Freeze 50-project external CAD benchmark corpus",
+  "latest_substantive_commit": "5805f257ed714e67899aa6cf7ae2719888b378ed Qualify external CAD comparison specifications",
   "evidence": {
     "methodology_playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
     "methodology_update": "seed stabilization → frozen diverse development corpus → first-blocker survey → generic clustering → breadth-first recovery → policy freeze → unseen holdout",
@@ -654,5 +683,6 @@
     "external_printables_playwright_acquisition_test": "data/debug-sessions/external-benchmarks/mounting-brackets-v1/printables-509653-playwright-acquisition-test.json; one anonymous browser attempt for model 509653; Cloudflare HTTP 403 anti-bot block before page/download UI; downloaded_zip=none; provider_calls=0; worker_executions=0; locked references unchanged; do not retry or bulk acquire until allowed normal-browser access is available"
     ,"product_path_checkpoint_verification": "backend 1562 passed, 1 skipped, 1 warning with repository-root PYTHONPATH; frontend build/typecheck passed; live harness 8 passed; provider_calls=0; worker_executions=0"
     ,"external_real_world_cad_50_corpus_freeze": "data/debug-sessions/external-benchmarks/cad-50-v1/corpus-freeze-report.json; 50 projects in 10 categories; 45 inner ZIP CRC/byte-preservation checks plus existing five pilot references; 3MF mesh-derived analysis; balanced 30/10/10 split; holdout policy frozen; provider_calls=0; worker_executions=0; benchmark_runs=0"
+    ,"external_real_world_cad_50_comparison_qualification": "benchmarks/external/cad-50-v1.1/qualification-report.json; development audit=30; comparison_ready_without_changes=0; enriched_to_comparison_ready=2; still_underconstrained=25; replacement_required=3; validation_specs=10; holdout_specs sealed by hash only; provider_calls=0; worker_executions=0; benchmark_runs=0"
   }
 }
