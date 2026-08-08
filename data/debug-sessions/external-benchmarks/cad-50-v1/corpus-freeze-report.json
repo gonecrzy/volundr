@@ -1,0 +1,2318 @@
+{
+  "ambiguous_projects": [
+    "adapter-coupler-001",
+    "adapter-coupler-002",
+    "adapter-coupler-005",
+    "clamp-clip-001",
+    "clamp-clip-004",
+    "clamp-clip-005",
+    "container-case-002",
+    "container-case-005",
+    "electronics-enclosure-001",
+    "electronics-enclosure-002",
+    "electronics-enclosure-003",
+    "electronics-enclosure-005",
+    "functional-assembly-001",
+    "functional-assembly-002",
+    "functional-assembly-003",
+    "functional-assembly-004",
+    "holder-organizer-002",
+    "holder-organizer-003",
+    "holder-organizer-004",
+    "holder-organizer-005",
+    "jig-guide-002",
+    "jig-guide-003",
+    "replacement-part-001",
+    "replacement-part-004",
+    "stand-support-002",
+    "stand-support-003",
+    "stand-support-004",
+    "stand-support-005"
+  ],
+  "benchmark_id": "external-cad-50-v1",
+  "benchmark_runs": 0,
+  "category_count": 10,
+  "category_counts": {
+    "adapter_coupler": 5,
+    "clamp_clip": 5,
+    "container_cases": 5,
+    "electronics_enclosures": 5,
+    "functional_assemblies": 5,
+    "holders_organizers": 5,
+    "jig_guides": 5,
+    "mounting_brackets": 5,
+    "replacement_parts": 5,
+    "stand_supports": 5
+  },
+  "holdout_protection": {
+    "allowed_metadata": [
+      "benchmark_id",
+      "category",
+      "split_assignment"
+    ],
+    "disallowed_metadata": [
+      "source_title",
+      "creator",
+      "source_url",
+      "premise",
+      "reference_spec",
+      "reference_geometry",
+      "derived_geometry",
+      "run_results"
+    ],
+    "protected_after_freeze": true,
+    "protected_projects": [
+      {
+        "benchmark_id": "adapter-coupler-005",
+        "category": "adapter_coupler",
+        "split_assignment": "holdout"
+      },
+      {
+        "benchmark_id": "clamp-clip-005",
+        "category": "clamp_clip",
+        "split_assignment": "holdout"
+      },
+      {
+        "benchmark_id": "container-case-005",
+        "category": "container_cases",
+        "split_assignment": "holdout"
+      },
+      {
+        "benchmark_id": "electronics-enclosure-005",
+        "category": "electronics_enclosures",
+        "split_assignment": "holdout"
+      },
+      {
+        "benchmark_id": "functional-assembly-005",
+        "category": "functional_assemblies",
+        "split_assignment": "holdout"
+      },
+      {
+        "benchmark_id": "holder-organizer-005",
+        "category": "holders_organizers",
+        "split_assignment": "holdout"
+      },
+      {
+        "benchmark_id": "jig-guide-005",
+        "category": "jig_guides",
+        "split_assignment": "holdout"
+      },
+      {
+        "benchmark_id": "mounting-bracket-005",
+        "category": "mounting_brackets",
+        "split_assignment": "holdout"
+      },
+      {
+        "benchmark_id": "replacement-part-005",
+        "category": "replacement_parts",
+        "split_assignment": "holdout"
+      },
+      {
+        "benchmark_id": "stand-support-005",
+        "category": "stand_supports",
+        "split_assignment": "holdout"
+      }
+    ],
+    "public_model_caveat": "repository/process holdout; not proof of model non-exposure during training",
+    "qualification_gate": "phase_2_holdout_opened_explicitly",
+    "schema_version": "external-cad-benchmark-holdout-policy-v1"
+  },
+  "inner_archive_integrity": {
+    "all_crc_valid": true,
+    "all_source_bytes_preserved": true,
+    "count": 45,
+    "sha256": {
+      "adapter-coupler-001": "24262c2525366338eb8518bdee0503339be9ce44c0c7723aad22d5f390ca64fe",
+      "adapter-coupler-002": "877e0736f4da1ae45c96af733c75faf8812e29009968c3ea224e925bd392fb14",
+      "adapter-coupler-003": "8e7bab76329d970b3bae7b91caa37b68f14268436da55cce017964ae7123804e",
+      "adapter-coupler-004": "e135fe9cb07705fe086c9e988b75f1ff829de9f80671095505b311e9b6786d2f",
+      "adapter-coupler-005": "a60063fb7e3cf39481389eed81b635755b73c3fb198b868a4a34a1176f2955ee",
+      "clamp-clip-001": "0610ca73917f8374a4c025f9c60af2433795828fad44b2f8f2c7d7c4881db1d2",
+      "clamp-clip-002": "141f2533adc04fa2343fd3d9b412ce77166f700832a19fb7b4c02275c674aca5",
+      "clamp-clip-003": "153688bd39df3e809b0bca72d70106b016733fcb791fb607e46a7f57a959ded2",
+      "clamp-clip-004": "c8fc885afc3269849d67c745d23c96ed55324c4a2c8b8925057e2f942c606342",
+      "clamp-clip-005": "e5bd4780829f6f4b254774f222fda83a28507c04e2c46708a2299f2670fe79e5",
+      "container-case-001": "568472611e5e36adbfd58decda31aa0379d3d2a70e5282bf7d5f2285ffc94d39",
+      "container-case-002": "e78e5d2412ddc9a2859989e094785651e88c3a0d2e05c8a1845fb461b1b9b45d",
+      "container-case-003": "d016abc8e7331b89752163ce3ef0e540b4cc5c7f9249623c798f81a0b75d674e",
+      "container-case-004": "fb4be989433a0e047067511c07735a65668a62096143b77559ead7948464b379",
+      "container-case-005": "3f4dbf12f835b628a87feb0a2e9a11aa12204891402900559ed185536f4d6b4b",
+      "electronics-enclosure-001": "b2ce637426e5de4b6a85a4a41b9e2a468a8a4ba6554c41b1851a5ab57518b3aa",
+      "electronics-enclosure-002": "3420667f04307f8f6a471bdfe13f3b0422da147a26b903986805cdaba1f55ca0",
+      "electronics-enclosure-003": "16307cbf173758b8880123257185bf81dcbb49e94ae1f976fed476bd1f6622ad",
+      "electronics-enclosure-004": "cf64852675ba2eb054e3a7274990fde7d19cc57b3cdb1855eeea9081b9a85fea",
+      "electronics-enclosure-005": "fac461167c989731ed8dd0670bea577472626e6d2d230e8fa270bf6dcff0ef34",
+      "functional-assembly-001": "cc7961123cbd2d113a8937c1f9844a6969f2e89140b40e65c53207401b85bb8f",
+      "functional-assembly-002": "a5b0213892b7d71ddf7f3bc3ce5ab02ed901889c56c5c24be6c4bc2f9fddfa74",
+      "functional-assembly-003": "ea9392964572a490868ace051b09b97e63a086858f9dcfdddd81c38a16e35b77",
+      "functional-assembly-004": "c949a05a7d3ce2b2326307d086549cb00938bc49e662a978fbe116e0ae59259d",
+      "functional-assembly-005": "852a682e8c54ca32ed5c142d7ad049f3ece1bdbbf273c2958c858387503fc6bf",
+      "holder-organizer-001": "0f84878843c5d34c144ef5d106bd45556e11fbfa14a0de4657574a425f3bb470",
+      "holder-organizer-002": "e5cf41db923b461b07719700e45c33a9db5c8fe4fef6980d8eb69b47c3a9d36c",
+      "holder-organizer-003": "9bb20c197e7e5fedb558088780a5c03f82a3d1a8f679d23c187ac8cb552eca1a",
+      "holder-organizer-004": "a3ac89e18d569726e99ef726616c000154b3627a38435bc92f12bc507b3bcfef",
+      "holder-organizer-005": "9f142df0fca2f271af93936cf929b6debfeb8ac5bbb97fe0220bd1019b951e91",
+      "jig-guide-001": "018fe63f4acf0cea44c8c576e872d282db021249cad8e1854d3cf11c5cdbe55c",
+      "jig-guide-002": "b8a35541567b1aa33ba042ade7aeb07b2d510a8069a695cdd0e0b752c26759a8",
+      "jig-guide-003": "62aee167bb3901439f3617450ddb1f29d0141e76f7e5af2cfa66c76732894adb",
+      "jig-guide-004": "60d6d3297db04947fcfd3ca586fe5b3678989deb80d5eae9b996a6f6143cc1b8",
+      "jig-guide-005": "b3c49934f38491820d8ad8c1aaa3a7381318bda5cdfd7ed49450aedf7e34235d",
+      "replacement-part-001": "0ac6258cb3231071c0cc76e1f627ec608112beff251199143303fd274281b746",
+      "replacement-part-002": "7ca92af185927a5abcf09c04f75592ee296f6e92784c7248355db236c89a2e6a",
+      "replacement-part-003": "79811b0fc11f07d01e2254e14528fb4b9cfcf761d7af09448f242e5a1e9b3104",
+      "replacement-part-004": "0867b06f15653857e79f9c5bbf6bdd25f25b9f0cad4d757c513805c65685e75c",
+      "replacement-part-005": "332ede406792cfaec15972bbaea2e8cf6fb3025242bdab0b71944ff007a007e1",
+      "stand-support-001": "3b4a774a1636e21b86a847cd0640ad9ed8cf35060a70f384b21b5000d8ab5e68",
+      "stand-support-002": "27b018f0e8c377943c2dc1f89445f6a2ce0018d887fc2c847fa8542185496821",
+      "stand-support-003": "a600ad001f79ae8cd21aecf54d71ee5be66b913c225eb85f3d07295b9717e47c",
+      "stand-support-004": "3a1e2bfb1203367e30d09225ca46c9a82ff9e83d3a5181060c47c956e07653b4",
+      "stand-support-005": "9e44e93c87dd40e3ccad0168272687782b6eea2689b4a10fab97614531a71d16"
+    }
+  },
+  "manifest_relative_path": "benchmarks/external/cad-50-v1/manifest.json",
+  "non_watertight_reference_parts": [
+    {
+      "benchmark_id": "adapter-coupler-001",
+      "part_id": "adapter_body"
+    },
+    {
+      "benchmark_id": "adapter-coupler-002",
+      "part_id": "dyson_dust_adapter"
+    },
+    {
+      "benchmark_id": "clamp-clip-005",
+      "part_id": "broom_wall_clamp"
+    },
+    {
+      "benchmark_id": "container-case-001",
+      "part_id": "battery_body"
+    },
+    {
+      "benchmark_id": "container-case-004",
+      "part_id": "toothbrush_case"
+    },
+    {
+      "benchmark_id": "replacement-part-004",
+      "part_id": "handle_top"
+    },
+    {
+      "benchmark_id": "replacement-part-004",
+      "part_id": "handle_bottom"
+    }
+  ],
+  "outer_acquisition_sha256": "978caed8307f415b30b12f5c71a815a6bb073c012063c3307396797f2a5a5e03",
+  "process_contamination_audit": {
+    "benchmark_specific_cad_generation": false,
+    "holdout_details_used_before_split": false,
+    "holdout_runs_started": false,
+    "third_party_bytes_committed": false
+  },
+  "project_count": 50,
+  "projects": [
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "body_variant_family"
+      ],
+      "benchmark_id": "adapter-coupler-001",
+      "canonical_part_count": 2,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "adapter_body",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-001/reference/adapter_body.stl",
+          "sha256": "28dd45a09b9cf8e25c3bec29aee5abb7a3ae7917270722091dc88cc5a34bb859"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "thumb_tab",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-001/reference/thumb_tab.stl",
+          "sha256": "5298eb12c4ad4fd8cd06fc08ad28b0a75cf5f2c245a8c765dbbc5020be1c8f9f"
+        }
+      ],
+      "canonical_selection_basis": "PDF description and model-file listing; body plus thumb tab are canonical, body-size alternatives are provenance.",
+      "category": "adapter_coupler",
+      "creator": "@Graham_1403971",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "abab958d2f608b725bfc1d51b62a97507691b0f0fbacd3ca40e2a31d3136b2af",
+      "provenance_file_count": 3,
+      "reference_set_sha256": "5e24f2ac7143597aa2de7c3332919a8f35a96e06b813c8a0c41888fdb981c681",
+      "reference_spec_sha256": "829f4e1d0218af9960c4f763b211d794db2e3e45720ec2ea0eed7c56171cddf0",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Adapter for connecting Tineco stick vacuums to a hose or vacuum accessory; includes a body variant family and a thumb tab.",
+      "source_model_id": "803606",
+      "source_pdf_sha256": "e6c04d79323e84cf8665e59565970cc1fdb55a370943baecd72a10eb2901ba8f",
+      "source_title": "Tineco hose adapter",
+      "source_url": "https://www.printables.com/model/803606",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "mesh_derived_authority"
+      ],
+      "benchmark_id": "adapter-coupler-002",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "3mf",
+          "part_id": "dyson_dust_adapter",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-002/reference/dyson_dust_adapter.3mf",
+          "sha256": "98ad813ee8f255af595700f455dcb9155a617f6c2c5359063dadd851511b95e5"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; 3MF is the only supplied geometry for this selected model.",
+      "category": "adapter_coupler",
+      "creator": "@sammythesquibb",
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise_sha256": "7e884a03dc61389eb988cc3a3b2b67ab756a962500c6859f7f81a1e72442656a",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "d30fc847990660b53e3476bb7e46c807f1e15d36ab579ef382db0bb8055617e9",
+      "reference_spec_sha256": "3a7a9426d6a5925732fe0823a2ee5d9881e23c6b24f6d464de9a4b01c9089ffa",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Dust-extractor adapter for Dyson vacuum families and a Fein 35 mm hose, supplied as a 3MF mesh reference.",
+      "source_model_id": "533805",
+      "source_pdf_sha256": "dd63a815697567df5ac99847d65b6acc528c91c0fc09a6a67bea8362aa564299",
+      "source_title": "Dyson V7, V8, V10, V11, V15 dust extractor adapter Fein 35 mm",
+      "source_url": "https://www.printables.com/model/533805",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "adapter-coupler-003",
+      "canonical_part_count": 4,
+      "canonical_parts": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "adapter_tube",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-003/reference/adapter_tube.step",
+          "sha256": "3d9d593f1b8e0c39a6b0ea96d4e94f238dfeda36958b0a46d9cbf56b8bf05088"
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "adapter_top",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-003/reference/adapter_top.step",
+          "sha256": "8b9e6b678bed3a464d8b9640e195c616f2f7cae54a7203e734eb4a8cac02b316"
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "retention_button",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-003/reference/retention_button.step",
+          "sha256": "b4f945c8d9137ee3432e5567006e382c54438fd763b4058543d0de2796a23f07"
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "retention_rocker",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-003/reference/retention_rocker.step",
+          "sha256": "0a095146c310f8708bc1229620e70ec2b4a92daea9710912e8afd1d60f1064e4"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; four named STEP components are canonical, 3MF/FCStd are assembly/native provenance.",
+      "category": "adapter_coupler",
+      "creator": "@MichaelQ",
+      "license": "GNU General Public License v2.0",
+      "premise_sha256": "7ce474644d3744253a0a3354b0752b199d47cc9ca23a880a72d609c2bb464fc6",
+      "provenance_file_count": 3,
+      "reference_set_sha256": "ac01a0affd303ef0b0cf4f873df78329ac98ae6198e1282b9c1b4230c11d060b",
+      "reference_spec_sha256": "12d1fe074aa9b461d1126e92d04618f011ce5c70b83c210dc3970109a20e434e",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-part vacuum adapter with tube, top, button, and rocker STEP components plus assembly/native provenance.",
+      "source_model_id": "700912",
+      "source_pdf_sha256": "5adc54e92a92258f211907b113cc19bcfbbaee61f0716c7681874aad07fffc7d",
+      "source_title": "Electrolux / AEG Vacuum Cleaner Tube to Miele Nozzle Adapter",
+      "source_url": "https://www.printables.com/model/700912",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "adapter-coupler-004",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "makita_router_table_adapter",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-004/reference/makita_router_table_adapter.stl",
+          "sha256": "2aa3e70c19124f5257ebf9b7c8a2e82f6582ebcc71c23122bc7a9bd90e84859a"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "category": "adapter_coupler",
+      "creator": "@Nottub",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "eaef7168c7cfcd52aff0adf7b8e16778b97b16749527c36093f5ceccb59ccb42",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "8644735bb5c408c427a7a9fd2d6c4da59a28dee10fe2892abfdbddf6859002bd",
+      "reference_spec_sha256": "c06c90dba4576645833dc93206b30d270309f194de1f37b0fbf6a3d588294582",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Adapter plate for using a Makita router with a router table.",
+      "source_model_id": "273128",
+      "source_pdf_sha256": "3114cac67a60d3fff36fcef6718c4684d8c59bb4be4bc11d97ce7f01aa638baa",
+      "source_title": "Router table adaptor for Makita",
+      "source_url": "https://www.printables.com/model/273128",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "adapter-coupler-005",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "carpet_extractor_attachment",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/adapter-coupler-005/reference/carpet_extractor_attachment.stl",
+          "sha256": "3436bffe1d0f8579f2a269be7f101ca8bc4b5f35a0f5c43ec65805d3ce7ef7b8"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing and title.",
+      "category": "adapter_coupler",
+      "creator": null,
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "3127b66b69d1d8cf7ab0f5815c2dcbf285d663552ded9a9126dca122fe39d9d4",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "3829db36be1cec3a6e889a4fc721c2358c7b3f742455b50271c5fa003c7b2e7d",
+      "reference_spec_sha256": "7ac1a562d199caabd2b60db51273da8bd52d76ea3c72a7d7a10926a2d83600ac",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "35 mm attachment for a Karcher wet/dry vacuum carpet-extraction use case.",
+      "source_model_id": "226850",
+      "source_pdf_sha256": "a357bce286286099143bb8592137bc4f46699a27090c626ab80e3721e0cad695",
+      "source_title": "35mm carpet extractor attachment for Karcher wet/dry vacuum",
+      "source_url": "https://www.printables.com/model/226850",
+      "split_assignment": "holdout"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "large_parameter_variant_family",
+        "variant_selection_manual_annotation",
+        "mesh_derived_authority"
+      ],
+      "benchmark_id": "clamp-clip-001",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "3mf",
+          "part_id": "pipe_clamp_50mm",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/clamp-clip-001/reference/pipe_clamp_50mm.3mf",
+          "sha256": "21ad3e8e9f82b021aad1ed899a559d4fd3f2de45c3af1eee0c167476c62ff673"
+        }
+      ],
+      "canonical_selection_basis": "PDF parameter-family listing plus manual benchmark annotation selecting one metric mid-range variant.",
+      "category": "clamp_clip",
+      "creator": "@LuckyResistor",
+      "license": "Creative Commons Attribution-ShareAlike 4.0 International",
+      "premise_sha256": "3d7da6407fd288d194903dc45a31b6c58d26160f8802a6c8e95ef9363628d7a6",
+      "provenance_file_count": 55,
+      "reference_set_sha256": "51a9b5c5b6f62d209291b6927b022194ea5e50281eecc22743651523358844f9",
+      "reference_spec_sha256": "fcdc826cb22dd63ca9bad62a69af3be945cff1fb00e8b6e74e8956f53684bcf8",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Parameterized snap-in pipe clamp with metric and imperial diameter variants and a zip-tie lock.",
+      "source_model_id": "125038",
+      "source_pdf_sha256": "cd5ea8a0457e0a4ddbf92f328b5f854c5d90757c660aead78078eafba2e23a73",
+      "source_title": "Snap-in Pipe Clamp \u2013 Zip Tie Lock \u2013 20-120mm \u2013 0.8-5.5in",
+      "source_url": "https://www.printables.com/model/125038",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "clamp-clip-002",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "vacuum_hose_cable_clip",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/clamp-clip-002/reference/vacuum_hose_cable_clip.stl",
+          "sha256": "e270e10b9565fddae3e4e294dc17277ee523c94feb018ff7c3510a26b31692b1"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "category": "clamp_clip",
+      "creator": "@Otty_Skipper_411922",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "c7698cae913a2f2eefa5316c7e016c0929a81fae3e7b0108faaf9deafe6108cf",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "fa68693a2eec67b10bff87f6196d118223423b2733f444bda80508fd32bf2c69",
+      "reference_spec_sha256": "ff4335aa3c8a47b3b3b363be7eeb080a264e161e5b2718a22f369d70d2d2f4a9",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Cable clip for a vacuum hose.",
+      "source_model_id": "511805",
+      "source_pdf_sha256": "47817648efa1a655f9e3869b3a5abdb342903d56d29dfab633c90f10e9cb5bb5",
+      "source_title": "Kabelklemme f\u00fcr Staubsaugerschlauch / Vacuum hose cable clip",
+      "source_url": "https://www.printables.com/model/511805",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "clamp-clip-003",
+      "canonical_part_count": 2,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "holder_guide",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/clamp-clip-003/reference/holder_guide.stl",
+          "sha256": "dabd187c2ccf834c00f10d06e2d5cf4aa2484478f843dfa5464cc630cc326552"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "holder_left",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/clamp-clip-003/reference/holder_left.stl",
+          "sha256": "c48856ac6f5c2fa9f78f2745259b4336c28e375e578535d260eda21e21a9ea92"
+        }
+      ],
+      "canonical_selection_basis": "PDF description and model-file listing; two named holder parts are canonical.",
+      "category": "clamp_clip",
+      "creator": "@VoyagerCrew",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "dc998ca4e6090cf3f5e043cbe81691e41b1e0128a74f376b335a92574d32adcd",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "a6f8965cf2229916b0d90df8fa7d9a4d000fb864cdbe603f74fe4d2ecd068098",
+      "reference_spec_sha256": "ec1fd2a0b709685429aa76a887d0fc7bd5faa01fb54e88ae1b22959dbdb5d63b",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Two-piece clamp/holder system for securing a Shaper Origin workstation to a T-Loc Systainer or MDF board.",
+      "source_model_id": "265689",
+      "source_pdf_sha256": "da8871d58b75f3c3447a2351d99a2f3ea3463a1ce69c20948fb6c237ce4805f9",
+      "source_title": "T-Loc Systainer clamp system for Shaper Origin Workstation",
+      "source_url": "https://www.printables.com/model/265689",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "large_variant_and_accessory_family",
+        "variant_selection_manual_annotation"
+      ],
+      "benchmark_id": "clamp-clip-004",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "grow_tent_single_cable_clamp",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/clamp-clip-004/reference/grow_tent_single_cable_clamp.stl",
+          "sha256": "103438912f9467aa2a3c91136e88af11222f08358d78f8bb3cc188da36ceb7ce"
+        }
+      ],
+      "canonical_selection_basis": "PDF version/accessory family plus manual benchmark annotation selecting one explicit 22 mm cable-clamp variant.",
+      "category": "clamp_clip",
+      "creator": null,
+      "license": "Creative Commons Attribution-ShareAlike 4.0 International",
+      "premise_sha256": "864ca9f4d941c0f4d9916c4ac7fa93381f44dfefd064876e730150b6c565b576",
+      "provenance_file_count": 18,
+      "reference_set_sha256": "9116d209d58b8ff0b6ef4d613fcd7e0ae5ac9fa5c554ac680abcdead4b9188b9",
+      "reference_spec_sha256": "21ded95b21d4633966affcab7edb7964f9adc1f71922c6aa74ef463e8544002a",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "A family of 16 mm and 22 mm grow-tent pole clamps and accessories, including cable clamps and a GoPro mount.",
+      "source_model_id": "171266",
+      "source_pdf_sha256": "173156c146d686584ba721d849003eaa75764595356d0ac24834033f9b5f7c8d",
+      "source_title": "Grow Tent Pole Clamps For Wire Organization, GoPro Mounting, and More",
+      "source_url": "https://www.printables.com/model/171266",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "clamp-clip-005",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "broom_wall_clamp",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/clamp-clip-005/reference/broom_wall_clamp.stl",
+          "sha256": "aba99bf869779ad4e98386be8003481c8c2add273d985ab99030f3dc6d31b170"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "category": "clamp_clip",
+      "creator": null,
+      "license": "Public Domain",
+      "premise_sha256": "73e8a37b8d6e71a8458fd9dd2d62b7b0eb2776213d962f4ed866aaab0aa9ecf0",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "6277fcd069a17a016cae9c038cf180194cf559d9256a14c60b7ba06dc9c3cb68",
+      "reference_spec_sha256": "e041593f6f83581306b70b5a306cff9423e350d4956eba8aac579aac0602c0e3",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Wall-mounted clamp for holding a broom.",
+      "source_model_id": "64117",
+      "source_pdf_sha256": "09ab601b51cd3822da22716f6dcdada33e3c2de9b99599791aadcceea5734903",
+      "source_title": "Broom Holder | Wall Mount Clamp",
+      "source_url": "https://www.printables.com/model/64117",
+      "split_assignment": "holdout"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "container-case-001",
+      "canonical_part_count": 5,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "flexible_strap",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-001/reference/flexible_strap.stl",
+          "sha256": "b965156c05fd1d3d945773cf9a06690e3a466a5f80e0e444d3e8e837d2ccf56d"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "battery_body",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-001/reference/battery_body.stl",
+          "sha256": "f9b08fc280a4fde548ced34918c45d23fcb19a65cf550196fde85f40a5bfcfea"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "screw_lid",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-001/reference/screw_lid.stl",
+          "sha256": "4fe273b99e3d9a3087b02b0b8d95bf7f11b2abcb08e7d56bb89558f4d34e1632"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "strap_retainer",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-001/reference/strap_retainer.stl",
+          "sha256": "c1d0c4fbdb946acfb4613571969fa0db12ebe53c0b6a846e719eaf6d96e36f92"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "lower_bumper",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-001/reference/lower_bumper.stl",
+          "sha256": "e8cf63c84873f7ee12273f1f2b04cb22b9e4483d6dcf536d68f48ddf95d88bd0"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; all five named printed components form the intended case design.",
+      "category": "container_cases",
+      "creator": "@Spicy3d_293895",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "a55ec2128402adf48517c58ed8bdd21bdab84b33afa501032b6853be37738e4d",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "21895cb048edc5aeb71c43a9b5086b8c90c9218a5b5787ca23e19b09c44663bf",
+      "reference_spec_sha256": "7bdeed6103147426f6d052d473e5d0b6669ce91d5d81217b7c0931b7b9629ddb",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-part screw-lid holder for a 26650 battery with flexible strap, retainer, body, lid, and bumper pieces.",
+      "source_model_id": "402602",
+      "source_pdf_sha256": "a4002a94921acbaa5c67a5d0d795e144928e9dd2f869fdd67f26fc8712f4f165",
+      "source_title": "Screw-Lid 26650 Battery Holder",
+      "source_url": "https://www.printables.com/model/402602",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "variant_family_requires_manual_selection",
+        "reference_object_present_in_package",
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "container-case-002",
+      "canonical_part_count": 2,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "battery_box_26650",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-002/reference/battery_box_26650.stl",
+          "sha256": "40eb0fa8eda7e7848166749cf788151c66430b5eab20fd449a7dc44aaf961f3a"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "battery_lid",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-002/reference/battery_lid.stl",
+          "sha256": "5e60b4870629e1c92e944f7539e554b2c8b7e6490472efc386890ca67f2a48e8"
+        }
+      ],
+      "canonical_selection_basis": "PDF variant family and manual benchmark annotation selecting the 26650 design plus shared lid.",
+      "category": "container_cases",
+      "creator": null,
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise_sha256": "69013604e4eb7bfbcd12e4bf6d9e7225e625477bcab16762bc660082c510a942",
+      "provenance_file_count": 4,
+      "reference_set_sha256": "8e6b5a696921839036ae87f486ca69ba3af80f5b0da54d3a941aae3850614e89",
+      "reference_spec_sha256": "6409a78a1d1e6d8a0a65c6ff2a065f00d9df954d85dce5f9c173d5aec6f60cb5",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Battery carry case with several battery-size box variants, a shared lid, and a protector source.",
+      "source_model_id": "344509",
+      "source_pdf_sha256": "4286e4c8c97dc16e6d0c3dabbd83a094720c172cbb4186462ab4b0063e2da4f0",
+      "source_title": "26*** Battery Carry Case",
+      "source_url": "https://www.printables.com/model/344509",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "container-case-003",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "multi_battery_holder_box",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-003/reference/multi_battery_holder_box.stl",
+          "sha256": "2f3cebc7771ff7b41cbfcf489e4c42651e663168dff4d5015dba0162e25c02b2"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "category": "container_cases",
+      "creator": "@Spicy3d_293895",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "76fee8532a586533707d243e44de3d9beef3285d5174b68adf9e39abc4e37994",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "5e71007baf5919b164cd929c73496d3e759da7f03de523595d1d0c1a2273b97c",
+      "reference_spec_sha256": "35f02ee0b2418105babf8dc3bc7c4cc49558db091037a71280e2f99bf13544d1",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-size battery holder box.",
+      "source_model_id": "550519",
+      "source_pdf_sha256": "b6b51763722d4ccdebed0de8eb4ca628cb785ec6acf710955b7a028c9c8f6d3c",
+      "source_title": "Multiple Battery Holder Box for AAA, AA, CR123a, 18350, 18650, 21700, 26650/26800",
+      "source_url": "https://www.printables.com/model/550519",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "container-case-004",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "toothbrush_case",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-004/reference/toothbrush_case.stl",
+          "sha256": "98df3347d54b15bbcb935c6169003da16b0a1360cb00904171ce54c9e69a6cea"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "category": "container_cases",
+      "creator": "@AkashSk_1291219",
+      "license": "Public Domain",
+      "premise_sha256": "0a429ef5af4b3456d9e053054e5f39845bc1803b9be1c303696eb07eca6da16b",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "18294a2e4500c41716c38f1478d1697f1dc0cfc1b1d0145dda95c02f9f168f58",
+      "reference_spec_sha256": "ba8b9ef7919c264e99388a66a82bbe931f08f68ae5298664d5ce3a60cfd02eb0",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Portable toothbrush case with a strengthened print-and-place hinge.",
+      "source_model_id": "1010824",
+      "source_pdf_sha256": "f32d4e755139ec588c7fbd8ad3379929454002c080f5f35b268e3a29066f9ff8",
+      "source_title": "Toothbrush Case V3",
+      "source_url": "https://www.printables.com/model/1010824",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "container-case-005",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "nozzle_brush_cover",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/container-case-005/reference/nozzle_brush_cover.stl",
+          "sha256": "2538e446bfd00a6297a0f2396d6d17a2d66bc6fcede977d11cfe24ca474980c7"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "category": "container_cases",
+      "creator": null,
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "05f727eb885ad57bd48f74bde1e982e588639b08aca9d609ef643ad7d727c146",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "88f8a86878e95f9884044364baa11a68441bc30641997b9cd9f943fec5d04710",
+      "reference_spec_sha256": "df8c058f0e224f5959d46e59695c424341e05151a21cec9618ed2d2732f0a082",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Small protective cover box for a nozzle brush.",
+      "source_model_id": "109764",
+      "source_pdf_sha256": "168e7038cf1f9a950e2ad737e908d4d93615a4056fcb7cd30d746f5487cc81f2",
+      "source_title": "Nozzle brush cover box",
+      "source_url": "https://www.printables.com/model/109764",
+      "split_assignment": "holdout"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "electronics-enclosure-001",
+      "canonical_part_count": 2,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "case_bottom",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-001/reference/case_bottom.stl",
+          "sha256": "24b828248018f99f65a9f721cf5874a18b68159c128c95f52cf8de6f37ed9bbd"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "case_top",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-001/reference/case_top.stl",
+          "sha256": "cd09cd8d4dbc1d56470380e6674ed5fd553473501ee2847564e8b867d109cac7"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; bottom/top are an intentional two-part enclosure.",
+      "category": "electronics_enclosures",
+      "creator": null,
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "331091b3845dcbe270087d4c8f4aeb5dfbe04856aaf1cdcb8ab1724040da7056",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "c4662ce461163696b8c9c05cab316b2c22eb641a9d13c68236a262891f4c8ac7",
+      "reference_spec_sha256": "b4bcfa5b14dcf7485425ef456d28651504b813a9129acf7f0f19eed288e01cf7",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Two-part case for an LCR-T4 ESR meter.",
+      "source_model_id": "33374",
+      "source_pdf_sha256": "06aff08009af679a275c8ae8e8cfc921205c6ca86a1aeb62c2505b2f0e3f1e6e",
+      "source_title": "LCR-T4 ESR Meter Case Re-Redesigned",
+      "source_url": "https://www.printables.com/model/33374",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf",
+        "mesh_derived_authority"
+      ],
+      "benchmark_id": "electronics-enclosure-002",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "3mf",
+          "part_id": "lcr_meter_housing",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-002/reference/lcr_meter_housing.3mf",
+          "sha256": "7859af6dec047f66478f5048c490fa9194e201b988a7b6685e6f1bcfb9920550"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; 3MF is the sole canonical source.",
+      "category": "electronics_enclosures",
+      "creator": null,
+      "license": "Public Domain",
+      "premise_sha256": "6c6740ed04ad8c74ad9a6a343fe502ea28c51c1d69b8e6f2b10630d46184a774",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "d271587831b513c985f8ecc32397f07eaf8225acbd0e95333bb5552ffc7f6acc",
+      "reference_spec_sha256": "8342b046fc95f92314677c2a7417f101d66a4a71a85ebe2194160a64f962e776",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Housing for an ARCELI LCR-T4 meter supplied as a 3MF mesh package.",
+      "source_model_id": "231444",
+      "source_pdf_sha256": "1aeba6870795570d0503a2005f7b4b2050ff4c68ba842154e9634844c2f8d2b5",
+      "source_title": "LCR meter housing (ARCELI LCR-T4)",
+      "source_url": "https://www.printables.com/model/231444",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "electronics-enclosure-003",
+      "canonical_part_count": 2,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "display_box",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-003/reference/display_box.stl",
+          "sha256": "e3659a2c12127418258551f7f74feb4015506e556406fc22d44a9c23a0ca06aa"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "display_lid",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-003/reference/display_lid.stl",
+          "sha256": "1bd37116c225a7cb838356e3557d7f110dc25429a34d23fb3cd3c034dbe24638"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; box/lid are an intentional two-part output.",
+      "category": "electronics_enclosures",
+      "creator": null,
+      "license": "Creative Commons Attribution-ShareAlike 4.0 International",
+      "premise_sha256": "482a8989099bc33104e1ae735750ad8ce03c05b9ee92de13fd606f5ad669723b",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "7cd1c3687486d7529b615ee39ff71afc07801c80125eee4c1e11fe0830435523",
+      "reference_spec_sha256": "f6973b320ddde57c39e9a7b11106521b044bd69bac44b891181d2aa6efa1d942",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Two-part display box for an HX711 load-cell project.",
+      "source_model_id": "233119",
+      "source_pdf_sha256": "3c469789e9555bbd9a50c9157094732bc0c66a24f1853613fd4e329a0c6adb9b",
+      "source_title": "HX711 Load Cell Digital Display box",
+      "source_url": "https://www.printables.com/model/233119",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "electronics-enclosure-004",
+      "canonical_part_count": 5,
+      "canonical_parts": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "gage_spacer",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-004/reference/gage_spacer.step",
+          "sha256": "fe8d122094ae5cd4be46091f3f57db29d30f8939d2386871485a1033ea28bae4"
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "gage_top_plate",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-004/reference/gage_top_plate.step",
+          "sha256": "ff889585c5e401173d6b590a8246235927420801febe234741752e560e4f9dff"
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "openscale_base",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-004/reference/openscale_base.step",
+          "sha256": "054f90352e8ab7c3fb9dc14d6c35c9c5b57f7e6301b45ab5b1977fee83ebe87c"
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "openscale_base_feet",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-004/reference/openscale_base_feet.step",
+          "sha256": "5bdfecf2b7a54bf60290e96a0e9b379682d1790f7d0f4ce53ea10dc7af886bd6"
+        },
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "openscale_top",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-004/reference/openscale_top.step",
+          "sha256": "76c4b5867a5b7ade9614dda4400d4eacd832675218672d9320e7892b74441ef3"
+        }
+      ],
+      "canonical_selection_basis": "PDF description and model-file listing; five named STEP/STP design parts are canonical, duplicated STLs are provenance.",
+      "category": "electronics_enclosures",
+      "creator": "@languer",
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise_sha256": "9848ad9e3563a492b2b66a326abb579c1bb2c4c347181e4acf880bb6fb756e2e",
+      "provenance_file_count": 6,
+      "reference_set_sha256": "4cc5a970a0138f8d3dc61e4327b64baf2d8711f4dd3b34c51a559c41daa12e7f",
+      "reference_spec_sha256": "eb0d5d1fbb7e1ef379fb74ffd1434c8b2a91fe554d85fe45a6d2cdfc3f967bcf",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-part enclosure and load-cell plate for Sparkfun Openscale and documented strain-gauge load cells; STEP/STP files are canonical while STL copies remain provenance.",
+      "source_model_id": "677114",
+      "source_pdf_sha256": "3fa0deb2a09d1e0416a3256a861dc3bc252068598a65034c895561e3b0950b41",
+      "source_title": "Enclosure for Sparkfun's Openscale and 1kg - 20kg Strain Gauge Load Cell",
+      "source_url": "https://www.printables.com/model/677114",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "variant_family_requires_manual_selection",
+        "mesh_derived_authority"
+      ],
+      "benchmark_id": "electronics-enclosure-005",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "3mf",
+          "part_id": "xiao_grove_case",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/electronics-enclosure-005/reference/xiao_grove_case.3mf",
+          "sha256": "4c0401eadd9545ad3c76ff19b375b75b671ba7745fa983bfc6c3ee8fd546a477"
+        }
+      ],
+      "canonical_selection_basis": "PDF version/model-file listing and explicit printable variant annotation; selected 3MF avoids treating the possibly multi-solid STEP as authoritative.",
+      "category": "electronics_enclosures",
+      "creator": "@FyrbyAdditive",
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "ac00d3400b42f42c041301d9b3ae9ad77823de32fbcab69b70d781a70d560ac7",
+      "provenance_file_count": 4,
+      "reference_set_sha256": "d80ca84051f816f62b2535437fdafcb938635506edbad78465f4700f14a64354",
+      "reference_spec_sha256": "a086644e6f82dfc4b2478ce4929d787db541a039fc3a87f04233ccd7b0bb6ec4",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Case for a Seeed XIAO ESP32S3 Sense and Grove base with multiple native and mesh variants; the Bambu 3MF is the selected printable variant.",
+      "source_model_id": "734466",
+      "source_pdf_sha256": "ff335f1db3c39df0d6d8776502fd3c28c2f76d8975f91039303630e371000900",
+      "source_title": "Seeed XAIO & Grove Base Case",
+      "source_url": "https://www.printables.com/model/734466",
+      "split_assignment": "holdout"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "functional-assembly-001",
+      "canonical_part_count": 4,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "scale_platform",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-001/reference/scale_platform.stl",
+          "sha256": "b30fa6c9172a8a107366b84c17edd86d83f7290d52e0183659c8dbb61ac630d1"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "scale_front_cover",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-001/reference/scale_front_cover.stl",
+          "sha256": "802117d1b75336e6286b3f1369f0b33835dbe61d27b3d207ff4e583999253346"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "scale_body",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-001/reference/scale_body.stl",
+          "sha256": "84b3fb1704a8250dfaaec1ef4e54150637d64aa6be49b28663e6762653eb8863"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "scale_button",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-001/reference/scale_button.stl",
+          "sha256": "4b86ff917c1db6998a265ebcfaed04b75cfed07ee49e7c748484a8bea36e0074"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; four named printed parts are canonical and 3MF is assembly provenance.",
+      "category": "functional_assemblies",
+      "creator": null,
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "60b4e4e1c848fd463b20874f7d11c1982517f65eb0bd99dd71c2fc89a78707fe",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "332422774dae0a7036c7ec1bf61ab43d18157cddf2496fd354a6d26967493ae4",
+      "reference_spec_sha256": "647cae53fc836b8c5c7604183ed16e66d120248c376a97b45ca8e9a8362da203",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-part Bluetooth coffee/espresso scale with body, platform, front cover, and button components.",
+      "source_model_id": "36112",
+      "source_pdf_sha256": "643d54e7499e798470fa4ed6e7b03bda1edf6c286d4973415ebdf8a4ed8234f1",
+      "source_title": "DIY Bluetooth Coffee/Espresso Scale",
+      "source_url": "https://www.printables.com/model/36112",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "large_assembly_scope",
+        "source_contains_multiple_solids"
+      ],
+      "benchmark_id": "functional-assembly-002",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "vp2_pedal_assembly",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-002/reference/vp2_pedal_assembly.step",
+          "sha256": "ec2e9eb530a779dbd92ae614f381ff7344d816a53763b4666a605032100422a4"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; complete STEP assembly retained without exploding source solids into arbitrary outputs.",
+      "category": "functional_assemblies",
+      "creator": "@Vaessen_Motorsports",
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise_sha256": "db9cc8a1cb0dc4158db8bd536943cc5772209aaf16039fc727f30c730b1008bf",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "97fca3c55fd0d9d3588e752fdc95bdfb19d86eef7516a078d3f6f8d91669fd0a",
+      "reference_spec_sha256": "b9254b1a590a285f02b5ac62679fdbe544856697f545249255c8452f9f65a204",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": true,
+      "source_description_summary": "Large STEP assembly for a DIY sim-racing pedal set with off-the-shelf, printed, and laser-cut components.",
+      "source_model_id": "950833",
+      "source_pdf_sha256": "410749eea4163672ae56463d0a830e14070490850adba9b46e23148d0083aafc",
+      "source_title": "Vaessen Motorsports VP-2 DIY sim-racing pedals",
+      "source_url": "https://www.printables.com/model/950833",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "functional-assembly-003",
+      "canonical_part_count": 5,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "bearing_plate_bottom",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-003/reference/bearing_plate_bottom.stl",
+          "sha256": "158984c3fa215160b8b90cb5e1c72526ff44e57c13c225082e515ef0e75147a9"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "bearing_plate_top",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-003/reference/bearing_plate_top.stl",
+          "sha256": "de0dc0080febbf622c1dddf5ccef8c30e1fccb86c99e496abcabe3372a9e41f1"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "pump_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-003/reference/pump_mount.stl",
+          "sha256": "7cdaa50a51b134188e0607c9dd5822a3be8cff475e1a2f7c5a9fdb5151ff82f4"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "pump_base",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-003/reference/pump_base.stl",
+          "sha256": "64109b4873f9cea97b798fc9930a61e65b66167d23abd46c50e41d08faedcbe5"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "pump_spacer",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-003/reference/pump_spacer.stl",
+          "sha256": "6e739cbb8eb98f02ab4d32f2bf0143806290570f7ec82b227b08d03e10f485d5"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; five named printed parts are canonical, F3D/3MF are native/assembly provenance.",
+      "category": "functional_assemblies",
+      "creator": null,
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "0f952b868543f7172fd73d7878a4d839b138b2cf212a3706d54658c34d29e9d2",
+      "provenance_file_count": 3,
+      "reference_set_sha256": "17dbc85184579dec8e35bc06b58c74ad443594e65369eba83d55af29a94be076",
+      "reference_spec_sha256": "809a633dde11c4fa270421b689b2e0b91330a34ea78fc23bc7355c59210f0f3d",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-part peristaltic pump assembly with bearing plates, pump mount/base, and spacer.",
+      "source_model_id": "63883",
+      "source_pdf_sha256": "60531209d68849387fdde23d1a275beb292d2b2c36719da8e85885f11785c58e",
+      "source_title": "Peristaltic Pump (simple and working) for an automated fertilizer",
+      "source_url": "https://www.printables.com/model/63883",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "variant_family",
+        "creator_name_from_remix_context"
+      ],
+      "benchmark_id": "functional-assembly-004",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "portable_power_box",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-004/reference/portable_power_box.stl",
+          "sha256": "7d995f7cf56a2517c96dbc4f9a4f923d119fdff8a2358f5d8037c0c59c93bd9e"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; STL selected as the primary printable geometry over alternate 3MF packaging.",
+      "category": "functional_assemblies",
+      "creator": "@OK1HRA",
+      "license": "Creative Commons Attribution-ShareAlike 4.0 International",
+      "premise_sha256": "f7e4ef9fda6001e1499c80d0042e0457959f03d97075cebdfd24f45251ccdf7c",
+      "provenance_file_count": 3,
+      "reference_set_sha256": "7e17329f5e51ffc048d3cee917a343bc69d70f032c77dba88c779cc653c0d48e",
+      "reference_spec_sha256": "e2f1613e81eed80ce1b2021af15ce16dc533724bb662c3361e344d7d454812ab",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Rugged portable power-box enclosure with STL geometry and two 3MF variants.",
+      "source_model_id": "1042957",
+      "source_pdf_sha256": "8b4b65a19fbbadd61c3d8170a5a69a34ea9bc8a18c1d35839400e042cd04c0b2",
+      "source_title": "12V portable power bank (4S LFP 128 Wh) with USB charge/discharge",
+      "source_url": "https://www.printables.com/model/1042957",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "functional-assembly-005",
+      "canonical_part_count": 10,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "arduino_box_back",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/arduino_box_back.stl",
+          "sha256": "bb8b31e008745cc20a278500b92ff6d98e95b6e16378ba38efe09aa859d41a7f"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "arduino_box_servo_clip",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/arduino_box_servo_clip.stl",
+          "sha256": "870a125f5179cc6ebefeae12838468e7ff7efcd0c8627105da77e1b97bec4494"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "motor_bracket_large",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/motor_bracket_large.stl",
+          "sha256": "739aa51e082db7a875528136469dbb59dada4930c8573dc77c2a33d8b6ded139"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "motor_bracket_medium",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/motor_bracket_medium.stl",
+          "sha256": "203dcba7e5cffb9510e4e89673961946065c6be4d049ca8a82c2af5fed863e00"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "c_clamp_base",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/c_clamp_base.stl",
+          "sha256": "adef70f6a02ecc0026f8c100c9f86cfd0735995fd7abb165315bee0a3c6d388a"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "arduino_box_main",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/arduino_box_main.stl",
+          "sha256": "9f0287a736d763a657d657a482b143b03e00a254d31f6550ee06b4a46a278f54"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "pillar",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/pillar.stl",
+          "sha256": "62c47a6faaabaf4505291207e6f1076b3517b278839224c1e2841103317635c4"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "suction_base_housing",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/suction_base_housing.stl",
+          "sha256": "1a0c8ce8ea84c221b70de4e24d13ef07c74f08ddb358e8ad491691ae4c4d0638"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "calibration_plate",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/calibration_plate.stl",
+          "sha256": "78058ebc668ef038287d18c2c270808028ccbddd3beed41e296e75c6dd215252"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "motor_bracket_small",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/functional-assembly-005/reference/motor_bracket_small.stl",
+          "sha256": "2e88ee10c368bc89d1369aeb9996190ab0395f924a4964d4b3a97a4e1d9285a8"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; all ten named printed components form the documented stand.",
+      "category": "functional_assemblies",
+      "creator": "@Niklasm_1422089",
+      "license": "Creative Commons Attribution-ShareAlike 4.0 International",
+      "premise_sha256": "2fbc7dc41c69125b5c1b8efa853d520bbe1200307ade2a5ba997573c59a9553e",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "6c966d98e8c7d6baa9988244cdcc88161893efb62d3f161a5213e7b82bc4a9e1",
+      "reference_spec_sha256": "fd295d4756e5f39aba19df2fd9f6af118d310262d0df2af1eca61732d3862dc4",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-part Arduino-powered thrust-testing stand with enclosure, motor brackets, clamps, base, calibration plate, and supports.",
+      "source_model_id": "764679",
+      "source_pdf_sha256": "5b720368cbf7ca7a2e79e54a584ba60acbb09699dbef6c7322497a9ee2fab25c",
+      "source_title": "Automated Thrust Testing Stand Powered by Arduino",
+      "source_url": "https://www.printables.com/model/764679",
+      "split_assignment": "holdout"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "holder-organizer-001",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "trimmer_wall_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/holder-organizer-001/reference/trimmer_wall_mount.stl",
+          "sha256": "d196581094aa8cbf1b3d930db3f54ff4efeba011fb7dbae7b06895f499ecc4a9"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing and description; printable STL selected over alternate 3MF/native source.",
+      "category": "holders_organizers",
+      "creator": "@yossarianmtu_204493",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "371b68367db20971ef8d977fd4768a6d969973a10448ffbe5b8125391645871c",
+      "provenance_file_count": 3,
+      "reference_set_sha256": "06f8956cc3fede382f3b2a90bb7d3eebe68044e2fdd82e7b31ddd8a25956bb07",
+      "reference_spec_sha256": "13e989068bd32204141de8c336539b418643601295f969b78b8b5330e0d8a1f7",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Wall mount for storing a Stihl FS91 or FS31 trimmer upright; fit is specific to the modeled machine and uses construction screws.",
+      "source_model_id": "197254",
+      "source_pdf_sha256": "d5877fb4dbe85ce166408061ab601af2c3d5ea2d571053cde3ec872546794c98",
+      "source_title": "Stihl FS91 and FS31 Trimmer Wallmount",
+      "source_url": "https://www.printables.com/model/197254",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "variant_family_requires_manual_selection"
+      ],
+      "benchmark_id": "holder-organizer-002",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "single_battery_holder",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/holder-organizer-002/reference/single_battery_holder.step",
+          "sha256": "4a640cf696310d8b89b97ea9868d9070542739dbfdcb7a4ba1362dff8b2d06e0"
+        }
+      ],
+      "canonical_selection_basis": "PDF description plus explicit single/double variant naming; single STEP selected for a deterministic one-output benchmark.",
+      "category": "holders_organizers",
+      "creator": "@Gilles_buildmaster",
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "e698910fc1df132b147f1c0f5ca0e8149557019c13b2d3f96bc3b0c07028978b",
+      "provenance_file_count": 7,
+      "reference_set_sha256": "8178426c9d256f88fa177e962709582868a04f770fe3c5b0d3fddbf729ac9cbf",
+      "reference_spec_sha256": "00327e1f834f6a65556c4b977cee8f543e79b96d54ecfa1dce6b7f2cdefdd46d",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Wall-mountable holder for one or two Stihl AP battery packs; the source documents single and double designs with countersunk mounting screws.",
+      "source_model_id": "221110",
+      "source_pdf_sha256": "4d94a1e0050aa72fe3f36659bc29cee4f6b5d7ae4c2afc32fcc41c4c84d596e8",
+      "source_title": "Stihl AP Battery Pack Holder",
+      "source_url": "https://www.printables.com/model/221110",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "holder-organizer-003",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "blower_wall_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/holder-organizer-003/reference/blower_wall_mount.stl",
+          "sha256": "82fb112bbb0ed4bcae6a4257e2ef0cdc0478cd13a80f7b1af9a89749db92a7ce"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "category": "holders_organizers",
+      "creator": null,
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "86e4af8177848d5055151b2b7d50a6c4b64705eb8727030bc640790a8eef6111",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "147db19a6fb90cb03146d81730ec9ae889444158bd5072b18368840fba858233",
+      "reference_spec_sha256": "9ff6cc4738c0d3c1f4a92f1fb05b6f415a09be659b7262c3c846ebc0ce74f494",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Wall mount for a Stihl BGA 57 blower.",
+      "source_model_id": "235202",
+      "source_pdf_sha256": "052d66cb6b996dccad375e83724dcc483f28591e6334c162fa8ee7d3b16dedad",
+      "source_title": "Stihl BGA 57 wall mount",
+      "source_url": "https://www.printables.com/model/235202",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "holder-organizer-004",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "battery_holder",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/holder-organizer-004/reference/battery_holder.stl",
+          "sha256": "5f13c9c92555e5fb4e58ba1519b871520401512657a322d9575eb42100ebcf40"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing and functional title.",
+      "category": "holders_organizers",
+      "creator": null,
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "d2ca41dc840cd096317a777385533943ef6020f7d497e1b646f908f2a621e4bf",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "ffa5363d7f7c741f8fad94f04b6dd024bed1a7d591cfcfe2afcb5ae18609d757",
+      "reference_spec_sha256": "1319b3f4086e574c3aada077f8f6d9b27cafcc38b6b69414e010fb8163258e42",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Holder for a Bafang or REENTION Polly DP-5 battery.",
+      "source_model_id": "36529",
+      "source_pdf_sha256": "cb8e41a555a1b877dea76015303769629e9d2cd3d466bb9bd5c7393e8fe41d41",
+      "source_title": "Bafang battery holder or REENTION Polly DP-5",
+      "source_url": "https://www.printables.com/model/36529",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "reference_objects_present_in_package"
+      ],
+      "benchmark_id": "holder-organizer-005",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "charger_wall_mount",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/holder-organizer-005/reference/charger_wall_mount.step",
+          "sha256": "4f0ece6f455a1a432939a0b8530227987ce5cc126713ea202bc37846dfc6dc80"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing and role distinction between mount STEP and charger reference STLs.",
+      "category": "holders_organizers",
+      "creator": "@JGlasbergen_782315",
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "34e8fa440f73b2f1bf249ffea9ad997a516b97d499d9812ad0e6f884adc36edf",
+      "provenance_file_count": 3,
+      "reference_set_sha256": "b8a9afa4e0ed5bcab42ece68da0c4109533bb7524844fcd68d59113bfdf5ec40",
+      "reference_spec_sha256": "d051a450beaba20a41a08b27febeb76df965304180a9656edd873af785624e81",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Wall-mount design for two documented charger reference models; the STEP is the mount source and the two STLs are charger reference objects.",
+      "source_model_id": "461740",
+      "source_pdf_sha256": "48f5a7fd67eeb2e861bdd5fbdaf238f92d0c150970b843a0d61931fead75827d",
+      "source_title": "Ebike Charger Wall Mount",
+      "source_url": "https://www.printables.com/model/461740",
+      "split_assignment": "holdout"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "jig-guide-001",
+      "canonical_part_count": 10,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "fraswagen",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/fraswagen.stl",
+          "sha256": "be2825e53d5a4345d48f91a4670849636a36ed5152e483b7af3e547c3c24016c"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "grundkorper",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/grundkorper.stl",
+          "sha256": "4c3bc77b4dee21c3cbd0d91629e66e9440ac2210af37a35150b760db609ed293"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "mutter",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/mutter.stl",
+          "sha256": "a311b7ce1e1f574f43c5bbfc33916d9d68df994d6d8f3c01dab35c7a9950cd2e"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "kontermutter",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/kontermutter.stl",
+          "sha256": "2e142dbaf33a4a320e73c74e9d15fcf7feb68fb22c75a95359ce4259f32bf0bc"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "x_wagen",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/x_wagen.stl",
+          "sha256": "bf75993b9ebfb4cd227fef6ed52347d025be44f77ac530af463d2095b42d24c1"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "kopfteil",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/kopfteil.stl",
+          "sha256": "4aeb9ec4668aaaa53ff24ef9eb6793d83024fa0049230b842cf5b8e6f049e767"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "griff_vorne",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/griff_vorne.stl",
+          "sha256": "827b571027b92df32ac3b14c152e96dc03bd16ac5ea71873c2a02d39f7ab14e2"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "anschlag",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/anschlag.stl",
+          "sha256": "8905acd6662df4c0a0b03ef417825539496d9f7e4c3d7f95299b885fa8f9a353"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "griff_oben",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/griff_oben.stl",
+          "sha256": "9208e26704cc44c6fa1970194d9d10051daad64a655f87b181d01fa8fcce34fe"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "wagenstopp",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-001/reference/wagenstopp.stl",
+          "sha256": "4971599452a820d9f2ec71ecec36af1098d3f7063f0b2da4b64f2ee47fb98940"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; all ten named printed components form the documented jig.",
+      "category": "jig_guides",
+      "creator": "@Hodi_959419",
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "7508cf1cddc0c3228059782282a2d6ee920882a0c171f072811057ec21c4c614",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "f8d42b56222452775e5e5fa68f2ad741f3c1771d3d568117064f40da1600d83c",
+      "reference_spec_sha256": "58da2a399c8e3e24a36c6b30e4e2c634fefe4dfee0e83405609a73eb779e2a82",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-part jig for a Domino router with carriage, guides, handles, stop, and related pieces.",
+      "source_model_id": "1633380",
+      "source_pdf_sha256": "266e0c6c444e3fa0abae035ac2c501a984231cbd17104a1b1534c517db3afe6e",
+      "source_title": "Domino router jig",
+      "source_url": "https://www.printables.com/model/1633380",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "large_accessory_family",
+        "canonical_subset_ambiguous"
+      ],
+      "benchmark_id": "jig-guide-002",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "gauge_set",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-002/reference/gauge_set.stl",
+          "sha256": "49098ec168a3d78ad3ec6d1c8718943ff8ab19577a56fa6f5e3edd1cf6d002e4"
+        }
+      ],
+      "canonical_selection_basis": "PDF purpose and file naming; principal gauge-set geometry selected while accessory/template family is retained for review.",
+      "category": "jig_guides",
+      "creator": "@FokieH_1801711",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "ea3a30bebe406b5ec62bf22f2f120cd7a41e3e877b5ee728e40738b272e43c34",
+      "provenance_file_count": 13,
+      "reference_set_sha256": "ff5f3859f6d65f7bb9f9ac64c439753083754ab70e26ecb6507405e034f2fd92",
+      "reference_spec_sha256": "7994286036fa56955a51f6973daa4b8167511dd4ce3e7c1b40ade190cf8e0801",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": true,
+      "source_description_summary": "Large router gauge/template set with support, inlays, walls, nut, and base components.",
+      "source_model_id": "870999",
+      "source_pdf_sha256": "2a053d9564df68f4e72effe86a7d1aeedbd9ce2f15a4e8a022080d74c0b1eea5",
+      "source_title": "Router gauge and milling support set",
+      "source_url": "https://www.printables.com/model/870999",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "interchangeable_template_family"
+      ],
+      "benchmark_id": "jig-guide-003",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "radius_jig",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-003/reference/radius_jig.stl",
+          "sha256": "156fe45146200c9bab8af71030957c0f781a26362668fe4a18e5ce2c847d6b6b"
+        }
+      ],
+      "canonical_selection_basis": "PDF purpose and variant naming; base jig selected, templates classified as alternatives.",
+      "category": "jig_guides",
+      "creator": "@jbfish",
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "5b52dc7d9375aaad4eadffa122eb7fcbaeb420b62281158b7ce16be294894c24",
+      "provenance_file_count": 8,
+      "reference_set_sha256": "36f55aa532f158a486c9c9d94114a3e7953ea834ea8b014013e396e0c46b25e1",
+      "reference_spec_sha256": "3aa053d6bd3edae05c342a65a39b4dc7a60cd2732142dad0fa2e4af986aecf65",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Router-radius jig with a base jig and multiple interchangeable radius templates.",
+      "source_model_id": "1643244",
+      "source_pdf_sha256": "9b81d12658452791864b90d509e537c8c9be40c2888d1d1b9a9e80947a84821d",
+      "source_title": "Router radius jig with interchangeable templates",
+      "source_url": "https://www.printables.com/model/1643244",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "jig-guide-004",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "makita_drilling_guide",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-004/reference/makita_drilling_guide.stl",
+          "sha256": "dc29a349688d6a70ef23a404551a73e087cb0473d2a623293ca13b6098a8ee0f"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; STL selected as printable geometry.",
+      "category": "jig_guides",
+      "creator": "@FrankWL",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "36a49e4ed6375356a59b0cd3b692040f5c412b3abd9e5d9aa456394d4c40ded7",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "bc68a98eb0b2f9cb826c2db2df5c212397bea57c55f16f38d26e1a80f4a7c80b",
+      "reference_spec_sha256": "0955366f2720089e82c34594522b420d91bcefdc738ea9f3f1680b12d986c15b",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Drilling guide for a Makita RT0700CX2J edge router.",
+      "source_model_id": "894352",
+      "source_pdf_sha256": "94f3311fd1b6f60e6eb369c5abbf11cde6a886614f32891359a207889f708ac9",
+      "source_title": "Bohrlehre fuer Makita RT0700CX2J Kantenfraese",
+      "source_url": "https://www.printables.com/model/894352",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "jig-guide-005",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "stave_drum_angle_jig",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/jig-guide-005/reference/stave_drum_angle_jig.stl",
+          "sha256": "1ac075b9dad8474d7980fc589b92f08046c99e3d9b5442da5fe1ccd76656dcaf"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; STL selected as printable geometry.",
+      "category": "jig_guides",
+      "creator": "@Pocahontius_200278",
+      "license": "GNU General Public License v2.0",
+      "premise_sha256": "78b0dc12443f8e335a9ed804734fcd22b2e0c424b4d956c8650b40122955f52d",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "6ed71f59041186f1c6bd8081757b786d780653834c25546b7ee7fdf2ef1422c1",
+      "reference_spec_sha256": "a797cfc5b806caf48233372e146d69ff5c2380dd35dc4dbd2cfd9466ebac5f9d",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Angle-cutting jig for stave drum construction, supplied with native F3D provenance and STL geometry.",
+      "source_model_id": "734764",
+      "source_pdf_sha256": "c1a2f6b7d6111ab54d7cf23967446055cff962db099774f39f3fbc5af53968eb",
+      "source_title": "Stave drum angle cutting jig",
+      "source_url": "https://www.printables.com/model/734764",
+      "split_assignment": "holdout"
+    },
+    {
+      "acquired_at": "2026-08-07",
+      "ambiguity_flags": [],
+      "benchmark_id": "mounting-bracket-001",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "sensor_bracket",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-001/reference/sensor_bracket.step",
+          "sha256": "ba49cf0037e2f1decff2d1e1b4cd987674f0f8be30d6cc71bb9d6901f1079d90"
+        }
+      ],
+      "canonical_selection_basis": "locked pilot canonical membership preserved from the existing pilot manifest",
+      "category": "mounting_brackets",
+      "creator": "Bent Derailleur",
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise_sha256": "069e479e26be4ad9cc403e9bf36f437fd2106c36c1487a65d2dca3f843f6157d",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "1308eab6133020635e988137183c171e839f9fb0df0ed0e1fe3172f257692d60",
+      "reference_spec_sha256": "b30b737fe2bc51d98e36b4a50b0f2bc00dc9986d21755fbbfd04867103b979b2",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": null,
+      "source_model_id": "509653",
+      "source_pdf_sha256": "241e8a0a1eac9e4a0e4008184b56624950786b22cb3bff417bfdc25b21254539",
+      "source_title": "eBike Speed Sensor Bracket (Bafang/CYC)",
+      "source_url": "https://www.printables.com/model/509653",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-07",
+      "ambiguity_flags": [],
+      "benchmark_id": "mounting-bracket-002",
+      "canonical_part_count": 2,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "load_cell_foot",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-002/reference/load_cell_foot.stl",
+          "sha256": "8779962a9bd8529258713641f2f9808934aa0ede85802494584d4edd1bc84c1e"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "scale_platform",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-002/reference/scale_platform.stl",
+          "sha256": "ee8b891b23f98a4f292bd7ce0a9bb7ae817c0a305f684e26ddbb336871c9e207"
+        }
+      ],
+      "canonical_selection_basis": "locked pilot canonical membership preserved from the existing pilot manifest",
+      "category": "mounting_brackets",
+      "creator": "Vendelator",
+      "license": "Public Domain",
+      "premise_sha256": "ed2b38836b44cc4b2381819c023583fb1336e023b9a47c035a4785fe90bd12c1",
+      "provenance_file_count": 3,
+      "reference_set_sha256": "91ade80b36cb66643af6b8bfbe38e1214a197a668fa07be175c276c672f96b4c",
+      "reference_spec_sha256": "7970f861022de54a0f3327dbde1e001114c52843767fecf29331be399146b996",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": null,
+      "source_model_id": "374800",
+      "source_pdf_sha256": "ea4c74c159ffb66cd4cb866f4a781228802905f71d533f054831ce44cb5cb45e",
+      "source_title": "Load Cell Scale Mount",
+      "source_url": "https://www.printables.com/model/374800",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-07",
+      "ambiguity_flags": [],
+      "benchmark_id": "mounting-bracket-003",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "ultrasonic_sensor_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-003/reference/ultrasonic_sensor_mount.stl",
+          "sha256": "5ffe054ae2233a95a7f6c9b15c726f28309d9bd25b4015c2ce6b2c33d65dc015"
+        }
+      ],
+      "canonical_selection_basis": "locked pilot canonical membership preserved from the existing pilot manifest",
+      "category": "mounting_brackets",
+      "creator": "NotLikeALeafOnTheWind",
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise_sha256": "cf4af83aa98e25ac424839049d7d9cde808c7fc8e35ed917215ab129b2e576a0",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "ee3ceaba662f8561636e21f7839104456592b68610bce6bf11e24af3df55d71c",
+      "reference_spec_sha256": "c2d73307d8eb73767d168515fdc9f2216d88e27af91b4ee0c323955160ea4591",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": null,
+      "source_model_id": "8524",
+      "source_pdf_sha256": "6afff888882a24d2c5555bee3ce7ba2fd645f9d5e6cf607772da5bb597c3a878",
+      "source_title": "8020 mount HC-SR04 Ultrasonic Distance Sensor w-cable tie",
+      "source_url": "https://www.printables.com/model/8524",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-07",
+      "ambiguity_flags": [],
+      "benchmark_id": "mounting-bracket-004",
+      "canonical_part_count": 2,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "dial_indicator_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/reference/dial_indicator_mount.stl",
+          "sha256": "9f2c151b91f37548a9b6bb4800eaf5cd6cf8e33dbe312b0e2e999cc5b9a2c3f7"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "rail_clamp",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/reference/rail_clamp.stl",
+          "sha256": "d69b085c8449eea38be859f34854008701a4f5f56dc1b086752315a8c1a4c405"
+        }
+      ],
+      "canonical_selection_basis": "locked pilot canonical membership preserved from the existing pilot manifest",
+      "category": "mounting_brackets",
+      "creator": "Bills Workbench",
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "1bd64dbb30861453589e9c459c1109e26c9de2e62e1dbcd3a2a15e49245e6574",
+      "provenance_file_count": 8,
+      "reference_set_sha256": "4b7c0db7760d4f196e1a339b7042ab4127f300b17286ae3082bcfc0b7b68edb7",
+      "reference_spec_sha256": "86c452d3c6797ee15e4e3041dd9f8909c190db6984c9f9d0f5149685df487803",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": null,
+      "source_model_id": "254540",
+      "source_pdf_sha256": "9eb87e04d9abb7a3e66ec2475d18390162547f197ba234adecabaa23cc11bc7f",
+      "source_title": "UPDATE: Dial indicator mount for Unimat SL or DB",
+      "source_url": "https://www.printables.com/model/254540",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-07",
+      "ambiguity_flags": [],
+      "benchmark_id": "mounting-bracket-005",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "tube_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-005/reference/tube_mount.stl",
+          "sha256": "571ec631dd8b8e0e2f941b8124455b8860f20b846eb99a7d9c0a4f0092242b8d"
+        }
+      ],
+      "canonical_selection_basis": "locked pilot canonical membership preserved from the existing pilot manifest",
+      "category": "mounting_brackets",
+      "creator": "Bert",
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "505c9f69ea87d245f4ce87dcbadf4fce49c03b475c543aa1241993ae5aa41f97",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "9b4a5b2a51d5f7ea5b176bb9e88f06be6cf14cf4b5b4db5f647a5885d93114b5",
+      "reference_spec_sha256": "7374c9fa99a2ae8301e335d46ce735b196b844656d69a6535b1ce1da9e1e12e8",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": null,
+      "source_model_id": "220421",
+      "source_pdf_sha256": "0c12030974c24ced7e257ed31a8ec75b4f4bbb26070ba48a63fa78c0cc969f59",
+      "source_title": "ButtKicker Mini LFE Sim Racing Rig Tube Mount",
+      "source_url": "https://www.printables.com/model/220421",
+      "split_assignment": "holdout"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "replacement-part-001",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "tineco_seesaw_switch",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/replacement-part-001/reference/tineco_seesaw_switch.stl",
+          "sha256": "c99831246bc1e5afbd3014c2879377616f39c005d11f1192dabeaa548f4a2b3a"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; single supplied printable geometry.",
+      "category": "replacement_parts",
+      "creator": null,
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise_sha256": "ac227f837d40f783aad2480c429ac9fa9bada67a2da2724ee758fa7dd52f03df",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "246800d4a757b1308bb9d364d2bfe97e60d30500f8ed1b20e5cde968cf46e73b",
+      "reference_spec_sha256": "5f2841cf8a32dd6d883608889b5a8b18eab659198b9400543caa5358828fb7ba",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Replacement seesaw switch for a Tineco appliance.",
+      "source_model_id": "143263",
+      "source_pdf_sha256": "78c3cbcac6a4e2455893b67615d993b611f6f370b36227611d7df79e80c9c888",
+      "source_title": "Tineco Replacement Seesaw Switch",
+      "source_url": "https://www.printables.com/model/143263",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "replacement-part-002",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "tineco_hero_latch",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/replacement-part-002/reference/tineco_hero_latch.stl",
+          "sha256": "cd2facf0af65df4f57ead15e3d989b7cda239b5a2f89ab04f000ad140990e6e6"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; STL selected over duplicate 3MF for mesh comparison.",
+      "category": "replacement_parts",
+      "creator": "@coreyward",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "79c68007fd79404bff961d8f87fa711988d854c5ca0c82fc2d9bdf6e0ad530b7",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "3aae9ae4da6bdaa1dce60ddfdf599d5dfa9f670b1e7ffd550144661c7824a0c8",
+      "reference_spec_sha256": "3798fa81fc0d9cf2d7c5f5750357699b27bd887e3f6e6831f0db83bcdfa180ea",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Replacement latch for a Tineco A10/A11 Hero accessory attachment, supplied as matched 3MF and STL geometry.",
+      "source_model_id": "534331",
+      "source_pdf_sha256": "ef02a3fd88ea34218ee9c74463817d2df303c9dfba5b3e7f73183f37cbb04890",
+      "source_title": "Tineco A10/A11 Hero Latch Replacement",
+      "source_url": "https://www.printables.com/model/534331",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "replacement-part-003",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "dyson_wand_latch",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/replacement-part-003/reference/dyson_wand_latch.step",
+          "sha256": "cbfe0f877f296f45335424bffa8c3d64f61e8181008d6d99ba9cdbd428cd7add"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing and editability; STEP selected as strongest available geometry authority.",
+      "category": "replacement_parts",
+      "creator": "@BuildX",
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise_sha256": "d75fe1e4aa310f021ae8878bbdc04512fba6f651f0501e9b251f898af84f69cd",
+      "provenance_file_count": 3,
+      "reference_set_sha256": "78b034e78445ea38bbdb093eb8ff45dd5f3c21868a3a3dac5428e754671eb409",
+      "reference_spec_sha256": "87bc26f8b3407f4c6c5605abafc16e02063570100e44ffaf81c38ba1b4070f65",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Replacement Dyson wand-tube latch supplied in STEP, STL, and 3MF forms.",
+      "source_model_id": "684679",
+      "source_pdf_sha256": "91962f37e76b8653b5af26bd63514306f62ed1bc37a145be8c897673b1d9bd4a",
+      "source_title": "[REPAIR] Dyson Wand Tube Latch V7 V8 V10 V11 V15",
+      "source_url": "https://www.printables.com/model/684679",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "remix_and_strengthened_variant_family"
+      ],
+      "benchmark_id": "replacement-part-004",
+      "canonical_part_count": 2,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "handle_top",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/replacement-part-004/reference/handle_top.stl",
+          "sha256": "9f1c73e0a35bab263f625850d237a10f3981a8a4b10a0c1df7ea2859236c1acf"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "handle_bottom",
+          "quality_classification": "nonwatertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/replacement-part-004/reference/handle_bottom.stl",
+          "sha256": "fd65df1e87a704c1f0b71f2ad7c99bcca8d92f9c8fd5ea52d281891451830806"
+        }
+      ],
+      "canonical_selection_basis": "PDF description/version evidence; strengthened top/bottom are selected as the updated design, while the original 104 mm STL remains provenance.",
+      "category": "replacement_parts",
+      "creator": "@JakubK_39835",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "f2946db26e036b4171a10ac1b18796e77870d9a2b3791693ee30a4d01483314d",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "4c17c613eeeed3260da7aad2931ba39a2d99c2e68d628c267243a052f46f897a",
+      "reference_spec_sha256": "1d82fe48e8b881fc74095c2648f11ea6053dda432e6b3cf802dd4e41da577fa9",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Remixed replacement refrigerator handle with a 104 mm mounting distance and strengthened top/bottom print variants.",
+      "source_model_id": "632514",
+      "source_pdf_sha256": "ce51c669e231184494e88e2ea8b077e6d22d2cc782998b78faeca27eabd4ad55",
+      "source_title": "Electrolux Fridge Handle",
+      "source_url": "https://www.printables.com/model/632514",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "replacement-part-005",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "analytic_brep",
+          "file_type": "step",
+          "part_id": "tumble_dryer_foot",
+          "quality_classification": "analytic_brep_authoritative",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/replacement-part-005/reference/tumble_dryer_foot.step",
+          "sha256": "d3b11cfac1fa0cc5096e93ca6454525b73ef4053dd26cb1b6e1e56b3f2234a4b"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing and analytic STEP availability.",
+      "category": "replacement_parts",
+      "creator": "@AJK_129752",
+      "license": "Public Domain",
+      "premise_sha256": "f7d35cfa4c807d6a711875137288ba94fed97ea487890f9e6ae7ea6159d3d145",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "2b7bbea6d7042df0be05231fe9bbfb90f970cbf0912cfe15185f7ff93e33245e",
+      "reference_spec_sha256": "1c710b6b0548c5288244a93d19ef2e233f7ba762ece438c5948cb051511f6f29",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Adjustable replacement foot for an AEG/Electrolux tumble dryer, supplied in STEP and STL forms.",
+      "source_model_id": "779552",
+      "source_pdf_sha256": "6770b2848883be2432584c0308cae2f69fb639e3fb4823d8d28e034c0f8e9606",
+      "source_title": "AEG Electrolux 8996470604712 Adjustable Tumble Dryer Foot",
+      "source_url": "https://www.printables.com/model/779552",
+      "split_assignment": "holdout"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [],
+      "benchmark_id": "stand-support-001",
+      "canonical_part_count": 4,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "stand_back",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-001/reference/stand_back.stl",
+          "sha256": "5f780be178187b617a0aa4b8e70bd7c82c1197c16af76883118e5f4e8207b25d"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "stand_base",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-001/reference/stand_base.stl",
+          "sha256": "8c25c03290bafa518d7fc0a6296ea72b3d56d17c605937f0c9b6fd8922204f91"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "magsafe_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-001/reference/magsafe_mount.stl",
+          "sha256": "c508e6763d51ce401fe67d1c7e6a8267ebf18b1c6ba6e1af678cd03361fdd2ee"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "stand_peg",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-001/reference/stand_peg.stl",
+          "sha256": "302d141c29d772e6c26501d09e65206e218a4abf64d4eabe0d91b785f2092757"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; all four named printed parts form the stand.",
+      "category": "stand_supports",
+      "creator": "@AleVit_857771",
+      "license": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+      "premise_sha256": "06cc1b38d43678c490d227a7d9b8d7d6339135b60b9e09249f74b3290dcdaf1c",
+      "provenance_file_count": 1,
+      "reference_set_sha256": "80ddd5206b6895b2be127f9e0fa4b6d474868c73bb704fa09d6eaa50447d1e21",
+      "reference_spec_sha256": "51df09fca5f4092ff4ab766e15c0da948451c92d498f404ade2501ae7282d819",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-part iPhone MagSafe stand with base, back, MagSafe part, and peg.",
+      "source_model_id": "619648",
+      "source_pdf_sha256": "3aa8e449d3d8d7b09020d91d6e677b8271c277a48e4923f3ca9b8955058693d9",
+      "source_title": "iPhone MagSafe Stand (Grovemade Inspired)",
+      "source_url": "https://www.printables.com/model/619648",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "large_parameter_variant_family",
+        "variant_selection_manual_annotation",
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "stand-support-002",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "corsair_phone_holder_77x47",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-002/reference/corsair_phone_holder_77x47.stl",
+          "sha256": "c5772c1bb400e9764205837785ccbfb340e751024a664cedcd66ad7d6090a27c"
+        }
+      ],
+      "canonical_selection_basis": "PDF parameter family plus manual benchmark annotation selecting one named variant.",
+      "category": "stand_supports",
+      "creator": null,
+      "license": "Creative Commons Attribution-ShareAlike 4.0 International",
+      "premise_sha256": "92b9ca3c48c8050a2e2ee8745f1604155d4b505f2de121d75e610c119c859463",
+      "provenance_file_count": 42,
+      "reference_set_sha256": "7bc3d2c04183afbd3d7f18411edb613f30aab86d2b62804a7d7a40f0d0ca8eab",
+      "reference_spec_sha256": "15d55907d5c21547a0b96382a0b3bf30daee7bc15f68d06241f8de9d1ca896b3",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": true,
+      "source_description_summary": "Large parameter family of phone-holder variants for Corsair K70/K65 RGB keyboards.",
+      "source_model_id": "156599",
+      "source_pdf_sha256": "182b53ad28967f9b9b3ba06e3d0c481696104a5880eb29ea8eb07becefa36a45",
+      "source_title": "Phone stand for Corsair K70/K65 RGB",
+      "source_url": "https://www.printables.com/model/156599",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "variant_family",
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "stand-support-003",
+      "canonical_part_count": 1,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "remarkable_stand",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-003/reference/remarkable_stand.stl",
+          "sha256": "5986edd9d4992b8cdc6cb25e449a8cf998d6ed904e8c8f4a5ebfec4336360c3d"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; standard variant selected over no-folio alternate.",
+      "category": "stand_supports",
+      "creator": null,
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise_sha256": "b33394730d7bca57edf4d03e63e40930d14ee3c0f4fe39795d8ef542da6ceddf",
+      "provenance_file_count": 4,
+      "reference_set_sha256": "dc981f4cd91d54ca776ac213cc54a91dc7db02984e6c78f5aa0e28f66ede8786",
+      "reference_spec_sha256": "116480a6d31a171b326f3b4ad0e02165e914e31b342dbbd7d59f5fefd7bdfab1",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Stand for a reMarkable 2 tablet with a standard and no-folio STL variant plus 3MF/native provenance.",
+      "source_model_id": "360916",
+      "source_pdf_sha256": "5bc1c4001f5b9e99100a30ef17ce06dd2b32211c506498f84381d9914fc4115c",
+      "source_title": "reMarkable 2 tablet stand",
+      "source_url": "https://www.printables.com/model/360916",
+      "split_assignment": "development"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "reference_object_present_in_package"
+      ],
+      "benchmark_id": "stand-support-004",
+      "canonical_part_count": 4,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "engine_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-004/reference/engine_mount.stl",
+          "sha256": "87be4a91693f4f62d1dd11f81ecf11455775461d2cf6036345007ab1b05876a9"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "load_cell_mount",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-004/reference/load_cell_mount.stl",
+          "sha256": "1a26cddbe8c97db5e1f4663042e256f599e5aefd4a554c35f13309a18688af56"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "engine_mount_pin",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-004/reference/engine_mount_pin.stl",
+          "sha256": "7d2bf26c6a2d0e7e1dcfa5754fb709718cfe1c07c32b43eea7813ea03e23c504"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "stand_base",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-004/reference/stand_base.stl",
+          "sha256": "f0f3ef5c19a2f988244892f1bc3271c7613eca073881db484ca7867e70d9c334"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; the S-beam reference STL is excluded from canonical outputs.",
+      "category": "stand_supports",
+      "creator": "@Firefly_1626845",
+      "license": "GNU General Public License v2.0",
+      "premise_sha256": "d58c8d336462e0b80ff39da8cb8643c7c41885ddfad9af5287f76c25a5c277ad",
+      "provenance_file_count": 2,
+      "reference_set_sha256": "ade5743af60371b401365485be27c4341115fc5f4a2fa8de87f708691cfffbd5",
+      "reference_spec_sha256": "7c05e2daf89f77b25a9f220e860dfce108ac51a44fa65ef53c30c9108f0cc0a7",
+      "reference_spec_sufficiency": "moderate",
+      "replacement_recommended": false,
+      "source_description_summary": "Multi-part rocket-engine test stand with engine mount, load-cell mount, pin, and base; the S-beam reference STL is not a printed design output.",
+      "source_model_id": "717690",
+      "source_pdf_sha256": "ef6b2fb95d5af49e6ff8588e1252c4973890e79b204c3a8e19f091a5cd056cab",
+      "source_title": "Model rocket engine test stand \u2013 S-beam load cell",
+      "source_url": "https://www.printables.com/model/717690",
+      "split_assignment": "validation"
+    },
+    {
+      "acquired_at": "2026-08-08",
+      "ambiguity_flags": [
+        "creator_name_not_extractable_from_bundled_pdf"
+      ],
+      "benchmark_id": "stand-support-005",
+      "canonical_part_count": 3,
+      "canonical_parts": [
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "led_holder",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-005/reference/led_holder.stl",
+          "sha256": "2622e9b31be915e2dd3173aa99d176294e3890d8134674930cede5140fc38c3a"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "long_segment",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-005/reference/long_segment.stl",
+          "sha256": "6d8b223aad7423a90889662484fd6877266c20cc0117d1a741d9c020c8e5a150"
+        },
+        {
+          "authority": "mesh_derived",
+          "file_type": "stl",
+          "part_id": "bottom_hook",
+          "quality_classification": "watertight_mesh_reference",
+          "relative_path": "data/external-benchmarks/external-cad-50-v1/stand-support-005/reference/bottom_hook.stl",
+          "sha256": "f9937eb50bb0d842b9a6339c8f2ccd6bca90219853adc7f00108c79b37bf6ec5"
+        }
+      ],
+      "canonical_selection_basis": "PDF model-file listing; STL printed parts are canonical, while STEP/F3D/3MF assembly sources are provenance.",
+      "category": "stand_supports",
+      "creator": null,
+      "license": "Public Domain",
+      "premise_sha256": "e414af01a4f2941077789865d4b78852304fb08f923ff0ef55e471ea27c3e947",
+      "provenance_file_count": 4,
+      "reference_set_sha256": "8e082a011704369104f4213da9cfb280e3a1e3a1b76d62f3094df72803f401b8",
+      "reference_spec_sha256": "0d05f133823c67d73064000cffa965c576d5a2ea97b5446394c75ef5c9f052c9",
+      "reference_spec_sufficiency": "minimal",
+      "replacement_recommended": false,
+      "source_description_summary": "Adjustable plant-box LED holder with holder, long segment, and bottom hook printed components.",
+      "source_model_id": "58670",
+      "source_pdf_sha256": "299b94de47918a4eda44ca87e3052c14e70d52e1780d6f7ef58a641325ece4f0",
+      "source_title": "Plant box LED holder (adjustable)",
+      "source_url": "https://www.printables.com/model/58670",
+      "split_assignment": "holdout"
+    }
+  ],
+  "projects_requiring_replacement_consideration": [
+    "functional-assembly-002",
+    "jig-guide-002",
+    "stand-support-002"
+  ],
+  "provider_calls": 0,
+  "reference_authority_policy": {
+    "native_source": "provenance_only",
+    "step_brep": "analytic_brep_authoritative when topology is valid",
+    "stl_3mf": "mesh-derived; closed-volume metrics unavailable when non-watertight"
+  },
+  "requirement_vs_similarity_separate": true,
+  "schema_version": "external-cad-benchmark-corpus-freeze-report-v1",
+  "split_counts": {
+    "development": 30,
+    "holdout": 10,
+    "validation": 10
+  },
+  "status": "frozen",
+  "worker_executions": 0
+}

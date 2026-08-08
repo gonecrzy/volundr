@@ -115,9 +115,11 @@ Repeat `--reference-file` for a multi-part project and use repeated
 map every canonical filename to a unique neutral part ID; input order is not
 used for identity.
 
-STL, STEP, and BREP are supported. STL units are explicitly recorded as
-`assumed_mm` unless specified by benchmark metadata. STEP/BREP units are
-recorded as `unverified_model_units` unless supplied by the source metadata.
+STL, STEP, BREP, and evaluator-only 3MF references are supported. 3MF remains
+mesh-derived evidence and is not an authoritative generated-CAD format. STL
+and 3MF units are explicitly recorded as `assumed_mm` unless specified by
+benchmark metadata. STEP/BREP units are recorded as `unverified_model_units`
+unless supplied by the source metadata.
 
 Derived facts are generic only: file hash/type, bounding-box sizes, volume,
 surface area, center of mass, component/solid counts where defensible, mesh

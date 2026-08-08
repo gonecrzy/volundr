@@ -153,6 +153,9 @@ def import_reference(
             file_type=entry["file_type"],
             sha256=entry["sha256"],
             original_filename=entry["original_filename"],
+            authority=entry["derived"].get("authority"),
+            quality_classification=entry["derived"].get("quality_classification"),
+            selection_reason=entry.get("selection_reason"),
         )
         for entry in canonical_entries
     )
@@ -171,6 +174,14 @@ def import_reference(
         reference_output_mapping=dict(metadata.get("reference_output_mapping", {})),
         premise=metadata["premise"],
         reference_spec=metadata["reference_spec"],
+        reference_spec_sufficiency=metadata.get("reference_spec_sufficiency")
+        or metadata["reference_spec"].get("sufficiency"),
+        source_model_id=metadata.get("source_model_id"),
+        source_pdf_sha256=metadata.get("source_pdf_sha256"),
+        source_description_summary=metadata.get("source_description_summary"),
+        canonical_selection_basis=metadata.get("canonical_selection_basis"),
+        ambiguity_flags=tuple(str(item) for item in (metadata.get("ambiguity_flags") or [])),
+        replacement_recommended=bool(metadata.get("replacement_recommended", False)),
         status="imported",
     )
     updated_manifest = manifest.with_project(updated_project)
@@ -218,7 +229,6 @@ def _validate_source_metadata(metadata: dict[str, Any]) -> None:
     required = (
         "source_site",
         "source_url",
-        "creator",
         "source_title",
         "license",
         "acquired_at",
@@ -233,6 +243,9 @@ def _validate_source_metadata(metadata: dict[str, Any]) -> None:
                 raise BenchmarkImportError("reference_spec must be a JSON object")
         elif not isinstance(value, str) or not value.strip():
             raise BenchmarkImportError(f"source metadata requires non-empty {key}")
+    creator = metadata.get("creator")
+    if creator is not None and (not isinstance(creator, str) or not creator.strip()):
+        raise BenchmarkImportError("creator must be a non-empty string when supplied")
     facts = metadata["reference_spec"].get("facts", [])
     if not isinstance(facts, list):
         raise BenchmarkImportError("reference_spec.facts must be a list when supplied")
@@ -278,6 +291,7 @@ def _resolve_canonical_specs(metadata: dict[str, Any], paths: list[Path]) -> lis
             {
                 "part_id": "primary_part",
                 "source_filename": paths[0].name,
+                "selection_reason": "single canonical reference file supplied by intake",
                 "source_path": str(paths[0]),
             }
         ]
@@ -305,11 +319,23 @@ def _resolve_canonical_specs(metadata: dict[str, Any], paths: list[Path]) -> lis
         if normalized_part_id in seen_ids:
             raise BenchmarkImportError("canonical part IDs must be unique")
         source_name = _safe_filename(source_filename, "canonical source_filename")
+        selection_reason = item.get(
+            "selection_reason",
+            "explicit canonical membership from intake metadata",
+        )
+        if not isinstance(selection_reason, str) or not selection_reason.strip():
+            raise BenchmarkImportError("canonical reference selection_reason must be a non-empty string")
         if source_name in seen_names:
             raise BenchmarkImportError("canonical source paths must be unique")
         seen_ids.add(normalized_part_id)
         seen_names.add(source_name)
-        specs.append({"part_id": normalized_part_id, "source_filename": source_name})
+        specs.append(
+            {
+                "part_id": normalized_part_id,
+                "source_filename": source_name,
+                "selection_reason": selection_reason.strip(),
+            }
+        )
     input_by_name: dict[str, Path] = {}
     for path in paths:
         if path.name in input_by_name:
@@ -399,6 +425,7 @@ def _analyze_canonical_parts(
                 "file_type": file_type,
                 "sha256": source_hash,
                 "original_filename": spec["source_filename"],
+                "selection_reason": spec["selection_reason"],
                 "derived": derived,
             }
         )

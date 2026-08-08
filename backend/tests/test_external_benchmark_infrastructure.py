@@ -12,6 +12,7 @@ from app.services.external_benchmarks.ingestion import (
     import_reference,
     sha256_file,
 )
+from app.services.external_benchmarks.reference_analysis import analyze_reference
 from app.services.external_benchmarks.models import (
     BenchmarkManifest,
     BenchmarkRunRecord,
@@ -305,3 +306,141 @@ def test_reference_bytes_live_under_ignored_data_root() -> None:
     ]
     assert reference_paths
     assert all(path.startswith("data/") for path in reference_paths)
+
+
+def _write_3mf(path: Path, *, watertight: bool = True) -> None:
+    vertices = "".join(
+        f'<vertex x="{x}" y="{y}" z="{z}" />'
+        for x, y, z in (
+            (0, 0, 0), (4, 0, 0), (4, 3, 0), (0, 3, 0),
+            (0, 0, 2), (4, 0, 2), (4, 3, 2), (0, 3, 2),
+        )
+    )
+    triangles = [
+        (0, 2, 1), (0, 3, 2), (4, 5, 6), (4, 6, 7),
+        (0, 1, 5), (0, 5, 4), (1, 2, 6), (1, 6, 5),
+        (2, 3, 7), (2, 7, 6), (3, 0, 4), (3, 4, 7),
+    ]
+    if not watertight:
+        triangles = triangles[:-1]
+    faces = "".join(f'<triangle v1="{a}" v2="{b}" v3="{c}" />' for a, b, c in triangles)
+    model = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<model unit="millimeter" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">'
+        '<resources><object id="1" type="model"><mesh><vertices>'
+        + vertices
+        + '</vertices><triangles>'
+        + faces
+        + '</triangles></mesh></object></resources>'
+        '<build><item objectid="1" /></build></model>'
+    )
+    import zipfile
+
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("3D/3dmodel.model", model)
+
+
+def _write_component_3mf(path: Path) -> None:
+    component_model = (
+        '<model xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" unit="millimeter">'
+        '<resources><object id="1" type="model"><mesh><vertices>'
+        '<vertex x="0" y="0" z="0"/><vertex x="2" y="0" z="0"/>'
+        '<vertex x="2" y="3" z="0"/><vertex x="0" y="3" z="0"/>'
+        '<vertex x="0" y="0" z="1"/><vertex x="2" y="0" z="1"/>'
+        '<vertex x="2" y="3" z="1"/><vertex x="0" y="3" z="1"/>'
+        '</vertices><triangles>'
+        '<triangle v1="0" v2="1" v3="2"/><triangle v1="0" v2="2" v3="3"/>'
+        '<triangle v1="4" v2="6" v3="5"/><triangle v1="4" v2="7" v3="6"/>'
+        '<triangle v1="0" v2="4" v3="5"/><triangle v1="0" v2="5" v3="1"/>'
+        '<triangle v1="1" v2="5" v3="6"/><triangle v1="1" v2="6" v3="2"/>'
+        '<triangle v1="2" v2="6" v3="7"/><triangle v1="2" v2="7" v3="3"/>'
+        '<triangle v1="4" v2="0" v3="3"/><triangle v1="4" v2="3" v3="7"/>'
+        '</triangles></mesh></object></resources></model>'
+    )
+    root_model = (
+        '<model xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" '
+        'xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06" unit="millimeter">'
+        '<resources><object id="2" type="model"><components>'
+        '<component p:path="/3D/Objects/component.model" objectid="1" '
+        'transform="1 0 0 0 1 0 0 0 1 4 5 6"/>'
+        '</components></object></resources><build><item objectid="2"/></build></model>'
+    )
+    import zipfile
+
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("3D/3dmodel.model", root_model)
+        archive.writestr("3D/Objects/component.model", component_model)
+
+
+def test_analyze_3mf_reports_mesh_derived_quality_and_facts(tmp_path: Path) -> None:
+    reference = tmp_path / "reference.3mf"
+    _write_3mf(reference)
+
+    result = analyze_reference(reference)
+
+    assert result["file_type"] == "3mf"
+    assert result["authority"] == "mesh_derived"
+    assert result["quality_classification"] == "watertight_mesh_reference"
+    assert result["mesh"]["watertight"] is True
+    assert result["mesh"]["vertex_count"] == 8
+    assert result["mesh"]["face_count"] == 12
+    assert result["geometry"]["volume_mm3"] == pytest.approx(24.0)
+
+
+def test_analyze_3mf_marks_open_mesh_and_withholds_volume(tmp_path: Path) -> None:
+    reference = tmp_path / "open.3mf"
+    _write_3mf(reference, watertight=False)
+
+    result = analyze_reference(reference)
+
+    assert result["quality_classification"] == "nonwatertight_mesh_reference"
+    assert result["mesh"]["watertight"] is False
+    assert result["geometry"]["volume_mm3"] is None
+
+
+def test_analyze_component_3mf_resolves_external_mesh_objects(tmp_path: Path) -> None:
+    reference = tmp_path / "component.3mf"
+    _write_component_3mf(reference)
+
+    result = analyze_reference(reference)
+
+    assert result["quality_classification"] == "watertight_mesh_reference"
+    assert result["mesh"]["object_count"] == 1
+    assert result["mesh"]["build_item_count"] == 1
+    assert result["geometry"]["bounding_box_mm"] == {
+        "size_x": pytest.approx(2.0),
+        "size_y": pytest.approx(3.0),
+        "size_z": pytest.approx(1.0),
+    }
+
+
+def test_frozen_corpus_validation_requires_ten_categories_and_balanced_split() -> None:
+    from app.services.external_benchmarks.corpus import assign_balanced_split, validate_corpus_shape
+
+    projects = [
+        {"benchmark_id": f"category-{index:02d}-{ordinal}", "category": f"category_{index:02d}"}
+        for index in range(10)
+        for ordinal in range(5)
+    ]
+    assignments = assign_balanced_split(projects)
+    enriched = [{**project, "split_assignment": assignments[project["benchmark_id"]]} for project in projects]
+
+    validate_corpus_shape(enriched, expected_projects=50, expected_categories=10)
+    assert {assignment for assignment in assignments.values()} == {"development", "validation", "holdout"}
+    assert all(
+        sum(1 for project in enriched if project["category"] == category and project["split_assignment"] == assignment)
+        == expected
+        for category in {project["category"] for project in enriched}
+        for assignment, expected in (("development", 3), ("validation", 1), ("holdout", 1))
+    )
+
+
+def test_holdout_policy_excludes_project_details() -> None:
+    from app.services.external_benchmarks.corpus import build_holdout_policy
+
+    policy = build_holdout_policy()
+
+    assert "category" in policy["allowed_metadata"]
+    assert "premise" in policy["disallowed_metadata"]
+    assert "reference_spec" in policy["disallowed_metadata"]
+    assert "derived_geometry" in policy["disallowed_metadata"]

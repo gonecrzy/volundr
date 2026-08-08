@@ -11,7 +11,7 @@ from typing import Any
 
 _PROJECT_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)+$")
 _PART_ID_RE = re.compile(r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$")
-_FILE_TYPE_VALUES = {"stl", "step", "brep"}
+_FILE_TYPE_VALUES = {"3mf", "stl", "step", "brep"}
 _PROVENANCE_FILE_TYPE_VALUES = {"3mf", "dwg", "f3d", "pdf", "stl", "step", "brep", "unknown"}
 _SPLIT_VALUES = {"pilot", "development", "validation", "holdout"}
 _STATUS_VALUES = {"placeholder", "imported", "ready", "retired"}
@@ -48,6 +48,9 @@ class ReferenceFileRecord:
     file_type: str
     sha256: str
     original_filename: str
+    authority: str | None = None
+    quality_classification: str | None = None
+    selection_reason: str | None = None
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "ReferenceFileRecord":
@@ -66,6 +69,9 @@ class ReferenceFileRecord:
             file_type=file_type,
             sha256=sha256,
             original_filename=_required_string(payload, "original_filename"),
+            authority=_optional_string(payload, "authority"),
+            quality_classification=_optional_string(payload, "quality_classification"),
+            selection_reason=_optional_string(payload, "selection_reason"),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -118,6 +124,13 @@ class BenchmarkProject:
     reference_output_mapping: dict[str, str] = field(default_factory=dict)
     premise: str = ""
     reference_spec: dict[str, Any] = field(default_factory=dict)
+    reference_spec_sufficiency: str | None = None
+    source_model_id: str | None = None
+    source_pdf_sha256: str | None = None
+    source_description_summary: str | None = None
+    canonical_selection_basis: str | None = None
+    ambiguity_flags: tuple[str, ...] = ()
+    replacement_recommended: bool = False
     split_assignment: str = "pilot"
     status: str = "placeholder"
 
@@ -180,6 +193,15 @@ class BenchmarkProject:
             },
             premise=premise,
             reference_spec=reference_spec,
+            reference_spec_sufficiency=_optional_string(payload, "reference_spec_sufficiency"),
+            source_model_id=_optional_string(payload, "source_model_id"),
+            source_pdf_sha256=_optional_hash(payload, "source_pdf_sha256"),
+            source_description_summary=_optional_string(payload, "source_description_summary"),
+            canonical_selection_basis=_optional_string(payload, "canonical_selection_basis"),
+            ambiguity_flags=tuple(
+                str(item) for item in (payload.get("ambiguity_flags") or [])
+            ),
+            replacement_recommended=bool(payload.get("replacement_recommended", False)),
             split_assignment=split_assignment,
             status=status,
         )

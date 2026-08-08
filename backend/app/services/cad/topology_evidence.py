@@ -55,6 +55,7 @@ def collect_topology_evidence(
     *,
     expected_solid_count: int,
     allow_disconnected_solids: bool,
+    include_solid_pairs: bool = True,
 ) -> dict[str, Any]:
     """Measure a model without recommending a geometry operation or strategy."""
 
@@ -100,10 +101,14 @@ def collect_topology_evidence(
         _solid_measurement(index, solid, evidence["measurement_errors"])
         for index, solid in enumerate(solids)
     ]
-    evidence["solid_pairs"] = [
-        _pair_measurement(left_index, left, right_index, right, evidence["measurement_errors"])
-        for (left_index, left), (right_index, right) in combinations(enumerate(solids), 2)
-    ]
+    evidence["solid_pairs"] = (
+        [
+            _pair_measurement(left_index, left, right_index, right, evidence["measurement_errors"])
+            for (left_index, left), (right_index, right) in combinations(enumerate(solids), 2)
+        ]
+        if include_solid_pairs
+        else []
+    )
 
     outcome = "valid"
     valid = evidence["overall_shape_valid"]

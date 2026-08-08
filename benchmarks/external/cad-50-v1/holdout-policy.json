@@ -1,0 +1,73 @@
+{
+  "allowed_metadata": [
+    "benchmark_id",
+    "category",
+    "split_assignment"
+  ],
+  "disallowed_metadata": [
+    "source_title",
+    "creator",
+    "source_url",
+    "premise",
+    "reference_spec",
+    "reference_geometry",
+    "derived_geometry",
+    "run_results"
+  ],
+  "protected_after_freeze": true,
+  "protected_projects": [
+    {
+      "benchmark_id": "adapter-coupler-005",
+      "category": "adapter_coupler",
+      "split_assignment": "holdout"
+    },
+    {
+      "benchmark_id": "clamp-clip-005",
+      "category": "clamp_clip",
+      "split_assignment": "holdout"
+    },
+    {
+      "benchmark_id": "container-case-005",
+      "category": "container_cases",
+      "split_assignment": "holdout"
+    },
+    {
+      "benchmark_id": "electronics-enclosure-005",
+      "category": "electronics_enclosures",
+      "split_assignment": "holdout"
+    },
+    {
+      "benchmark_id": "functional-assembly-005",
+      "category": "functional_assemblies",
+      "split_assignment": "holdout"
+    },
+    {
+      "benchmark_id": "holder-organizer-005",
+      "category": "holders_organizers",
+      "split_assignment": "holdout"
+    },
+    {
+      "benchmark_id": "jig-guide-005",
+      "category": "jig_guides",
+      "split_assignment": "holdout"
+    },
+    {
+      "benchmark_id": "mounting-bracket-005",
+      "category": "mounting_brackets",
+      "split_assignment": "holdout"
+    },
+    {
+      "benchmark_id": "replacement-part-005",
+      "category": "replacement_parts",
+      "split_assignment": "holdout"
+    },
+    {
+      "benchmark_id": "stand-support-005",
+      "category": "stand_supports",
+      "split_assignment": "holdout"
+    }
+  ],
+  "public_model_caveat": "repository/process holdout; not proof of model non-exposure during training",
+  "qualification_gate": "phase_2_holdout_opened_explicitly",
+  "schema_version": "external-cad-benchmark-holdout-policy-v1"
+}
