@@ -1,0 +1,207 @@
+{
+  "schema_version": "phase-1b-recovery-b-policy-boundary-reconstruction-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "status": "reconstructed_no_implementation",
+  "decision": "RECOVERY_B_MULTIPLE_BOUNDARIES",
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "historical_evidence_mutated": false,
+  "validation_and_holdout_access": false,
+  "source_evidence": [
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-semantic-unverifiable-reconstruction.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-subclusters.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-semantic-policy-evaluation.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-generated-concept-quality-audit/evidence.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-c-live-two-output-confirmation-rerun/post-run-validation.json"
+  ],
+  "inventory": {
+    "historical_b_requirement_count": 41,
+    "historical_b_cells": 9,
+    "historical_b_categories": 9,
+    "after_recovery_a_and_c_count": 41,
+    "after_recovery_a_and_c_interpretation": "A canonicalizes hard dimensional facts but does not make model-selected dimensions hard. C restores output identity/scope but does not change requirement authority or functional semantics.",
+    "additional_live_synthetic_composite_count": 1,
+    "combined_audit_count": 42,
+    "mode_counts": {"premise_only": 1, "comparison_specification": 40, "synthetic_recovery_c": 1}
+  },
+  "policy_counts": {
+    "historical_development_inventory": {
+      "B1_REVIEW_REQUIRED": 7,
+      "B2_INFORMATIONAL_DESIGN_OBJECTIVE": 1,
+      "B3_FLEXIBLE_MODEL_CHOICE": 31,
+      "B4_MACHINE_REQUIRED_RETAIN": 1,
+      "B5_COMPOSITE_SPLIT_REQUIRED": 1,
+      "B6_INSUFFICIENT_EVIDENCE": 0
+    },
+    "including_live_recovery_c_synthetic": {
+      "B1_REVIEW_REQUIRED": 7,
+      "B2_INFORMATIONAL_DESIGN_OBJECTIVE": 1,
+      "B3_FLEXIBLE_MODEL_CHOICE": 31,
+      "B4_MACHINE_REQUIRED_RETAIN": 1,
+      "B5_COMPOSITE_SPLIT_REQUIRED": 2,
+      "B6_INSUFFICIENT_EVIDENCE": 0
+    },
+    "counting_note": "The historical 41 includes req_instrument_usability as a B candidate. The current synthetic req_printable_wall_and_clearance is additional and is not part of the frozen development survey. Both are B5 composite cases in this reconstruction."
+  },
+  "candidate_inventory": {
+    "B1_REVIEW_REQUIRED": {
+      "authority_rule": "Explicit user functional/objective claim without a defensible deterministic acceptance test; preserve as review obligation and never auto-PASS.",
+      "records": [
+        {"project": "clamp-clip-001", "mode": "comparison_specification", "requirement_id": "req_printable", "raw_evidence": "It should be printable"},
+        {"project": "container-case-002", "mode": "comparison_specification", "requirement_id": "req_portable_case", "raw_evidence": "Design a portable carry case for a cylindrical battery."},
+        {"project": "container-case-002", "mode": "comparison_specification", "requirement_id": "req_protect_cell", "raw_evidence": "It should protect the cell"},
+        {"project": "electronics-enclosure-002", "mode": "comparison_specification", "requirement_id": "req_protect_handling", "raw_evidence": "protect it during handling"},
+        {"project": "functional-assembly-001", "mode": "comparison_specification", "requirement_id": "req_protect_electronics", "raw_evidence": "protect the electronics during use."},
+        {"project": "mounting-bracket-003", "mode": "comparison_specification", "requirement_id": "requiring_special_removal_tool", "raw_evidence": "without requiring a special removal tool"},
+        {"project": "mounting-bracket-003", "mode": "comparison_specification", "requirement_id": "standalone_usability", "raw_evidence": "usable on its own where practical"}
+      ],
+      "common_frozen_representation": {"source": "initial_user", "origin": "user_explicit", "authority": "required", "protected": false, "classification": "machine_required", "verifier_status": "unsupported_verifier"}
+    },
+    "B2_INFORMATIONAL_DESIGN_OBJECTIVE": {
+      "authority_rule": "Preserve design intent/context for generation and revision, but do not create a final blocker or a fabricated numeric constraint.",
+      "records": [
+        {"project": "holder-organizer-003", "mode": "comparison_specification", "requirement_id": "req_mount_type", "raw_evidence": "Design a compact wall mount for a Stihl BGA 57 blower."}
+      ],
+      "common_frozen_representation": {"source": "initial_user", "origin": "user_explicit", "authority": "required", "protected": false, "classification": "machine_required", "verifier_status": "unsupported_verifier"},
+      "boundary_note": "The object/type premise is retained as design intent. If a future user supplies a measurable mount/interface condition, that separate fact becomes B4 or an existing hard verifier requirement."
+    },
+    "B3_FLEXIBLE_MODEL_CHOICE": {
+      "authority_rule": "Model/delegated values remain flexible, revisable, and unprotected. Their lack of a verifier is not a final blocker because they are not user-hard facts.",
+      "common_frozen_representation": {"source": "volundr_proposal", "origin": "model_design_choice", "authority": "flexible", "protected": false, "classification": "machine_required", "verifier_status": "unsupported_verifier"},
+      "records": [
+        {"project": "container-case-002", "ids": ["box_envelope_x", "box_envelope_y", "box_envelope_z", "lid_envelope_x", "lid_envelope_y", "lid_envelope_z", "req_battery_variants"], "raw_evidence": ["Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.", "Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.", "battery_variants: ['26650', '26800', '26350'] descriptive"]},
+        {"project": "electronics-enclosure-001", "ids": ["case_bottom_envelope_x", "case_bottom_envelope_y", "case_bottom_envelope_z", "case_top_envelope_x", "case_top_envelope_y", "case_top_envelope_z"], "raw_evidence": ["Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.", "Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm."]},
+        {"project": "functional-assembly-001", "ids": ["dim_scale_body_envelope", "dim_scale_button_envelope", "dim_scale_front_cover_envelope", "dim_scale_platform_envelope", "req_bluetooth_scale_function"], "raw_evidence": ["Output scale_* should have the recorded comparison envelopes.", "function: Bluetooth coffee/espresso scale descriptive"]},
+        {"project": "holder-organizer-003", "ids": ["envelope_depth", "envelope_height", "envelope_width", "req_supported_tool"], "raw_evidence": ["Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.", "supported_tool: Stihl BGA 57 descriptive"]},
+        {"project": "mounting-bracket-003", "ids": ["overall_envelope_x", "overall_envelope_y", "overall_envelope_z"], "raw_evidence": "overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm"},
+        {"project": "replacement-part-003", "ids": ["envelope_height", "envelope_length", "envelope_width"], "raw_evidence": "Output dyson_wand_latch should have an overall envelope of approximately 57.803038609853225 mm x 7.84908338027249 mm x 18.2000002 mm."},
+        {"project": "stand-support-003", "ids": ["envelope_depth", "envelope_height", "envelope_width"], "raw_evidence": "66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm"}
+      ],
+      "recovery_a_interaction": "Envelope dimensions may be canonically grouped when one source fact is proven, but the resulting tuple remains flexible when its authority is model_design_choice. A canonical tuple does not become a user-hard protected fact."
+    },
+    "B4_MACHINE_REQUIRED_RETAIN": {
+      "authority_rule": "A hard functional condition remains machine-required in principle. Missing deterministic evidence belongs to Recovery E or a future verifier, not to a policy downgrade.",
+      "records": [
+        {"project": "adapter-coupler-002", "mode": "premise_only", "requirement_id": "req_airflow_path", "raw_evidence": "maintain a usable airflow path", "reason": "An open/connected airflow path is an objective geometric/topological relationship; the adjective usable does not erase the hard path obligation."}
+      ],
+      "common_frozen_representation": {"source": "initial_user", "origin": "user_explicit", "authority": "required", "protected": false, "classification": "machine_required", "verifier_status": "unsupported_verifier"}
+    },
+    "B5_COMPOSITE_SPLIT_REQUIRED": {
+      "authority_rule": "Split mixed authority/semantic content before assigning policy. Do not let one composite record make delegated choices user-hard or let a soft objective create a machine blocker.",
+      "records": [
+        {"project": "electronics-enclosure-001", "mode": "comparison_specification", "requirement_id": "req_instrument_usability", "raw_evidence": "encloses the instrument while keeping it usable", "parts": ["containment/structural relationship", "instrument usability review claim"], "frozen_representation": {"source": "initial_user", "origin": "user_explicit", "authority": "required", "protected": false, "classification": "machine_required"}},
+        {"project": "synthetic-recovery-c", "mode": "live_synthetic", "requirement_id": "req_printable_wall_and_clearance", "raw_evidence": "Choose a reasonable printable wall thickness and lid clearance.", "parts": ["delegated wall-thickness choice", "delegated lid-clearance choice", "qualitative printability objective"], "frozen_representation": {"source": "initial_user", "origin": "user_explicit", "authority": "required", "protected": true, "classification": "machine_required"}, "authority_defect": "Delegated choices were embedded in a protected machine-required record."}
+      ],
+      "normalization_boundary": "Requirement normalization, before ledger policy dispatch and contract materialization, must emit separate typed records while preserving the common source-fact identity and independent authority/protection."
+    }
+  },
+  "authority_audit": {
+    "historical_b_records": {
+      "model_or_proposal_authority_flexible": 31,
+      "user_explicit_authority_required": 10,
+      "protected_model_choice_records": 0,
+      "machine_required_policy_records": 41,
+      "defect": "All 31 flexible/proposal records were still classified machine_required. The 10 explicit records were not semantically separated into review, informational, or retained hard policy."
+    },
+    "delegated_choice_transition": {
+      "historical_development_evidence": "No flexible model choice was persisted as protected in the 41-record inventory.",
+      "latest_synthetic_evidence": "One composite record was protected/required despite containing delegated wall thickness and clearance choices.",
+      "future_rule": "source_fact identity relates facts but never upgrades authority; model choices remain flexible until existing promotion policy explicitly accepts them."
+    },
+    "soft_objective_transition": "The historical ten explicit records all reached machine_required policy; at minimum req_printable and the qualitative usability/protection/access records demonstrate unsupported blockers caused by policy, not by hard dimensions."
+  },
+  "a_c_re_evaluation": {
+    "recovery_a": "No B record becomes hard merely because scalar envelopes can now be represented as canonical bounds. Model-selected envelopes remain B3 flexible choices.",
+    "recovery_c": "No B record becomes hard merely because output scope is now resolvable. Per-output scope makes later policy/verifier routing safer but does not change authority.",
+    "recovery_c_live": {"concept_state": "concept_available", "candidate_state_before_b": "candidate_blocked", "hard_body_bounds": "passed", "hard_output_identity": "passed"}
+  },
+  "counterfactual_completion": {
+    "assumptions": ["A and C behavior is retained", "B records are normalized/classified according to this report", "no new Recovery-E verifiers are added", "historical generated geometry is unchanged"],
+    "sixteen_semantic_blocked_cells": {
+      "candidate_blocked": 9,
+      "candidate_ready_for_review": 7,
+      "candidate_fully_verified": 0,
+      "records": [
+        {"project": "adapter-coupler-002", "mode": "premise_only", "state": "candidate_blocked", "reason": "B4 airflow path plus E requirements"},
+        {"project": "clamp-clip-001", "mode": "comparison_specification", "state": "candidate_ready_for_review", "reason": "A fixed; printable becomes B1; remaining obligations are review"},
+        {"project": "container-case-001", "mode": "comparison_specification", "state": "candidate_blocked", "reason": "E battery-type requirement"},
+        {"project": "container-case-002", "mode": "comparison_specification", "state": "candidate_blocked", "reason": "required lid remains genuinely missing; B3 choices do not erase C2"},
+        {"project": "electronics-enclosure-001", "mode": "comparison_specification", "state": "candidate_ready_for_review", "reason": "A/C fixed; usability remains review"},
+        {"project": "electronics-enclosure-002", "mode": "comparison_specification", "state": "candidate_blocked", "reason": "E instrument-fit requirement"},
+        {"project": "functional-assembly-001", "mode": "comparison_specification", "state": "candidate_ready_for_review", "reason": "C structure restored; model choices flexible; support/electronics claims review"},
+        {"project": "functional-assembly-003", "mode": "comparison_specification", "state": "candidate_ready_for_review", "reason": "C structure restored; remaining claims review"},
+        {"project": "holder-organizer-001", "mode": "comparison_specification", "state": "candidate_blocked", "reason": "E supported-tool requirement"},
+        {"project": "holder-organizer-003", "mode": "comparison_specification", "state": "candidate_ready_for_review", "reason": "B3 choices plus review obligations"},
+        {"project": "jig-guide-003", "mode": "comparison_specification", "state": "candidate_blocked", "reason": "E template interchangeability/stability"},
+        {"project": "mounting-bracket-002", "mode": "comparison_specification", "state": "candidate_blocked", "reason": "E screw-head clearance"},
+        {"project": "mounting-bracket-003", "mode": "comparison_specification", "state": "candidate_blocked", "reason": "E cable-tie point"},
+        {"project": "replacement-part-003", "mode": "comparison_specification", "state": "candidate_ready_for_review", "reason": "B3 envelope choices plus retention review"},
+        {"project": "stand-support-001", "mode": "comparison_specification", "state": "candidate_ready_for_review", "reason": "C structure restored; alignment/support claims review"},
+        {"project": "stand-support-003", "mode": "comparison_specification", "state": "candidate_blocked", "reason": "E case-compatibility requirement"}
+      ]
+    },
+    "recovery_c_synthetic": {"before_b": "concept_available + candidate_blocked", "after_composite_split": "concept_available + candidate_ready_for_review", "candidate_fully_verified": false, "reason": "delegated choices stop blocking; qualitative printability remains review-only; no final PASS is synthesized"}
+  },
+  "printability_policy": {
+    "qualitative_easy_to_print_or_printable": "B1 review_required when stated as a user outcome; preserve generation guidance and require review, never automatic PASS.",
+    "delegated_printable_wall_or_clearance_choice": "B3 flexible_model_choice after composite split.",
+    "explicit_numeric_wall_clearance_or_overhang": "B4 machine_required_retain; route to deterministic verifier/Recovery E.",
+    "non_watertight_or_unknown_printability": "Does not become PASS from topology validity alone."
+  },
+  "feature_presence_policy": {
+    "explicit_open_top_or_required_feature": "B4 machine_required_retain when it is an explicit functional acceptance condition; missing verifier is not a reason to downgrade.",
+    "qualitative usability/access/retention/support": "B1 when human/review assessment is defensible; split any measurable fit/clearance/geometry component into B4.",
+    "model-proposed feature": "B3 or informational design proposal; never a protected user-hard requirement without promotion."
+  },
+  "anti_laxness_audit": {
+    "unknown_fit": "remains hard/unverifiable; no PASS",
+    "missing_required_output": "remains C hard failure; not review-only",
+    "explicit_dimensions": "remain A hard bounds or other machine-required facts",
+    "explicit_clearance": "remains B4/E, not B1",
+    "valid_topology": "proves structural validity only, not functional success",
+    "unsupported_verifier": "not automatically converted to review; semantic meaning decides policy",
+    "final_verification": "remains fail-closed"
+  },
+  "anti_overconstraint_audit": {
+    "model_wall_thickness": "not user-hard or protected",
+    "model_clearance": "not user-hard or protected",
+    "first_concept_dimensions": "not globally mandatory",
+    "compact_practical_easy_to_print": "no fabricated numeric constraints",
+    "comparison_dimensions": "remain mode-specific evaluator/user facts, not premise-only defaults",
+    "concept_state": "unchanged and independent of final candidate state"
+  },
+  "router_mapping": {
+    "B1_REVIEW_REQUIRED": "preserve review obligation; no geometry repair solely for absent automatic verifier",
+    "B2_INFORMATIONAL_DESIGN_OBJECTIVE": "preserve in design/revision context; no final blocker",
+    "B3_FLEXIBLE_MODEL_CHOICE": "preserve as revisable local/model choice; no user-hard blocker",
+    "B4_MACHINE_REQUIRED_RETAIN": "remain fail-closed; use existing deterministic evidence or Recovery E/verifier work",
+    "B5_COMPOSITE_SPLIT_REQUIRED": "normalize/split before policy dispatch and contract materialization",
+    "B6_INSUFFICIENT_EVIDENCE": "do not classify or weaken; collect generic evidence first"
+  },
+  "future_generic_test_matrix": [
+    "compact maps to qualitative policy without numeric synthesis",
+    "practical maps to review or informational policy by semantic role",
+    "easy to print maps to review/objective policy",
+    "explicit open top remains machine-required in principle",
+    "choose reasonable wall thickness remains flexible",
+    "choose reasonable clearance remains flexible",
+    "explicit 2 mm clearance remains hard",
+    "explicit minimum 2 mm wall remains hard",
+    "secure retention remains review unless measurable criteria are supplied",
+    "comfortable viewing angle remains review unless an angle is supplied",
+    "model assumptions never become protected user facts",
+    "user clarification can promote or change authority",
+    "composite requirement splits into typed authority-preserving records",
+    "review-required never becomes automatic PASS",
+    "concept_state remains orthogonal",
+    "candidate final verification remains fail-closed",
+    "Recovery A and C scope/output regressions remain absent"
+  ],
+  "recommended_generic_recovery_order": [
+    "normalize composite requirements and preserve source-fact identity",
+    "correct authority/protection transitions for model and delegated choices",
+    "apply B1/B2/B3/B4 policy dispatch independently of verifier availability",
+    "route review obligations without changing final fail-closed candidate semantics"
+  ],
+  "recommended_implementation_boundary": "Do not implement one broad downgrade rule. Recover B5 normalization, authority preservation, and B1/B2/B3/B4 policy routing as separate generic changes with synthetic tests before any live benchmark confirmation."
+}
