@@ -5,11 +5,11 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "5132d2d Import and lock mounting-bracket pilot references",
-  "origin_experimental_head": "e3e42f7 Build external real-world CAD benchmark pilot infrastructure",
+  "experimental_head": "116b4b4 Record mounting bracket benchmark smoke pair",
+  "origin_experimental_head": "116b4b4 Record mounting bracket benchmark smoke pair",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 two-mode external smoke completed with no production CAD changes",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -117,6 +117,7 @@
     ,"full_backend_phase_1b_hole_detector_checkpoint_1513_passed"
     ,"external_real_world_benchmark_pilot_infrastructure_built_without_provider_calls"
     ,"external_real_world_benchmark_mounting_bracket_pilot_locked_without_provider_calls"
+    ,"external_real_world_benchmark_mounting_bracket_001_two_mode_smoke_completed"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -148,7 +149,7 @@
     "status": "stable_seed_checkpoint"
   },
   "external_real_world_benchmark_pilot_status": {
-    "status": "pilot_locked_and_imported",
+    "status": "smoke_pair_complete",
     "role": "supplemental_external_real_world_benchmark",
     "benchmark_id": "mounting-brackets-v1",
     "target_project_count": 50,
@@ -172,8 +173,8 @@
       "acquired_at": "2026-08-07",
       "intake_path": "data/external-benchmarks/incoming/mounting-brackets-pilot-input.zip"
     },
-    "provider_calls": 0,
-    "benchmark_runs": 0,
+    "provider_calls": 2,
+    "benchmark_runs": 2,
     "production_workflow_changes": 0,
     "holdout_access": false,
     "manifest": "benchmarks/external/mounting-brackets-v1/manifest.json",
@@ -181,8 +182,13 @@
     "ingestion_cli": "scripts/import_external_benchmark_reference.py",
     "multi_part_import": "explicit canonical_reference_parts membership; per-part hashes and derived facts; provenance excluded from canonical count",
     "reference_spec_prompts_locked": true,
-    "smoke_runs": 0,
-    "next_action": "Run Smoke 1 and Smoke 2 for mounting-bracket-001 through the normal Volundr CAD workflow after review of this intake commit."
+    "smoke_runs": 2,
+    "smoke_evidence": "data/debug-sessions/external-benchmarks/mounting-brackets-v1/smoke-001/",
+    "smoke_modes": ["premise_only", "reference_specification"],
+    "smoke_provider_calls": 2,
+    "smoke_repair_calls": 0,
+    "smoke_fallback_calls": 0,
+    "next_action": "Review the controlled A/B smoke evidence, then decide whether to run mounting-bracket-002 through mounting-bracket-005; do not alter the product path based on this pair alone."
   },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
@@ -491,6 +497,8 @@
     ,"phase_1b_geometry_owned_measured_discrepancy_provider_calls": 0
     ,"phase_1b_hole_detector_non_circular_profile_false_positive_provider_calls": 0
     ,"phase_1b_brep_physical_hole_evidence_contract_provider_calls": 0
+    ,"external_real_world_benchmark_mounting_bracket_001_smoke_provider_calls": 2
+    ,"external_real_world_benchmark_mounting_bracket_001_smoke_repair_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -503,7 +511,7 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "5132d2d Import and lock mounting-bracket pilot references",
+  "latest_substantive_commit": "116b4b4 Record mounting bracket benchmark smoke pair",
   "evidence": {
     "methodology_playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
     "methodology_update": "seed stabilization → frozen diverse development corpus → first-blocker survey → generic clustering → breadth-first recovery → policy freeze → unseen holdout",
@@ -581,6 +589,7 @@
     "phase_1b_brep_physical_hole_evidence_contract_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-brep-physical-hole-evidence-contract-reconstruction.json; 16 synthetic B-Rep cases; 23 characterization tests passed; split decision; no production extractor; provider_calls=0; frozen_worker_executions=0",
     "external_real_world_benchmark_pilot_infrastructure": "docs/EXTERNAL_REAL_WORLD_CAD_BENCHMARK_PILOT.md; benchmarks/external/mounting-brackets-v1/manifest.json; backend/app/services/external_benchmarks; scripts/import_external_benchmark_reference.py; multi-file importer and explicit mapping tests; provider_calls=0; benchmark_runs=0",
     "external_real_world_benchmark_pilot_lock": "outer ZIP SHA-256 6b9274c333f6212b4a5b44b398b632b1af326a5625885f76d734a795223ebe86; five projects imported; canonical parts=7; provenance files=16; canonical reference bytes remain under ignored data/",
-    "verification_current_checkpoint": "focused external benchmark suite 20 passed; full backend 1556 passed, 1 skipped, 1 warning; provider_calls=0; benchmark_runs=0; frozen_worker_executions=0; no production CAD generation changes"
+    "external_real_world_benchmark_pilot_smoke": "data/debug-sessions/external-benchmarks/mounting-brackets-v1/smoke-001/; two sequential mounting-bracket-001 runs; provider_calls=2; repair_calls=0; fallback_calls=0; worker_executions=2; primary HTTP 200 both; no reference geometry sent to provider; source/worker/topology/semantic/artifact/reference-comparison evidence persisted",
+    "verification_current_checkpoint": "focused external benchmark suite 20 passed; live smoke test passed; full backend baseline before smoke 1556 passed, 1 skipped, 1 warning; benchmark provider_calls=2; benchmark_runs=2; worker_executions=2; no production CAD generation changes"
   }
 }
