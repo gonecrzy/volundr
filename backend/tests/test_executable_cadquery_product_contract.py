@@ -77,9 +77,13 @@ def test_product_contract_preserves_explicit_and_qualitative_requirements() -> N
     assert contract["outputs"] == [
         {
             "output_id": "wall_mount",
+            "label": "Wall Mount",
             "required": True,
             "output_type": "printable_component",
             "expected_solid_count": 1,
+            "source": "ai_assumption",
+            "authority": "flexible",
+            "protected": False,
         }
     ]
     dimensions = next(item for item in contract["requirements"] if item["requirement_id"] == "overall_envelope")

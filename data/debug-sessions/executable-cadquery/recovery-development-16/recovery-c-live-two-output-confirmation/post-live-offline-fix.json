@@ -1,0 +1,20 @@
+{
+  "schema_version": "recovery-c-post-live-offline-fix-v1",
+  "live_run_decision": "RECOVERY_C_PIPELINE_DEFECT",
+  "live_run_was_not_repeated": true,
+  "reason_not_repeated": "The checkpoint authorized exactly one live synthetic confirmation.",
+  "observed_defect": {
+    "boundary": "semantic_scope_resolution",
+    "failure": "Subject-only identities such as 'body' and 'lid' were retained in the contract but not converted to canonical output scopes when target was absent.",
+    "evidence": "recovery-c-live-two-output-confirmation/raw-live-evidence.json",
+    "outputs_preserved": ["box_body", "lid"],
+    "per_output_artifacts_preserved": true
+  },
+  "offline_correction": {
+    "file": "backend/app/services/executable_cadquery/contract.py",
+    "rule": "When target/output/component scope is absent, a subject or object_type that matches exactly one declared output identity, alias, or component ID resolves to that output; descriptive unmatched prose remains non-identity.",
+    "fail_closed": "Conflicting or ambiguous matches remain unresolved and are never redirected to the first output.",
+    "tests": "43 focused Recovery-C/contract/scope/envelope tests passed after correction"
+  },
+  "required_next_action": "Review this boundary correction, then run one separately authorized synthetic confirmation if a live confirmation is still required; no further live call was made in this checkpoint."
+}

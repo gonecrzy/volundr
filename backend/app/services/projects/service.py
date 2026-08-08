@@ -277,7 +277,7 @@ BLOCKING_CRITICAL_RULE_IDS = frozenset(
         "feature.small_features_gaps_holes",
     }
 )
-REQUIREMENTS_PROMPT_VERSION = "requirements-v4"
+REQUIREMENTS_PROMPT_VERSION = "requirements-v5"
 DESIGN_SPEC_SCHEMA_VERSION = "1.0"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v8"
 COMPACT_PLAN_PROMPT_VERSION = "compact-cad-plan-v3"
@@ -7625,6 +7625,17 @@ class ProjectService:
         normalized["critical_dimensions"] = canonicalize_dimension_envelopes(
             normalized.get("critical_dimensions") or []
         )
+        declared_outputs = normalized.get("outputs")
+        if not isinstance(declared_outputs, list) or not declared_outputs:
+            declared_outputs = normalized.get("printable_outputs")
+        normalized["outputs"] = [
+            self._normalize_design_output(item, index)
+            for index, item in enumerate(declared_outputs or [])
+        ]
+        normalized["relationships"] = [
+            self._normalize_design_output_relationship(item, index)
+            for index, item in enumerate(normalized.get("relationships") or [])
+        ]
         normalized["parameters"] = [
             self._normalize_design_parameter(item, index)
             for index, item in enumerate(normalized.get("parameters") or [])
@@ -7642,6 +7653,101 @@ class ProjectService:
             for index, item in enumerate(normalized.get("missing_requirements") or [])
         ]
         return normalized
+
+    def _normalize_design_output(self, item: object, index: int) -> object:
+        if not isinstance(item, dict):
+            return item
+        normalized = dict(item)
+        output_id = normalized.get("id") or normalized.get("output_id") or normalized.get("component_id")
+        normalized.setdefault(
+            "id",
+            self._safe_identifier(str(output_id or ""), fallback=f"printable_output_{index + 1}"),
+        )
+        normalized.setdefault("label", self._human_label(str(normalized["id"])))
+        component_ids = normalized.get("component_ids")
+        if not isinstance(component_ids, list):
+            component_ids = []
+        component_id = normalized.get("component_id")
+        if component_id and str(component_id) not in {str(value) for value in component_ids}:
+            component_ids = [*component_ids, str(component_id)]
+        if not component_ids:
+            component_ids = [str(normalized["id"])]
+        normalized["component_ids"] = [str(value) for value in component_ids if str(value).strip()]
+        if normalized.get("component_id") is None and normalized["component_ids"]:
+            normalized["component_id"] = normalized["component_ids"][0]
+        normalized.setdefault("required", True)
+        normalized.setdefault("expected_solid_count", 1)
+        normalized.setdefault("output_type", "printable_component")
+        aliases = normalized.get("aliases")
+        normalized["aliases"] = [str(value) for value in aliases if str(value).strip()] if isinstance(aliases, list) else []
+        source = self._normalize_requirement_source(
+            normalized.get("source"),
+            default=RequirementSource.AI_ASSUMPTION.value,
+        )
+        normalized["source"] = source
+        authority = str(normalized.get("authority") or "").strip().lower()
+        if authority not in {"explicit", "flexible", "provisional", "proposed"}:
+            authority = "explicit" if source in {
+                RequirementSource.USER.value,
+                RequirementSource.CLARIFICATION.value,
+            } else "flexible"
+        normalized["authority"] = authority
+        if "protected" not in normalized:
+            normalized["protected"] = authority == "explicit" and source in {
+                RequirementSource.USER.value,
+                RequirementSource.CLARIFICATION.value,
+            }
+        normalized.setdefault("provenance", {})
+        return normalized
+
+    def _normalize_design_output_relationship(self, item: object, index: int) -> object:
+        if not isinstance(item, dict):
+            return item
+        normalized = dict(item)
+        normalized.setdefault(
+            "source_output_id",
+            normalized.get("from_output_id") or normalized.get("from") or normalized.get("source_output"),
+        )
+        normalized.setdefault(
+            "target_output_id",
+            normalized.get("to_output_id") or normalized.get("to") or normalized.get("target_output"),
+        )
+        normalized.setdefault(
+            "relationship",
+            normalized.get("type") or normalized.get("description") or f"output_relationship_{index + 1}",
+        )
+        source = self._normalize_requirement_source(
+            normalized.get("source"),
+            default=RequirementSource.AI_ASSUMPTION.value,
+        )
+        normalized["source"] = source
+        authority = str(normalized.get("authority") or "").strip().lower()
+        if authority not in {"explicit", "flexible", "provisional", "proposed"}:
+            authority = "explicit" if source in {
+                RequirementSource.USER.value,
+                RequirementSource.CLARIFICATION.value,
+            } else "flexible"
+        normalized["authority"] = authority
+        if "protected" not in normalized:
+            normalized["protected"] = authority == "explicit" and source in {
+                RequirementSource.USER.value,
+                RequirementSource.CLARIFICATION.value,
+            }
+        normalized.setdefault("provenance", {})
+        return normalized
+
+    def _normalize_requirement_source(self, source: object, *, default: str) -> str:
+        value = str(source or default).strip().lower()
+        aliases = {
+            "initial_user": RequirementSource.USER.value,
+            "revision_user": RequirementSource.USER.value,
+            "clarification_user": RequirementSource.CLARIFICATION.value,
+            "physical_test_feedback": RequirementSource.CLARIFICATION.value,
+            "ai_initial": RequirementSource.AI_ASSUMPTION.value,
+            "ai_revision": RequirementSource.AI_ASSUMPTION.value,
+            "ai_repair": RequirementSource.AI_ASSUMPTION.value,
+        }
+        return aliases.get(value, value if value in {item.value for item in RequirementSource} else default)
 
     def _normalize_design_parameter(self, item: object, index: int) -> object:
         if not isinstance(item, dict):

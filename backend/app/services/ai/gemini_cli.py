@@ -42,7 +42,7 @@ from app.services.executable_cadquery.dialect import (
 )
 
 GEMINI_RULESET_VERSION = "gemini-ruleset-v1"
-REQUIREMENTS_PROMPT_VERSION = "requirements-v4"
+REQUIREMENTS_PROMPT_VERSION = "requirements-v5"
 SOURCE_BRIEF_PROMPT_VERSION = "source-brief-v1"
 DESIGN_PLAN_PROMPT_VERSION = "design-plan-v8"
 REVISION_PLAN_PROMPT_VERSION = "revision-planning-v1"
@@ -1426,6 +1426,8 @@ class GeminiCliProvider:
                 "Keep the user's raw wording in raw_evidence and retain subject, object_type, and target when they are present or can be read directly from the request. Do not turn a Volundr or provider proposal into an explicit user requirement.",
                 "When multiple normalized records are separate aspects of one explicit user constraint, assign the same opaque source_fact_id to each record, set source_fact_type to the semantic fact type (for example overall_envelope, xyz_location, or hole_pattern), and preserve the complete supporting user statement in source_fact_evidence. Do not reuse a source_fact_id for unrelated constraints merely because they appear in one message, share a subject, or share a provider response. Source-fact identity records relationship only; it does not change source, authority, protected, exact/approximate, or flexible semantics.",
                 "Use source_fact_type=overall_envelope only when the user clearly constrains the finished object's overall bounds; do not create an envelope tuple from three unrelated dimensions and do not require an envelope when the user did not state one.",
+                "When the user explicitly requests separately printable artifacts or an explicit printed-output count, preserve each logical output in the outputs array. Distinguish a separately printable artifact (such as a body and a lid) from a feature of one output (such as a tab, rib, hole, flange, pocket, clip, or slot). Do not create multiple outputs merely because one object has multiple features. Preserve output IDs, required status, expected solid count when stated, output type, aliases, source, authority, protected status, and raw evidence. User-explicit output structure is authoritative/protected; model-proposed decomposition is flexible and must remain distinguishable from user requirements.",
+                "When the user describes a relationship between explicitly declared outputs, preserve only the minimal relationship and the two output IDs in the relationships array. Do not invent detailed assembly constraints. Keep output identity and relationship provenance separate from geometric feature verification.",
                 "When the request says wall-mounted, wall-mounted means a vertical planar wall mount unless the user states otherwise; propose ordinary screw spacing and orientation rather than asking for them.",
                 "When a moving-vehicle request requires secure retention and one-handed removal, do not ask the user to choose an implementation mechanism when a supported concrete proposal is reasonable; let the Design Plan propose one.",
                 "do not ask the user to convert a nominal designation such as #8 into a metric diameter.",
@@ -1478,6 +1480,34 @@ class GeminiCliProvider:
                     "source_fact_id": "string|null",
                     "source_fact_type": "string|null",
                     "source_fact_evidence": "string|null",
+                }
+            ],
+            "outputs": [
+                {
+                    "id": "string",
+                    "label": "string|null",
+                    "component_ids": ["string"],
+                    "required": True,
+                    "expected_solid_count": 1,
+                    "output_type": "printable_component|repeated_printable_component|optional_printable_component",
+                    "aliases": ["string"],
+                    "source": "user|clarification|calculated|product_default|ai_assumption",
+                    "authority": "explicit|flexible|provisional|proposed",
+                    "protected": False,
+                    "raw_evidence": "string|null",
+                    "provenance": {},
+                }
+            ],
+            "relationships": [
+                {
+                    "source_output_id": "string",
+                    "target_output_id": "string",
+                    "relationship": "string",
+                    "source": "user|clarification|calculated|product_default|ai_assumption",
+                    "authority": "explicit|flexible|provisional|proposed",
+                    "protected": False,
+                    "raw_evidence": "string|null",
+                    "provenance": {},
                 }
             ],
             "print_requirements": {},

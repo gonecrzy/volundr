@@ -1,0 +1,40 @@
+{
+  "schema_version": "recovery-c-validation-summary-v1",
+  "implementation_scope": "first-class logical printable outputs and end-to-end routing",
+  "provider_calls": 3,
+  "worker_executions": 2,
+  "live_confirmation_calls": 1,
+  "live_confirmation_decision": "RECOVERY_C_PIPELINE_DEFECT",
+  "live_structural_result": {
+    "contract_source": "production_requirement_ledger",
+    "contract_output_ids": ["box_body", "lid"],
+    "generated_output_ids": ["box_body", "lid"],
+    "per_output_step_stl_brep_artifacts": true,
+    "topology": "passed for both generated outputs",
+    "concept_state": "concept_available",
+    "candidate_state": "candidate_blocked"
+  },
+  "live_scope_result": {
+    "body_envelope": "unverifiable because subject-only identity was not routed in the live code before the offline correction",
+    "remaining_output_requirements": "unverifiable due the same scope edge case",
+    "corrected_offline": true,
+    "rerun_authorized_in_this_checkpoint": false
+  },
+  "offline_tests_after_correction": {
+    "focused_recovery_c_contract_scope_envelope": "43 passed",
+    "full_backend": "1627 passed, 1 skipped",
+    "frontend_unit": "105 passed",
+    "frontend_build": "passed",
+    "playwright_live_test_discovery": "1 test listed"
+  },
+  "preserved_boundaries": {
+    "recovery_a": "per-output envelope source identity and bounds policy remain intact",
+    "recovery_b": "not implemented",
+    "recovery_e": "not implemented",
+    "concept_state": "unchanged",
+    "candidate_policy": "fail-closed and unchanged",
+    "repeatability_corpus": "separate injection path unchanged",
+    "reference_geometry": "not loaded or sent"
+  },
+  "next_action": "Review the offline subject-only scope correction, then run one separately authorized live confirmation if live closure is required. Do not begin Recovery B or E."
+}

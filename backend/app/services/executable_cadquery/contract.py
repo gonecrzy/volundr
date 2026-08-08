@@ -25,7 +25,7 @@ from app.services.cad.cadquery_contract import (
 DESIGN_CONTRACT_SCHEMA_VERSION = "executable-cadquery-design-contract-v1"
 RESPONSE_SCHEMA_VERSION = "executable-cadquery-complete-source-v2"
 SOURCE_CONTRACT_VERSION = "cadquery-v1"
-PRODUCT_CONTRACT_MATERIALIZATION_VERSION = "executable-cadquery-product-contract-v1"
+PRODUCT_CONTRACT_MATERIALIZATION_VERSION = "executable-cadquery-product-contract-v2"
 _REQUIREMENT_POLICIES = frozenset({"machine_required", "review_required", "informational"})
 _QUALITATIVE_REQUIREMENT_TYPES = frozenset(
     {
@@ -203,7 +203,7 @@ def build_executable_cadquery_product_contract(
     contract_requirements: list[dict[str, Any]] = []
     protected_facts: list[dict[str, Any]] = []
     for item in sorted(requirements, key=lambda value: str(value.get("requirement_id") or value.get("id"))):
-        requirement = _product_contract_requirement(item, output_ids, outputs[0]["output_id"])
+        requirement = _product_contract_requirement(item, outputs, outputs[0]["output_id"])
         contract_requirements.append(requirement)
         if requirement["authority"] == "required":
             protected_facts.append(
@@ -272,45 +272,70 @@ def _product_contract_outputs(specification: Mapping[str, Any]) -> list[dict[str
             )
         output = {
             "output_id": output_id,
+            "label": str(raw.get("label") or output_id.replace("_", " ").title()),
             "required": bool(raw.get("required", True)),
             "output_type": str(raw.get("output_type") or "printable_component"),
             "expected_solid_count": expected_solid_count,
         }
+        component_ids = raw.get("component_ids")
+        if isinstance(component_ids, (list, tuple, set)):
+            values = [str(value) for value in component_ids if str(value).strip()]
+            if values:
+                output["component_ids"] = values
+        component_id = raw.get("component_id")
+        if component_id is not None and str(component_id).strip():
+            output["component_id"] = str(component_id)
         aliases = raw.get("aliases")
         if isinstance(aliases, list):
             output["aliases"] = [str(alias) for alias in aliases if str(alias).strip()]
+        for key in ("source", "authority", "protected", "raw_evidence", "provenance"):
+            if raw.get(key) is not None:
+                output[key] = deepcopy(raw[key])
+        if "source" not in output:
+            output["source"] = "ai_assumption"
+        if "authority" not in output:
+            output["authority"] = "flexible"
+        output.setdefault("protected", False)
         outputs.append(output)
     return outputs
 
 
 def _product_contract_requirement(
     item: Mapping[str, Any],
-    output_ids: set[str],
+    outputs: list[Mapping[str, Any]],
     default_output_id: str,
 ) -> dict[str, Any]:
     requirement_id = _stable_contract_id(item.get("requirement_id") or item.get("id"), fallback="requirement")
     raw_value = item.get("expected", item.get("value"))
-    expected = _expected_contract_value(raw_value)
+    output_count = _is_output_count_requirement(item)
+    expected = (
+        {"count": int(raw_value), "independent": True}
+        if output_count and isinstance(raw_value, (int, float)) and int(raw_value) == raw_value
+        else _expected_contract_value(raw_value)
+    )
     source = str(item.get("source") or "initial_user")
     explicit = bool(item.get("explicit", source in {"initial_user", "clarification_user", "revision_user", "physical_test_feedback"}))
     authority = "required" if explicit else "flexible"
     classification = _resolve_product_classification(item)
-    scope = item.get("scope") or item.get("target") or default_output_id
-    if isinstance(scope, str) and scope not in output_ids and scope.lower() not in {"assembly", "global"}:
-        scope = default_output_id
+    scope, scope_kind = _resolve_product_requirement_scope(item, outputs, default_output_id)
     requirement: dict[str, Any] = {
         "requirement_id": requirement_id,
-        "scope": scope,
         "expected": expected,
         "classification": classification,
         "origin": "user_explicit" if explicit else "model_design_choice",
         "authority": authority,
         "source": source,
     }
+    if scope is not None:
+        requirement["scope"] = scope
+    if scope_kind is not None:
+        requirement["scope_kind"] = scope_kind
     if item.get("tolerance") is not None:
         requirement["tolerance"] = item["tolerance"]
     verification_policy = item.get("verification_policy")
-    if verification_policy:
+    if output_count:
+        requirement["verification_policy"] = "required_output_identity"
+    elif verification_policy:
         requirement["verification_policy"] = str(verification_policy)
     elif _is_bounds_expectation(expected):
         requirement["verification_policy"] = "final_mesh_bounds"
@@ -320,6 +345,112 @@ def _product_contract_requirement(
     if item.get("provenance") is not None:
         requirement["provenance"] = deepcopy(item["provenance"])
     return requirement
+
+
+def _resolve_product_requirement_scope(
+    item: Mapping[str, Any],
+    outputs: list[Mapping[str, Any]],
+    default_output_id: str,
+) -> tuple[str | None, str | None]:
+    """Resolve explicit requirement identity without silently choosing output one."""
+
+    if _is_output_count_requirement(item):
+        return None, "assembly"
+
+    registry: dict[str, Mapping[str, Any]] = {
+        str(output.get("output_id")): output
+        for output in outputs
+        if output.get("output_id")
+    }
+    normalized: dict[str, list[str]] = {}
+    for output_id, output in registry.items():
+        identities: list[Any] = [output_id, output.get("component_id")]
+        for key in ("aliases", "output_aliases", "component_ids"):
+            value = output.get(key)
+            if isinstance(value, (list, tuple, set)):
+                identities.extend(value)
+            elif isinstance(value, str):
+                identities.append(value)
+        for identity in identities:
+            key = _normalize_identity(identity)
+            if key:
+                normalized.setdefault(key, []).append(output_id)
+
+    explicit_values: list[tuple[str, Any]] = []
+    for field in ("scope", "target", "output_id", "component_id", "subject", "object_type"):
+        value = item.get(field)
+        if value in (None, "", []):
+            continue
+        if isinstance(value, (list, tuple, set)):
+            explicit_values.extend((field, entry) for entry in value)
+        else:
+            explicit_values.append((field, value))
+    if not explicit_values:
+        if len(registry) == 1:
+            return default_output_id, "output_local"
+        return None, None
+
+    identity_explicit_values = [
+        (field, value)
+        for field, value in explicit_values
+        if field not in {"subject", "object_type"}
+    ]
+    if not identity_explicit_values:
+        descriptive_matches: list[str] = []
+        for _, value in explicit_values:
+            descriptive_matches.extend(normalized.get(_normalize_identity(value), []))
+        descriptive_matches = list(dict.fromkeys(descriptive_matches))
+        if len(descriptive_matches) == 1:
+            return descriptive_matches[0], "output_local"
+        if len(descriptive_matches) > 1:
+            return "/".join(descriptive_matches), "unresolved"
+        if len(registry) == 1:
+            return default_output_id, "output_local"
+        return None, None
+    lowered = {_normalize_identity(value) for _, value in identity_explicit_values}
+    if lowered & {"assembly", "global"}:
+        if len(lowered) == 1:
+            return None, "assembly"
+        return "/".join(str(value) for _, value in identity_explicit_values), "unresolved"
+
+    resolved: list[str] = []
+    unresolved: list[str] = []
+    for field, value in explicit_values:
+        identity = _normalize_identity(value)
+        matches = list(dict.fromkeys(normalized.get(identity, [])))
+        if len(matches) == 1:
+            resolved.append(matches[0])
+        elif len(matches) > 1:
+            unresolved.append(str(value))
+        elif field in {"scope", "target", "output_id", "component_id"}:
+            # A declared scope/target that is not in the output registry is
+            # authoritative evidence of an unresolved scope. Subject and
+            # object_type are often descriptive prose, so unknown values in
+            # those fields do not override a valid explicit target.
+            unresolved.append(str(value))
+    if unresolved and not resolved:
+        # Preserve the explicit identity for the semantic resolver to fail
+        # closed. Never redirect an unknown or ambiguous scope to output one.
+        return "/".join(dict.fromkeys(unresolved)), "unresolved"
+    if unresolved:
+        return "/".join(dict.fromkeys([*resolved, *unresolved])), "unresolved"
+    if len(set(resolved)) == 1:
+        return resolved[0], "output_local"
+    return "/".join(dict.fromkeys(resolved)), "multi_output"
+
+
+def _normalize_identity(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", str(value or "").strip().casefold()).strip("_")
+
+
+def _is_output_count_requirement(item: Mapping[str, Any]) -> bool:
+    values = [item.get(key) for key in ("kind", "type", "subject", "object_type", "target", "raw_evidence")]
+    text = " ".join(str(value or "").casefold() for value in values)
+    return any(token in text for token in ("output", "printable", "component", "part")) and (
+        str(item.get("kind") or item.get("type") or "").casefold() == "count"
+        or "count" in text
+        or "number" in text
+    )
 
 
 def _expected_contract_value(value: Any) -> dict[str, Any]:

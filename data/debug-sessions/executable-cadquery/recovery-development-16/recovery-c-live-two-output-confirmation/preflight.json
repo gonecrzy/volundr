@@ -1,0 +1,40 @@
+{
+  "schema_version": "recovery-c-live-two-output-preflight-v1",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "git_head_before_live": "e8f634b4a1f5b23cc650de87eacde1c55c254ec7",
+  "origin_experimental_head_before_live": "e8f634b4a1f5b23cc650de87eacde1c55c254ec7",
+  "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
+  "worktree_before_live": "dirty_expected_for_recovery_implementation_and_evidence",
+  "corpus_manifest_environment": "unset",
+  "provider_configuration": {
+    "transport": "normal_live_wrapper",
+    "provider": "gemini_api",
+    "model": "repository_configured_default",
+    "primary_credential_slot": "GEMINI_API_KEY",
+    "fallback_credential_slot": "GEMINI_API_KEY_2",
+    "credential_values_persisted": false
+  },
+  "repair_budget": {
+    "automatic_provider_operation_budget": 9,
+    "policy": "existing_bounded_recovery_only"
+  },
+  "prompt": {
+    "prompt_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683",
+    "harness_test_sha256": "15434fd3be897f0cb6221cab6f4b9bd0bb6bbdc1e2c5a579c3514dcb7d578d49",
+    "requirements_prompt_version": "requirements-v5",
+    "product_contract_materialization_version": "executable-cadquery-product-contract-v2"
+  },
+  "reference_isolation": {
+    "benchmark_reference_loaded": false,
+    "reference_geometry_loaded": false,
+    "reference_specification_loaded": false,
+    "repeatability_contract_loaded": false
+  },
+  "offline_gate": {
+    "focused_tests": "25 passed",
+    "adjacent_tests": "77 passed",
+    "full_backend": "1626 passed, 1 skipped",
+    "provider_calls_before_live": 0,
+    "worker_executions_before_live": 0
+  }
+}

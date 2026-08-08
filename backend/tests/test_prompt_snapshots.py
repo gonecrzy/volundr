@@ -251,7 +251,7 @@ def test_requirement_prompt_is_json_only_and_clarification_capable() -> None:
 
     prompt = provider.build_requirement_prompt(request)
 
-    assert provider.requirement_prompt_template_version() == "requirements-v4"
+    assert provider.requirement_prompt_template_version() == "requirements-v5"
     assert "Return JSON only. Do not generate CAD source." in prompt
     assert "clarification_required" in prompt
     assert "Do not silently invent critical dimensions" in prompt

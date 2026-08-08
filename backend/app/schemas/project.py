@@ -281,6 +281,41 @@ class DesignAssumption(BaseModel):
     requires_approval: bool = False
 
 
+class DesignSpecificationOutput(BaseModel):
+    """Canonical logical printable output declared by the product path."""
+
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    label: str | None = None
+    component_ids: list[str] = Field(default_factory=list)
+    component_id: str | None = None
+    required: bool = True
+    expected_solid_count: int = Field(default=1, ge=1)
+    output_type: str = "printable_component"
+    aliases: list[str] = Field(default_factory=list)
+    source: RequirementSource = RequirementSource.USER
+    authority: str = "explicit"
+    protected: bool = False
+    raw_evidence: str | None = None
+    provenance: dict[str, Any] = Field(default_factory=dict)
+
+
+class DesignSpecificationRelationship(BaseModel):
+    """Minimal relationship between declared logical outputs."""
+
+    model_config = ConfigDict(extra="allow")
+
+    source_output_id: str = Field(min_length=1)
+    target_output_id: str = Field(min_length=1)
+    relationship: str = Field(min_length=1)
+    source: RequirementSource = RequirementSource.USER
+    authority: str = "explicit"
+    protected: bool = False
+    raw_evidence: str | None = None
+    provenance: dict[str, Any] = Field(default_factory=dict)
+
+
 class DesignClarificationQuestionPayload(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -303,6 +338,8 @@ class DesignSpecificationPayload(BaseModel):
     critical_dimensions: list[DesignDimension] = Field(default_factory=list)
     parameters: list[DesignParameter] = Field(default_factory=list)
     functional_requirements: list[DesignFunctionalRequirement] = Field(default_factory=list)
+    outputs: list[DesignSpecificationOutput] = Field(default_factory=list)
+    relationships: list[DesignSpecificationRelationship] = Field(default_factory=list)
     print_requirements: dict[str, Any] = Field(default_factory=dict)
     assumptions: list[DesignAssumption] = Field(default_factory=list)
     conflicts: list[dict[str, Any]] = Field(default_factory=list)

@@ -1,0 +1,94 @@
+{
+  "schema_version": "phase-1b-recovery-c-offline-counterfactual-v1",
+  "checkpoint": "RECOVERY_C_FIRST_CLASS_LOGICAL_OUTPUT_IDENTITY",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "source_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-identity-scope-reconstruction.json",
+  "historical_evidence_read_only": true,
+  "validation_loaded": false,
+  "holdout_loaded": false,
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "historical_runs_rerun": false,
+  "counterfactual_method": {
+    "identity_change": "Replace the historical object_type fallback with explicit DesignSpecification output declarations carried into contract.outputs.",
+    "geometry_change": "None; historical source and artifacts are not regenerated or rewritten.",
+    "solid_count_change": "None; logical output identity remains distinct from detected solid count.",
+    "final_verification_rule": "Required declared outputs remain hard obligations; a missing generated output remains blocked.",
+    "package_rule": "Existing per-output execution/package path is used once named outputs exist."
+  },
+  "cases": [
+    {
+      "benchmark_project_id": "container-case-001",
+      "historical_geometry_classification": "physical_components_present_but_identity_ambiguous",
+      "intended_output_count": 5,
+      "historical_contract_output_count": 1,
+      "counterfactual": "IDENTITY_PATH_WOULD_BE_RECOVERED",
+      "basis": "The prior audit found useful physical component geometry; explicit output declarations would provide five logical scopes and separate packaging obligations. Historical geometry is not claimed to satisfy each output."
+    },
+    {
+      "benchmark_project_id": "container-case-002",
+      "historical_geometry_classification": "required_component_missing",
+      "intended_output_count": 2,
+      "historical_contract_output_count": 1,
+      "counterfactual": "IDENTITY_RECOVERED_BUT_GEOMETRY_STILL_BLOCKED",
+      "basis": "Body/lid identity would be carried into the contract, but the historical concept audit records that the lid was absent. Output declaration restoration cannot synthesize it."
+    },
+    {
+      "benchmark_project_id": "electronics-enclosure-001",
+      "historical_geometry_classification": "single_output_with_multiple_solids",
+      "intended_output_count": 2,
+      "historical_contract_output_count": 1,
+      "counterfactual": "IDENTITY_PATH_WOULD_BE_RECOVERED",
+      "basis": "Two valid physical solids were persisted under one logical output. Identity recovery would expose the required scopes; solid-to-output correspondence remains an explicit evidence obligation."
+    },
+    {
+      "benchmark_project_id": "functional-assembly-001",
+      "historical_geometry_classification": "components_fused_or_single_body",
+      "intended_output_count": 4,
+      "historical_contract_output_count": 1,
+      "counterfactual": "IDENTITY_PATH_WOULD_BE_RECOVERED",
+      "basis": "The historical concept contained useful scale geometry despite the one-output contract. Named output declarations would restore the authoritative logical scopes; this is not a claim that the historical source would pass every per-output check."
+    },
+    {
+      "benchmark_project_id": "functional-assembly-003",
+      "historical_geometry_classification": "components_fused_or_single_body",
+      "intended_output_count": 5,
+      "historical_contract_output_count": 1,
+      "counterfactual": "IDENTITY_PATH_WOULD_BE_RECOVERED",
+      "basis": "The historical evidence records useful pump geometry despite fused/collapsed intended parts. Identity routing is recoverable as a structural product-state correction; any remaining geometry mismatch stays a separate engineering result."
+    },
+    {
+      "benchmark_project_id": "mounting-bracket-002",
+      "historical_geometry_classification": "components_fused_or_single_body",
+      "intended_output_count": 2,
+      "historical_contract_output_count": 1,
+      "counterfactual": "IDENTITY_PATH_WOULD_BE_RECOVERED",
+      "basis": "The prior audit found recognizable foot/pillar/platform geometry under one output. Named output routing would restore the intended two logical scopes; final per-output geometry remains independently verified."
+    },
+    {
+      "benchmark_project_id": "stand-support-001",
+      "historical_geometry_classification": "components_fused_or_single_body",
+      "intended_output_count": 4,
+      "historical_contract_output_count": 1,
+      "counterfactual": "IDENTITY_PATH_WOULD_BE_RECOVERED",
+      "basis": "The historical concept was recognizable but persisted as one output. Identity recovery would remove the upstream collapse; final output/artifact checks remain hard and are not claimed as historically passed."
+    }
+  ],
+  "aggregate": {
+    "cases": 7,
+    "identity_path_would_be_recovered": 6,
+    "identity_recovered_but_geometry_still_blocked": 1,
+    "still_unresolved": 0,
+    "metadata_recoverable_requirement_estimate": 43,
+    "geometry_revision_required_cases": 1,
+    "historical_pass_claimed": false,
+    "logical_output_count_kept_separate_from_solid_count": true,
+    "container_case_002_preserved_as_geometry_blocked": true
+  },
+  "compatibility": {
+    "recovery_a_per_output_envelopes": "Preserved by source-fact identity plus output scope; unrelated output dimensions cannot be grouped.",
+    "concept_state": "Unchanged; valid partial geometry may remain concept_available while output obligations block final verification.",
+    "candidate_policy": "Unchanged and fail-closed.",
+    "replay_contracts": "Unchanged; repeatability contracts remain loaded through the separate replay boundary."
+  }
+}

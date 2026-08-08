@@ -1,0 +1,229 @@
+{
+  "schema_version": "recovery-c-live-two-output-confirmation-v1",
+  "decision": "RECOVERY_C_PIPELINE_DEFECT",
+  "decision_detail": "Both logical outputs and all per-output artifacts were preserved, but subject-only requirement identity was not routed to the matching output in this live run.",
+  "prompt": "Design a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid. Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high. Choose a reasonable printable wall thickness and lid clearance.",
+  "corpus_manifest": "unset",
+  "contract_source": "production_requirement_ledger",
+  "contract_output_ids": [
+    "box_body",
+    "lid"
+  ],
+  "logical_output_count": 2,
+  "generated_output_ids": [
+    "box_body",
+    "lid"
+  ],
+  "semantic_counts": {
+    "total": 3,
+    "passed": [],
+    "failed": [],
+    "unverifiable": [
+      "body",
+      "req_body_printable",
+      "req_lid_printable"
+    ],
+    "review_required": [],
+    "unsupported": [],
+    "status": "unsupported_verifier"
+  },
+  "provider_attempts": [
+    {
+      "operation_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141:attempt:1",
+      "repair_level": "initial",
+      "observed_stage": "topology",
+      "failure_boundary": "topology",
+      "failure_class": "invalid_shape",
+      "first_incorrect_owner": "geometry",
+      "source_hash": "14bf1cc4c474f468169de2639c8d1d7372a9c90e7eace834387390f8574f5383",
+      "result_hash": "5bd32ca607de751af355b2f10245ade8dae478b0b52ffc34ca863956b9426b6d",
+      "normalized_error": null,
+      "provider_attempt": {
+        "attempt_id": "ab28d43a-9604-4d93-b7b4-f6127985c40c",
+        "logical_operation_id": "6665ab50-23ef-4b40-9e71-4ae280ece770",
+        "credential_slot": "primary",
+        "status_code": 200,
+        "transport_retry_classification": "none",
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "41db7b83b5f903a3b48af26beaac6b537e75b26f45ef65f2801b869d60d415bb"
+      },
+      "worker_result": {
+        "job_id": null,
+        "success": null,
+        "output_ids": [
+          "box_body",
+          "lid"
+        ],
+        "result_hash": null
+      },
+      "topology_result": {
+        "valid": false,
+        "detected_solid_count": null,
+        "expected_solid_count": null,
+        "schema_version": null
+      },
+      "semantic_result": {
+        "status": null,
+        "passed": [],
+        "failed": [],
+        "unverifiable": [],
+        "review_required": [],
+        "unsupported": []
+      }
+    },
+    {
+      "operation_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141:attempt:2",
+      "repair_level": "L2",
+      "observed_stage": "semantic_measurement",
+      "failure_boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": "application",
+      "source_hash": "250fa05b9ee22fc6d9bc34cc91c0c9f159842935fc0e47d1ddee6bf403c25903",
+      "result_hash": "c663f858b3956abf548c11ec736ff18ccba80d5e36fa0ab9cb66fc8e376ba8ed",
+      "normalized_error": null,
+      "provider_attempt": {
+        "attempt_id": "6bab26cc-88df-46e0-84dd-6edd96a18d44",
+        "logical_operation_id": "6f8f7f50-b68b-4117-90a6-4bef40c895cf",
+        "credential_slot": "primary",
+        "status_code": 200,
+        "transport_retry_classification": "none",
+        "rate_limit_429_classification": "not_429",
+        "raw_response_hash": "d004cd4c12bc3b147e214cb0d04271e71715949eb62fcd53703f90729d915bc8"
+      },
+      "worker_result": {
+        "job_id": null,
+        "success": null,
+        "output_ids": [
+          "box_body",
+          "lid"
+        ],
+        "result_hash": null
+      },
+      "topology_result": {
+        "valid": true,
+        "detected_solid_count": null,
+        "expected_solid_count": null,
+        "schema_version": null
+      },
+      "semantic_result": {
+        "status": "unsupported_verifier",
+        "passed": [],
+        "failed": [],
+        "unverifiable": [
+          "body",
+          "req_body_printable",
+          "req_lid_printable"
+        ],
+        "review_required": [],
+        "unsupported": []
+      }
+    },
+    {
+      "operation_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141:recovery-recheck:2",
+      "repair_level": "L2",
+      "observed_stage": null,
+      "failure_boundary": "semantic",
+      "failure_class": "semantic_requirement_unverifiable",
+      "first_incorrect_owner": null,
+      "source_hash": "250fa05b9ee22fc6d9bc34cc91c0c9f159842935fc0e47d1ddee6bf403c25903",
+      "result_hash": "c663f858b3956abf548c11ec736ff18ccba80d5e36fa0ab9cb66fc8e376ba8ed",
+      "normalized_error": null,
+      "provider_attempt": {
+        "attempt_id": null,
+        "logical_operation_id": null,
+        "credential_slot": null,
+        "status_code": null,
+        "transport_retry_classification": null,
+        "rate_limit_429_classification": null,
+        "raw_response_hash": null
+      },
+      "worker_result": {
+        "job_id": null,
+        "success": null,
+        "output_ids": [
+          "box_body",
+          "lid"
+        ],
+        "result_hash": null
+      },
+      "topology_result": {
+        "valid": true,
+        "detected_solid_count": null,
+        "expected_solid_count": null,
+        "schema_version": null
+      },
+      "semantic_result": {
+        "status": "unsupported_verifier",
+        "passed": [],
+        "failed": [],
+        "unverifiable": [
+          "body",
+          "req_body_printable",
+          "req_lid_printable"
+        ],
+        "review_required": [],
+        "unsupported": []
+      }
+    }
+  ],
+  "requirement_extraction_provider_calls": 1,
+  "cad_generation_provider_calls": 2,
+  "cad_initial_provider_calls": 1,
+  "cad_repair_provider_calls": 1,
+  "fallback_provider_calls": 0,
+  "provider_call_count": 3,
+  "worker_executions": 2,
+  "worker_execution_basis": "Two persisted generation attempts each reached worker/output evidence; each successful attempt produced both named output artifacts.",
+  "downloaded_artifacts": [
+    {
+      "artifact_id": "box_body:step",
+      "output_id": "box_body",
+      "kind": "step",
+      "sha256": "aa14b5efeacb699eec8b7046e221e7d9ba7bb37e7059772a0644632f07ad5771",
+      "size_bytes": 29186
+    },
+    {
+      "artifact_id": "box_body:stl",
+      "output_id": "box_body",
+      "kind": "stl",
+      "sha256": "ce74c61b2d54a013b0528622ed9f78c8ffce483c577656d3b0272e326097c924",
+      "size_bytes": 1484
+    },
+    {
+      "artifact_id": "box_body:brep",
+      "output_id": "box_body",
+      "kind": "brep",
+      "sha256": "50b6ac763670792199a6f24268b6b95902fb790cc02535e032c1b406da29fc3a",
+      "size_bytes": 7269
+    },
+    {
+      "artifact_id": "lid:step",
+      "output_id": "lid",
+      "kind": "step",
+      "sha256": "1f613f0014a943e9fd738e7ae057a815edc0b6f87b04dfdae3a0bbfad8a839ce",
+      "size_bytes": 29247
+    },
+    {
+      "artifact_id": "lid:stl",
+      "output_id": "lid",
+      "kind": "stl",
+      "sha256": "27a89b9137ba43346425a53f5a45b68546a0267cb773b110cc949785183b8188",
+      "size_bytes": 1484
+    },
+    {
+      "artifact_id": "lid:brep",
+      "output_id": "lid",
+      "kind": "brep",
+      "sha256": "1352ced2750f8a54939c4e1bea9b807f351434ab12946c88c2729c7ca5c4d519",
+      "size_bytes": 9797
+    }
+  ],
+  "reference_isolation": {
+    "reference_geometry_supplied": false,
+    "request_body": {
+      "name": "synthetic-two-piece-storage-box",
+      "intent_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683"
+    }
+  },
+  "note": "A generated source that omits a declared required output remains a geometry/source failure; this assessment only treats the identity path as confirmed when the contract preserves both IDs."
+}

@@ -124,6 +124,8 @@
     ,"external_real_world_cad_50_comparison_specs_qualified_without_provider_or_worker_calls"
     ,"external_real_world_cad_50_v1_1_development_first_pass_completed_on_frozen_checkpoint"
     ,"external_real_world_cad_50_v1_1_development_first_pass_evidence_reconciled_offline_without_new_provider_or_worker_calls"
+    ,"phase_1b_recovery_c_output_identity_offline_tests_and_full_backend_passed"
+    ,"phase_1b_recovery_c_single_live_confirmation_completed"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -823,7 +825,7 @@
     "target_eventual_independent_pass": "8/8",
     "per_project_tuning_allowed": false
   },
-  "application_fix_count": 21,
+  "application_fix_count": 22,
   "application_fix_count_since_previous_checkpoint": 1,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
@@ -867,6 +869,9 @@
     ,"external_real_world_cad_50_v1_1_development_first_pass_cad_repair_operations": 23
     ,"external_real_world_cad_50_v1_1_development_first_pass_fallback_calls": 1
     ,"external_real_world_cad_50_v1_1_development_first_pass_worker_executions": 61
+    ,"phase_1b_recovery_c_provider_calls": 3
+    ,"phase_1b_recovery_c_worker_executions": 2
+    ,"phase_1b_recovery_c_live_confirmations": 1
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -968,5 +973,7 @@
     ,"external_real_world_cad_50_v1_1_development_first_pass": "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/; frozen code=8dd0d8d; 60 cells; 54 live workflows; 6 replacement exclusions; transport_attempts=107; requirement_extraction_calls=64; schema_retries=20; CAD generation operations=43; CAD repair operations=23; fallback=1 after primary HTTP 429; worker_executions=61 after offline runtime-DB reconciliation; validation/holdout=0; no interpreted similarity for 25 underconstrained projects"
     ,"external_real_world_cad_50_v1_1_development_first_pass_reconciliation": "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/reconciliation.json; evidence-only worker/timestamp reconciliation; provider_calls=0; worker_executions=0; workflow outcomes unchanged"
     ,"phase_1b_output_identity_scope_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-output-identity-scope-reconstruction.json; seven development multi-output cases; 43 C requirements; C-CONTRACT fallback proven; container-case-002 omission kept separate; provider_calls=0; worker_executions=0; no implementation"
+    ,"phase_1b_recovery_c_first_class_logical_output_identity": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-c-offline-counterfactual.json; first-class DesignSpecification outputs/relationships, production contract routing, source prompt propagation, fail-closed scope resolution, and output-count policy implemented; seven historical cases replayed read-only; provider_calls=3 for one authorized live confirmation; worker_executions=2; live result preserved as RECOVERY_C_PIPELINE_DEFECT because subject-only scope was exposed and corrected offline"
+    ,"phase_1b_recovery_c_live_confirmation": "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-c-live-two-output-confirmation/; one synthetic two-output normal-product-path run; both named outputs and per-output STEP/STL/BREP artifacts persisted; no corpus/reference data; post-live subject-only scope correction was offline-tested without a second live call"
   }
 }

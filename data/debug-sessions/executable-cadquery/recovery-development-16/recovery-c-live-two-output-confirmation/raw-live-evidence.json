@@ -1,0 +1,1121 @@
+{
+  "schema_version": "recovery-c-live-two-output-confirmation-raw-v1",
+  "started_at": "2026-08-08T17:32:56.984Z",
+  "finished_at": "2026-08-08T17:33:18.554Z",
+  "prompt_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683",
+  "idempotency_key": "recovery-c-two-output-synthetic",
+  "http_status": 201,
+  "initial_response": {
+    "id": "ed688d4b-31eb-4a03-8043-6eca97b8c141",
+    "state": "verification_failed",
+    "project_id": "d025bd11-9225-4cef-b39b-ac092ea07320"
+  },
+  "workflow": {
+    "id": "ed688d4b-31eb-4a03-8043-6eca97b8c141",
+    "project_id": "d025bd11-9225-4cef-b39b-ac092ea07320",
+    "revision_id": "bee0b130-a13f-4ab8-81e2-90816c7b6adb",
+    "state": "verification_failed",
+    "route": "validated_cadquery",
+    "user_instruction_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683",
+    "requirements": {
+      "assumptions": [
+        {
+          "description": "Using default functional wall thickness from product defaults.",
+          "id": "assumption_wall_thickness",
+          "protected": false,
+          "requires_approval": false,
+          "source": "product_default"
+        },
+        {
+          "description": "Using general removable fit clearance per side for the lid fit.",
+          "id": "assumption_lid_clearance",
+          "protected": false,
+          "requires_approval": false,
+          "source": "product_default"
+        }
+      ],
+      "clarification_questions": [],
+      "clarification_required": false,
+      "conflicts": [],
+      "critical_dimensions": [
+        {
+          "id": "body",
+          "importance": "important",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "box body",
+          "operator": "approximately",
+          "protected": true,
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_fact_evidence": "Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high.",
+            "source_fact_id": "fact_body_dimensions",
+            "source_fact_type": "overall_envelope",
+            "source_requirement_ids": [
+              "body_depth",
+              "body_height",
+              "body_width"
+            ],
+            "source_statement_identity": "group:fact_body_dimensions"
+          },
+          "raw_evidence": "80 mm wide",
+          "requirement_id": "body",
+          "source": "user",
+          "source_fact_evidence": "Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high.",
+          "source_fact_id": "fact_body_dimensions",
+          "source_fact_type": "overall_envelope",
+          "subject": "body",
+          "target": null,
+          "tolerance": null,
+          "unit": "mm",
+          "value": {
+            "depth": 60,
+            "height": 30,
+            "width": 80
+          }
+        }
+      ],
+      "functional_requirements": [
+        {
+          "description": "Separately printable box body",
+          "id": "req_body_printable",
+          "importance": "critical",
+          "kind": "feature",
+          "object_type": "box body",
+          "operator": "present",
+          "protected": true,
+          "raw_evidence": "separately printable box body",
+          "source": "user",
+          "source_fact_evidence": "Design a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid.",
+          "source_fact_id": "fact_outputs_definition",
+          "source_fact_type": null,
+          "subject": "box body",
+          "target": null,
+          "type": "feature_presence",
+          "unit": null,
+          "value": true
+        },
+        {
+          "description": "Separately printable lid",
+          "id": "req_lid_printable",
+          "importance": "critical",
+          "kind": "feature",
+          "object_type": "lid",
+          "operator": "present",
+          "protected": true,
+          "raw_evidence": "separately printable lid",
+          "source": "user",
+          "source_fact_evidence": "Design a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid.",
+          "source_fact_id": "fact_outputs_definition",
+          "source_fact_type": null,
+          "subject": "lid",
+          "target": null,
+          "type": "feature_presence",
+          "unit": null,
+          "value": true
+        }
+      ],
+      "generation_attempt_id": "0522f263-7319-4d04-8a27-734367d24430",
+      "generation_ready": true,
+      "missing_requirements": [],
+      "object_type": "storage box",
+      "outcome": "generation_ready",
+      "outputs": [
+        {
+          "aliases": [
+            "box body",
+            "body"
+          ],
+          "authority": "explicit",
+          "component_id": "box_body",
+          "component_ids": [
+            "box_body"
+          ],
+          "expected_solid_count": 1,
+          "id": "box_body",
+          "label": "Box Body",
+          "output_type": "printable_component",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "separately printable box body",
+          "required": true,
+          "source": "user"
+        },
+        {
+          "aliases": [
+            "lid",
+            "storage box lid"
+          ],
+          "authority": "explicit",
+          "component_id": "lid",
+          "component_ids": [
+            "lid"
+          ],
+          "expected_solid_count": 1,
+          "id": "lid",
+          "label": "Lid",
+          "output_type": "printable_component",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "separately printable lid",
+          "required": true,
+          "source": "user"
+        }
+      ],
+      "parameters": [],
+      "print_requirements": {},
+      "project_id": "d025bd11-9225-4cef-b39b-ac092ea07320",
+      "purpose": "desktop storage box",
+      "relationships": [
+        {
+          "authority": "explicit",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid",
+          "relationship": "mates_with",
+          "source": "user",
+          "source_output_id": "lid",
+          "target_output_id": "box_body"
+        }
+      ],
+      "schema_version": "1.0",
+      "supported_scope": true,
+      "units": "mm"
+    },
+    "plan": {
+      "printable_outputs": [
+        {
+          "allow_disconnected_solids": false,
+          "component_id": "box_body",
+          "component_ids": [
+            "box_body"
+          ],
+          "entrypoint": "box_body",
+          "expected_solid_count": 1,
+          "filename": "box_body.stl",
+          "id": "box_body",
+          "label": "Box Body",
+          "output_type": "printable_component",
+          "required": true
+        },
+        {
+          "allow_disconnected_solids": false,
+          "component_id": "lid",
+          "component_ids": [
+            "lid"
+          ],
+          "entrypoint": "lid",
+          "expected_solid_count": 1,
+          "filename": "lid.stl",
+          "id": "lid",
+          "label": "Lid",
+          "output_type": "printable_component",
+          "required": true
+        }
+      ],
+      "schema_version": "executable-cadquery-execution-plan-v1",
+      "semantic_contract": {
+        "contract_materialization_version": "executable-cadquery-product-contract-v2",
+        "contract_source": "production_requirement_ledger",
+        "outputs": [
+          {
+            "aliases": [
+              "box body",
+              "body"
+            ],
+            "authority": "explicit",
+            "component_id": "box_body",
+            "component_ids": [
+              "box_body"
+            ],
+            "expected_solid_count": 1,
+            "label": "Box Body",
+            "output_id": "box_body",
+            "output_type": "printable_component",
+            "protected": true,
+            "provenance": {},
+            "raw_evidence": "separately printable box body",
+            "required": true,
+            "source": "user"
+          },
+          {
+            "aliases": [
+              "lid",
+              "storage box lid"
+            ],
+            "authority": "explicit",
+            "component_id": "lid",
+            "component_ids": [
+              "lid"
+            ],
+            "expected_solid_count": 1,
+            "label": "Lid",
+            "output_id": "lid",
+            "output_type": "printable_component",
+            "protected": true,
+            "provenance": {},
+            "raw_evidence": "separately printable lid",
+            "required": true,
+            "source": "user"
+          }
+        ],
+        "product_state": {
+          "design_specification_schema": "1.0",
+          "object_type": "storage box",
+          "purpose": "desktop storage box"
+        },
+        "project_id": "d025bd11-9225-4cef-b39b-ac092ea07320",
+        "protected_facts": [
+          {
+            "authoritative_value": {
+              "depth": 60,
+              "height": 30,
+              "width": 80
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "body"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_body_printable"
+          },
+          {
+            "authoritative_value": {
+              "value": true
+            },
+            "authority": "required",
+            "origin": "user_explicit",
+            "requirement_id": "req_lid_printable"
+          }
+        ],
+        "relationships": [
+          {
+            "authority": "explicit",
+            "protected": true,
+            "provenance": {},
+            "raw_evidence": "a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid",
+            "relationship": "mates_with",
+            "source": "user",
+            "source_output_id": "lid",
+            "target_output_id": "box_body"
+          }
+        ],
+        "requirements": [
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "depth": 60,
+              "height": 30,
+              "width": 80
+            },
+            "kind": "dimension",
+            "object_type": "box body",
+            "operator": "approximately",
+            "origin": "user_explicit",
+            "provenance": {
+              "canonicalization": "overall_envelope_tuple_v1",
+              "source_fact_evidence": "Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high.",
+              "source_fact_id": "fact_body_dimensions",
+              "source_fact_type": "overall_envelope",
+              "source_requirement_ids": [
+                "body_depth",
+                "body_height",
+                "body_width"
+              ],
+              "source_statement_identity": "group:fact_body_dimensions"
+            },
+            "raw_evidence": "80 mm wide",
+            "requirement_id": "body",
+            "source": "initial_user",
+            "subject": "body",
+            "verification_policy": "final_mesh_bounds"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "box body",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "separately printable box body",
+            "requirement_id": "req_body_printable",
+            "source": "initial_user",
+            "subject": "box body"
+          },
+          {
+            "authority": "required",
+            "classification": "machine_required",
+            "expected": {
+              "value": true
+            },
+            "kind": "feature",
+            "object_type": "lid",
+            "operator": "present",
+            "origin": "user_explicit",
+            "raw_evidence": "separately printable lid",
+            "requirement_id": "req_lid_printable",
+            "source": "initial_user",
+            "subject": "lid"
+          }
+        ],
+        "revision_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141:candidate:1",
+        "schema_version": "executable-cadquery-design-contract-v1",
+        "units": "mm",
+        "workflow_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141"
+      }
+    },
+    "design_contract": {
+      "contract_materialization_version": "executable-cadquery-product-contract-v2",
+      "contract_source": "production_requirement_ledger",
+      "outputs": [
+        {
+          "aliases": [
+            "box body",
+            "body"
+          ],
+          "authority": "explicit",
+          "component_id": "box_body",
+          "component_ids": [
+            "box_body"
+          ],
+          "expected_solid_count": 1,
+          "label": "Box Body",
+          "output_id": "box_body",
+          "output_type": "printable_component",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "separately printable box body",
+          "required": true,
+          "source": "user"
+        },
+        {
+          "aliases": [
+            "lid",
+            "storage box lid"
+          ],
+          "authority": "explicit",
+          "component_id": "lid",
+          "component_ids": [
+            "lid"
+          ],
+          "expected_solid_count": 1,
+          "label": "Lid",
+          "output_id": "lid",
+          "output_type": "printable_component",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "separately printable lid",
+          "required": true,
+          "source": "user"
+        }
+      ],
+      "product_state": {
+        "design_specification_schema": "1.0",
+        "object_type": "storage box",
+        "purpose": "desktop storage box"
+      },
+      "project_id": "d025bd11-9225-4cef-b39b-ac092ea07320",
+      "protected_facts": [
+        {
+          "authoritative_value": {
+            "depth": 60,
+            "height": 30,
+            "width": 80
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "body"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_body_printable"
+        },
+        {
+          "authoritative_value": {
+            "value": true
+          },
+          "authority": "required",
+          "origin": "user_explicit",
+          "requirement_id": "req_lid_printable"
+        }
+      ],
+      "relationships": [
+        {
+          "authority": "explicit",
+          "protected": true,
+          "provenance": {},
+          "raw_evidence": "a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid",
+          "relationship": "mates_with",
+          "source": "user",
+          "source_output_id": "lid",
+          "target_output_id": "box_body"
+        }
+      ],
+      "requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "depth": 60,
+            "height": 30,
+            "width": 80
+          },
+          "kind": "dimension",
+          "object_type": "box body",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_fact_evidence": "Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high.",
+            "source_fact_id": "fact_body_dimensions",
+            "source_fact_type": "overall_envelope",
+            "source_requirement_ids": [
+              "body_depth",
+              "body_height",
+              "body_width"
+            ],
+            "source_statement_identity": "group:fact_body_dimensions"
+          },
+          "raw_evidence": "80 mm wide",
+          "requirement_id": "body",
+          "source": "initial_user",
+          "subject": "body",
+          "verification_policy": "final_mesh_bounds"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "box body",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "separately printable box body",
+          "requirement_id": "req_body_printable",
+          "source": "initial_user",
+          "subject": "box body"
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "expected": {
+            "value": true
+          },
+          "kind": "feature",
+          "object_type": "lid",
+          "operator": "present",
+          "origin": "user_explicit",
+          "raw_evidence": "separately printable lid",
+          "requirement_id": "req_lid_printable",
+          "source": "initial_user",
+          "subject": "lid"
+        }
+      ],
+      "revision_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141:candidate:1",
+      "schema_version": "executable-cadquery-design-contract-v1",
+      "units": "mm",
+      "workflow_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141"
+    },
+    "verification": {
+      "candidate_policy": {
+        "blockers": [
+          "output:box_body:state:semantic_verification_failed",
+          "output:lid:state:semantic_verification_failed",
+          "body",
+          "req_body_printable",
+          "req_lid_printable"
+        ],
+        "candidate_policy_version": "executable-cadquery-candidate-policy-v1",
+        "candidate_state": "candidate_blocked",
+        "eligible_for_review": false,
+        "fully_verified": false,
+        "independent_review_verdict": null,
+        "review_obligations": [
+          "independent_final_review"
+        ],
+        "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+        "state": "candidate_blocked"
+      },
+      "concept_state": {
+        "artifact_output_ids": [
+          "box_body",
+          "lid"
+        ],
+        "blockers": [],
+        "concept_policy_version": "executable-cadquery-concept-policy-v1",
+        "concept_state": "concept_available",
+        "revision_capable": true,
+        "state": "concept_available"
+      },
+      "output_states": {
+        "box_body": "semantic_verification_failed",
+        "lid": "semantic_verification_failed"
+      },
+      "revision_id": "bee0b130-a13f-4ab8-81e2-90816c7b6adb",
+      "semantic_verification": {
+        "failed": [],
+        "findings": [
+          {
+            "evidence_source": "none",
+            "expected_value": {
+              "depth": 60,
+              "height": 30,
+              "width": 80
+            },
+            "measured_value": {
+              "reason": "output_scope_ambiguous",
+              "scope_resolution": {
+                "available_output_ids": [
+                  "box_body",
+                  "lid"
+                ],
+                "output_ids": [],
+                "reason": "unscoped_multiple_outputs",
+                "requested_identities": [],
+                "scope_kind": "unresolved",
+                "status": "ambiguous"
+              }
+            },
+            "measurement_available": false,
+            "observed_status": "unverifiable",
+            "policy": "machine_required",
+            "requirement_id": "body",
+            "result": "unsupported_verifier",
+            "tolerance": null,
+            "verification_policy": "final_mesh_bounds"
+          },
+          {
+            "evidence_source": "none",
+            "expected_value": {
+              "value": true
+            },
+            "measured_value": {
+              "reason": "output_scope_ambiguous",
+              "scope_resolution": {
+                "available_output_ids": [
+                  "box_body",
+                  "lid"
+                ],
+                "output_ids": [],
+                "reason": "unscoped_multiple_outputs",
+                "requested_identities": [],
+                "scope_kind": "unresolved",
+                "status": "ambiguous"
+              }
+            },
+            "measurement_available": false,
+            "observed_status": "unverifiable",
+            "policy": "machine_required",
+            "requirement_id": "req_body_printable",
+            "result": "unsupported_verifier",
+            "tolerance": null,
+            "verification_policy": null
+          },
+          {
+            "evidence_source": "none",
+            "expected_value": {
+              "value": true
+            },
+            "measured_value": {
+              "reason": "output_scope_ambiguous",
+              "scope_resolution": {
+                "available_output_ids": [
+                  "box_body",
+                  "lid"
+                ],
+                "output_ids": [],
+                "reason": "unscoped_multiple_outputs",
+                "requested_identities": [],
+                "scope_kind": "unresolved",
+                "status": "ambiguous"
+              }
+            },
+            "measurement_available": false,
+            "observed_status": "unverifiable",
+            "policy": "machine_required",
+            "requirement_id": "req_lid_printable",
+            "result": "unsupported_verifier",
+            "tolerance": null,
+            "verification_policy": null
+          }
+        ],
+        "load_errors": {},
+        "output_ids": [
+          "box_body",
+          "lid"
+        ],
+        "passed": [],
+        "policy_summary": {
+          "failed": 0,
+          "informational": 0,
+          "machine_required": 3,
+          "review_required": 0,
+          "unsupported_verifier": 3,
+          "verified": 0,
+          "version": "executable-cadquery-semantic-policy-v1"
+        },
+        "review_required": [],
+        "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+        "status": "unsupported_verifier",
+        "unsupported_verifier": [
+          "body",
+          "req_body_printable",
+          "req_lid_printable"
+        ],
+        "unverifiable": [
+          "body",
+          "req_body_printable",
+          "req_lid_printable"
+        ]
+      },
+      "status": "failed"
+    },
+    "candidate_policy": {
+      "blockers": [
+        "output:box_body:state:semantic_verification_failed",
+        "output:lid:state:semantic_verification_failed",
+        "body",
+        "req_body_printable",
+        "req_lid_printable"
+      ],
+      "candidate_policy_version": "executable-cadquery-candidate-policy-v1",
+      "candidate_state": "candidate_blocked",
+      "eligible_for_review": false,
+      "fully_verified": false,
+      "independent_review_verdict": null,
+      "review_obligations": [
+        "independent_final_review"
+      ],
+      "semantic_policy_version": "executable-cadquery-semantic-policy-v1",
+      "state": "candidate_blocked"
+    },
+    "diagnostics": {
+      "diagnostic": {},
+      "extracted_source_hash": "250fa05b9ee22fc6d9bc34cc91c0c9f159842935fc0e47d1ddee6bf403c25903",
+      "extraction_succeeded": true,
+      "first_incorrect_boundary": "semantic",
+      "kind": "semantic_requirement_unverifiable",
+      "latest_recovery_decision": {
+        "evidence_inputs": [
+          "requirement_policy",
+          "measurement_available",
+          "measurement_report"
+        ],
+        "first_incorrect_owner": "application",
+        "invalidates": [
+          "semantic_measurement",
+          "semantic_policy",
+          "package",
+          "preview"
+        ],
+        "observation": {
+          "attempt_ordinal": 3,
+          "evidence": {
+            "completed_output_ids": [
+              "box_body",
+              "lid"
+            ],
+            "contract_valid": true,
+            "detected_solid_count": null,
+            "diagnostic": {},
+            "diagnostic_signature": null,
+            "expected_solid_count": null,
+            "extracted_source_hash": "250fa05b9ee22fc6d9bc34cc91c0c9f159842935fc0e47d1ddee6bf403c25903",
+            "failed_requirement_ids": [],
+            "failure_boundary": "semantic",
+            "failure_signature": null,
+            "no_violation_decrease_streak": 0,
+            "normalized_error": null,
+            "passed_requirement_ids": [],
+            "phase_index": 2,
+            "semantic_policy": {
+              "failed": 0,
+              "informational": 0,
+              "machine_required": 3,
+              "review_required": 0,
+              "unsupported_verifier": 3,
+              "verified": 0,
+              "version": "executable-cadquery-semantic-policy-v1"
+            },
+            "syntax_valid": true,
+            "unverifiable_requirement_ids": [
+              "body",
+              "req_body_printable",
+              "req_lid_printable"
+            ],
+            "valid": true,
+            "violation_count": null
+          },
+          "failure_class": "semantic_requirement_unverifiable",
+          "observed_stage": "semantic_measurement",
+          "progress": {
+            "measurable_progress": false,
+            "no_violation_decrease_across_two_repairs": false,
+            "no_violation_decrease_streak": 0,
+            "progress_reasons": [],
+            "progress_result": "no_progress",
+            "protected_fact_regression": false,
+            "repair_level": "L2",
+            "same_diagnostic_signature": false,
+            "violation_count_decreased": false
+          }
+        },
+        "policy_version": "executable-cadquery-recovery-policy-v1",
+        "recommended_action": "require_review",
+        "recoverability": "terminal",
+        "repair_level": null,
+        "restart_stage": "semantic_measurement",
+        "schema_version": "executable-cadquery-recovery-decision-v1",
+        "terminal": true,
+        "terminal_conditions": [
+          "coverage defect repeats",
+          "no verifier and no review classification"
+        ],
+        "terminal_reason": "repair_ceiling_exhausted"
+      },
+      "message": "Final geometry could not prove one or more design requirements.",
+      "raw_response_hash": "d004cd4c12bc3b147e214cb0d04271e71715949eb62fcd53703f90729d915bc8",
+      "recovery_action": "require_review",
+      "recovery_terminal": true,
+      "recovery_terminal_reason": "repair_ceiling_exhausted",
+      "repair_level": "L2",
+      "repair_progress": "progressed",
+      "source_contract_valid": true,
+      "syntax_valid": true
+    },
+    "package_manifest": {},
+    "package_available": false,
+    "outputs": [
+      {
+        "output_id": "box_body",
+        "required": true,
+        "generation_status": "completed",
+        "worker_status": "completed",
+        "state": "semantic_verification_failed",
+        "solid_count": 1,
+        "topology_status": "passed",
+        "semantic_verification": "failed",
+        "artifact_available": true,
+        "failure_owner": "verification",
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "artifact_metadata": {
+          "stl_hash": "ce74c61b2d54a013b0528622ed9f78c8ffce483c577656d3b0272e326097c924",
+          "step_hash": "aa14b5efeacb699eec8b7046e221e7d9ba7bb37e7059772a0644632f07ad5771",
+          "brep_hash": "50b6ac763670792199a6f24268b6b95902fb790cc02535e032c1b406da29fc3a"
+        }
+      },
+      {
+        "output_id": "lid",
+        "required": true,
+        "generation_status": "completed",
+        "worker_status": "completed",
+        "state": "semantic_verification_failed",
+        "solid_count": 1,
+        "topology_status": "passed",
+        "semantic_verification": "failed",
+        "artifact_available": true,
+        "failure_owner": "verification",
+        "safe_diagnostic": "Semantic verification did not pass.",
+        "artifact_metadata": {
+          "stl_hash": "27a89b9137ba43346425a53f5a45b68546a0267cb773b110cc949785183b8188",
+          "step_hash": "1f613f0014a943e9fd738e7ae057a815edc0b6f87b04dfdae3a0bbfad8a839ce",
+          "brep_hash": "1352ced2750f8a54939c4e1bea9b807f351434ab12946c88c2729c7ca5c4d519"
+        }
+      }
+    ],
+    "provenance": {
+      "contract_source": "production_requirement_ledger",
+      "provider_id": "gemini_api",
+      "provider_transport": "gemini_api",
+      "source_generation_mode": "complete_source",
+      "source_hash": "250fa05b9ee22fc6d9bc34cc91c0c9f159842935fc0e47d1ddee6bf403c25903",
+      "output_ids": null,
+      "automatic_provider_operation_count": 2,
+      "automatic_provider_operation_budget": 9,
+      "repair_history": [
+        {
+          "operation_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141:attempt:1",
+          "repair_level": "initial",
+          "observed_stage": "topology",
+          "failure_boundary": "topology",
+          "failure_class": "invalid_shape",
+          "first_incorrect_owner": "geometry",
+          "source_hash": "14bf1cc4c474f468169de2639c8d1d7372a9c90e7eace834387390f8574f5383",
+          "result_hash": "5bd32ca607de751af355b2f10245ade8dae478b0b52ffc34ca863956b9426b6d",
+          "normalized_error": null,
+          "provider_attempt": {
+            "attempt_id": "ab28d43a-9604-4d93-b7b4-f6127985c40c",
+            "logical_operation_id": "6665ab50-23ef-4b40-9e71-4ae280ece770",
+            "credential_slot": "primary",
+            "status_code": 200,
+            "transport_retry_classification": "none",
+            "rate_limit_429_classification": "not_429",
+            "raw_response_hash": "41db7b83b5f903a3b48af26beaac6b537e75b26f45ef65f2801b869d60d415bb"
+          },
+          "worker_result": {
+            "job_id": null,
+            "success": null,
+            "output_ids": [
+              "box_body",
+              "lid"
+            ],
+            "result_hash": null
+          },
+          "topology_result": {
+            "valid": false,
+            "detected_solid_count": null,
+            "expected_solid_count": null,
+            "schema_version": null
+          },
+          "semantic_result": {
+            "status": null,
+            "passed": [],
+            "failed": [],
+            "unverifiable": [],
+            "review_required": [],
+            "unsupported": []
+          }
+        },
+        {
+          "operation_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141:attempt:2",
+          "repair_level": "L2",
+          "observed_stage": "semantic_measurement",
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": "application",
+          "source_hash": "250fa05b9ee22fc6d9bc34cc91c0c9f159842935fc0e47d1ddee6bf403c25903",
+          "result_hash": "c663f858b3956abf548c11ec736ff18ccba80d5e36fa0ab9cb66fc8e376ba8ed",
+          "normalized_error": null,
+          "provider_attempt": {
+            "attempt_id": "6bab26cc-88df-46e0-84dd-6edd96a18d44",
+            "logical_operation_id": "6f8f7f50-b68b-4117-90a6-4bef40c895cf",
+            "credential_slot": "primary",
+            "status_code": 200,
+            "transport_retry_classification": "none",
+            "rate_limit_429_classification": "not_429",
+            "raw_response_hash": "d004cd4c12bc3b147e214cb0d04271e71715949eb62fcd53703f90729d915bc8"
+          },
+          "worker_result": {
+            "job_id": null,
+            "success": null,
+            "output_ids": [
+              "box_body",
+              "lid"
+            ],
+            "result_hash": null
+          },
+          "topology_result": {
+            "valid": true,
+            "detected_solid_count": null,
+            "expected_solid_count": null,
+            "schema_version": null
+          },
+          "semantic_result": {
+            "status": "unsupported_verifier",
+            "passed": [],
+            "failed": [],
+            "unverifiable": [
+              "body",
+              "req_body_printable",
+              "req_lid_printable"
+            ],
+            "review_required": [],
+            "unsupported": []
+          }
+        },
+        {
+          "operation_id": "ed688d4b-31eb-4a03-8043-6eca97b8c141:recovery-recheck:2",
+          "repair_level": "L2",
+          "observed_stage": null,
+          "failure_boundary": "semantic",
+          "failure_class": "semantic_requirement_unverifiable",
+          "first_incorrect_owner": null,
+          "source_hash": "250fa05b9ee22fc6d9bc34cc91c0c9f159842935fc0e47d1ddee6bf403c25903",
+          "result_hash": "c663f858b3956abf548c11ec736ff18ccba80d5e36fa0ab9cb66fc8e376ba8ed",
+          "normalized_error": null,
+          "provider_attempt": {
+            "attempt_id": null,
+            "logical_operation_id": null,
+            "credential_slot": null,
+            "status_code": null,
+            "transport_retry_classification": null,
+            "rate_limit_429_classification": null,
+            "raw_response_hash": null
+          },
+          "worker_result": {
+            "job_id": null,
+            "success": null,
+            "output_ids": [
+              "box_body",
+              "lid"
+            ],
+            "result_hash": null
+          },
+          "topology_result": {
+            "valid": true,
+            "detected_solid_count": null,
+            "expected_solid_count": null,
+            "schema_version": null
+          },
+          "semantic_result": {
+            "status": "unsupported_verifier",
+            "passed": [],
+            "failed": [],
+            "unverifiable": [
+              "body",
+              "req_body_printable",
+              "req_lid_printable"
+            ],
+            "review_required": [],
+            "unsupported": []
+          }
+        }
+      ]
+    }
+  },
+  "generation_attempts": [
+    {
+      "id": null,
+      "attempt_number": 1,
+      "status": "succeeded",
+      "provider": "gemini_api",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_version": "requirements-v5",
+      "failure_class": "none"
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "box_body:step",
+      "kind": "step",
+      "output_id": "box_body",
+      "filename": "box_body.step",
+      "media_type": "model/step",
+      "size_bytes": 29186,
+      "sha256": "aa14b5efeacb699eec8b7046e221e7d9ba7bb37e7059772a0644632f07ad5771",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/ed688d4b-31eb-4a03-8043-6eca97b8c141/artifacts/box_body:step/download"
+    },
+    {
+      "artifact_id": "box_body:stl",
+      "kind": "stl",
+      "output_id": "box_body",
+      "filename": "box_body.stl",
+      "media_type": "model/stl",
+      "size_bytes": 1484,
+      "sha256": "ce74c61b2d54a013b0528622ed9f78c8ffce483c577656d3b0272e326097c924",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/ed688d4b-31eb-4a03-8043-6eca97b8c141/artifacts/box_body:stl/download"
+    },
+    {
+      "artifact_id": "box_body:brep",
+      "kind": "brep",
+      "output_id": "box_body",
+      "filename": "box_body.brep",
+      "media_type": "model/brep",
+      "size_bytes": 7269,
+      "sha256": "50b6ac763670792199a6f24268b6b95902fb790cc02535e032c1b406da29fc3a",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/ed688d4b-31eb-4a03-8043-6eca97b8c141/artifacts/box_body:brep/download"
+    },
+    {
+      "artifact_id": "lid:step",
+      "kind": "step",
+      "output_id": "lid",
+      "filename": "lid.step",
+      "media_type": "model/step",
+      "size_bytes": 29247,
+      "sha256": "1f613f0014a943e9fd738e7ae057a815edc0b6f87b04dfdae3a0bbfad8a839ce",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/ed688d4b-31eb-4a03-8043-6eca97b8c141/artifacts/lid:step/download"
+    },
+    {
+      "artifact_id": "lid:stl",
+      "kind": "stl",
+      "output_id": "lid",
+      "filename": "lid.stl",
+      "media_type": "model/stl",
+      "size_bytes": 1484,
+      "sha256": "27a89b9137ba43346425a53f5a45b68546a0267cb773b110cc949785183b8188",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/ed688d4b-31eb-4a03-8043-6eca97b8c141/artifacts/lid:stl/download"
+    },
+    {
+      "artifact_id": "lid:brep",
+      "kind": "brep",
+      "output_id": "lid",
+      "filename": "lid.brep",
+      "media_type": "model/brep",
+      "size_bytes": 9797,
+      "sha256": "1352ced2750f8a54939c4e1bea9b807f351434ab12946c88c2729c7ca5c4d519",
+      "available": true,
+      "download_url": "/api/validated-cadquery/workflows/ed688d4b-31eb-4a03-8043-6eca97b8c141/artifacts/lid:brep/download"
+    }
+  ],
+  "downloaded_artifacts": [
+    {
+      "artifact_id": "box_body:step",
+      "output_id": "box_body",
+      "kind": "step",
+      "sha256": "aa14b5efeacb699eec8b7046e221e7d9ba7bb37e7059772a0644632f07ad5771",
+      "size_bytes": 29186
+    },
+    {
+      "artifact_id": "box_body:stl",
+      "output_id": "box_body",
+      "kind": "stl",
+      "sha256": "ce74c61b2d54a013b0528622ed9f78c8ffce483c577656d3b0272e326097c924",
+      "size_bytes": 1484
+    },
+    {
+      "artifact_id": "box_body:brep",
+      "output_id": "box_body",
+      "kind": "brep",
+      "sha256": "50b6ac763670792199a6f24268b6b95902fb790cc02535e032c1b406da29fc3a",
+      "size_bytes": 7269
+    },
+    {
+      "artifact_id": "lid:step",
+      "output_id": "lid",
+      "kind": "step",
+      "sha256": "1f613f0014a943e9fd738e7ae057a815edc0b6f87b04dfdae3a0bbfad8a839ce",
+      "size_bytes": 29247
+    },
+    {
+      "artifact_id": "lid:stl",
+      "output_id": "lid",
+      "kind": "stl",
+      "sha256": "27a89b9137ba43346425a53f5a45b68546a0267cb773b110cc949785183b8188",
+      "size_bytes": 1484
+    },
+    {
+      "artifact_id": "lid:brep",
+      "output_id": "lid",
+      "kind": "brep",
+      "sha256": "1352ced2750f8a54939c4e1bea9b807f351434ab12946c88c2729c7ca5c4d519",
+      "size_bytes": 9797
+    }
+  ],
+  "reference_isolation": {
+    "reference_geometry_supplied": false,
+    "request_body": {
+      "name": "synthetic-two-piece-storage-box",
+      "intent_sha256": "70a36944305306a9deaf36173d64e1cefe6bc381e5b1a451065419b671cd8683"
+    }
+  }
+}
