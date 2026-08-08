@@ -1,0 +1,23 @@
+{
+  "schema_version": "external-cad-benchmark-requirement-ledger-evidence-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "mode": "premise_only",
+  "workflow_id": "3d5b7e25-30f5-4fe2-b620-ecb6cd66a5a5",
+  "design_specification_persisted": true,
+  "design_specification_direct_id_captured": false,
+  "design_specification_proof": "ProjectService.extract_requirements returned an accepted specification and the workflow persisted its complete requirements payload before returning awaiting_clarification.",
+  "ledger_materialization_status": "not_materialized_due_to_clarification_gate",
+  "active_entries_used_for_contract": [],
+  "reason": "Executable contract materialization and RequirementLedgerStore activation occur only after the shared specification is generation-ready; this run correctly stopped before that boundary.",
+  "authoritative_requirements_preserved_in_design_specification": [
+    "chain_stay_attachment",
+    "sensor_alignment",
+    "req_attach_chain_stay",
+    "req_align_sensor",
+    "req_screw_ziptie_attachment",
+    "req_compact_design"
+  ],
+  "qualitative_requirements_discarded": false,
+  "model_assumptions_promoted_to_user_required": false,
+  "contract_materialization_attempted": false
+}

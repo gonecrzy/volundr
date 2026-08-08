@@ -1,0 +1,18 @@
+{
+  "schema_version": "external-cad-benchmark-product-path-rate-limit-audit-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "mode": "premise_only",
+  "concurrency": 1,
+  "request_start_timestamps_source": "persisted requirement-attempt started_at fields",
+  "request_start_timestamps": [
+    "2026-08-08T04:30:47.557729",
+    "2026-08-08T04:30:51.642854"
+  ],
+  "observed_start_gap_seconds": 4.085125,
+  "rolling_window_call_count": 2,
+  "http_429_observed": false,
+  "fallback_used": false,
+  "transport_level_request_start_fields": "not exposed in copied raw workflow evidence",
+  "repair_limits_changed": false,
+  "interpretation": "The two sequential calls were requirement extraction and its normalization correction; no CAD repair or unplanned retry occurred."
+}

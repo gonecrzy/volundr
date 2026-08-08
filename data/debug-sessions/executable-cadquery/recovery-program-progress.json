@@ -9,7 +9,7 @@
   "origin_experimental_head": "0b99120 Connect executable CadQuery to product requirement path",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; normal user-intent to requirement-ledger to executable-contract path is offline verified",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -119,6 +119,7 @@
     ,"external_real_world_benchmark_mounting_bracket_pilot_locked_without_provider_calls"
     ,"external_real_world_benchmark_mounting_bracket_001_two_mode_smoke_completed"
     ,"executable_user_requirement_contract_boundary_offline_verified"
+    ,"external_real_world_benchmark_mounting_bracket_001_product_requirement_path_clarification_valid"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -194,7 +195,14 @@
     "normal_product_path_status": "offline_verified_not_live",
     "normal_product_path_evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-executable-user-requirement-contract-boundary.json",
     "normal_benchmark_runner": "frontend/scripts/run-live-external-benchmark.sh",
-    "next_action": "Review and run the mounting-bracket-001 premise_only smoke through the normal product requirement path; do not run projects 002–005 yet."
+    "product_path_smoke_status": "clarification_path_valid",
+    "product_path_smoke_evidence": "data/debug-sessions/external-benchmarks/mounting-brackets-v1/smoke-001-product-path/",
+    "product_path_smoke_provider_calls": 2,
+    "product_path_smoke_cad_generation_calls": 0,
+    "product_path_smoke_repair_calls": 0,
+    "product_path_smoke_worker_executions": 0,
+    "product_path_smoke_reference_comparison": "not_run_clarification_required",
+    "next_action": "Review the three clarification questions and decide benchmark clarification policy; do not run projects 002–005 automatically."
   },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
@@ -506,6 +514,9 @@
     ,"external_real_world_benchmark_mounting_bracket_001_smoke_provider_calls": 2
     ,"external_real_world_benchmark_mounting_bracket_001_smoke_repair_calls": 0
     ,"executable_user_requirement_contract_boundary_provider_calls": 0
+    ,"external_real_world_benchmark_mounting_bracket_001_product_path_smoke_provider_calls": 2
+    ,"external_real_world_benchmark_mounting_bracket_001_product_path_smoke_cad_generation_calls": 0
+    ,"external_real_world_benchmark_mounting_bracket_001_product_path_smoke_worker_executions": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -518,7 +529,7 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "116b4b4 Record mounting bracket benchmark smoke pair",
+  "latest_substantive_commit": "0b99120 Connect executable CadQuery to product requirement path",
   "evidence": {
     "methodology_playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
     "methodology_update": "seed stabilization → frozen diverse development corpus → first-blocker survey → generic clustering → breadth-first recovery → policy freeze → unseen holdout",
@@ -598,6 +609,7 @@
     "external_real_world_benchmark_pilot_lock": "outer ZIP SHA-256 6b9274c333f6212b4a5b44b398b632b1af326a5625885f76d734a795223ebe86; five projects imported; canonical parts=7; provenance files=16; canonical reference bytes remain under ignored data/",
     "external_real_world_benchmark_pilot_smoke": "data/debug-sessions/external-benchmarks/mounting-brackets-v1/smoke-001/; two sequential mounting-bracket-001 runs; provider_calls=2; repair_calls=0; fallback_calls=0; worker_executions=2; primary HTTP 200 both; no reference geometry sent to provider; source/worker/topology/semantic/artifact/reference-comparison evidence persisted",
     "executable_user_requirement_contract_boundary": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-executable-user-requirement-contract-boundary.json; normal ProjectService requirement extraction and RequirementLedgerStore now feed executable contract materialization when no corpus manifest is set; clarification is preserved before generation; repeatability injection remains opt-in; provider_calls=0; worker_executions=0",
+    "external_real_world_benchmark_product_requirement_path_smoke": "data/debug-sessions/external-benchmarks/mounting-brackets-v1/smoke-001-product-path/; one live premise_only run; clarification_path_valid; requirements persisted nonempty; questions persisted; requirement_extraction_calls=2; cad_generation_calls=0; repair_calls=0; worker_executions=0; corpus_manifest_absent; reference comparison not run",
     "verification_current_checkpoint": "focused external benchmark suite 20 passed; live smoke test passed; full backend baseline before smoke 1556 passed, 1 skipped, 1 warning; benchmark provider_calls=2; benchmark_runs=2; worker_executions=2; no production CAD generation changes",
     "external_printables_playwright_acquisition_test": "data/debug-sessions/external-benchmarks/mounting-brackets-v1/printables-509653-playwright-acquisition-test.json; one anonymous browser attempt for model 509653; Cloudflare HTTP 403 anti-bot block before page/download UI; downloaded_zip=none; provider_calls=0; worker_executions=0; locked references unchanged; do not retry or bulk acquire until allowed normal-browser access is available"
     ,"product_path_checkpoint_verification": "backend 1562 passed, 1 skipped, 1 warning with repository-root PYTHONPATH; frontend build/typecheck passed; live harness 8 passed; provider_calls=0; worker_executions=0"

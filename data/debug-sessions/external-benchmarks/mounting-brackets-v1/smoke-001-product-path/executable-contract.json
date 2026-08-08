@@ -1,0 +1,12 @@
+{
+  "schema_version": "external-cad-benchmark-executable-contract-evidence-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "mode": "premise_only",
+  "contract_created": false,
+  "contract_source": null,
+  "repeatability_corpus_used": false,
+  "reason": "clarification_required",
+  "contract_requirements_empty": null,
+  "contract_materialization_version": null,
+  "generation_was_not_started": true
+}

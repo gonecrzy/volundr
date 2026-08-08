@@ -1,0 +1,806 @@
+{
+  "schema_version": "external-cad-benchmark-smoke-raw-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "mode": "premise_only",
+  "prompt": "Design a replacement mounting bracket for an e-bike wheel speed sensor. It should attach securely to a bicycle chain stay, keep the sensor aligned with the wheel spokes, and allow attachment using a screw and zip tie. Keep the design compact and practical.",
+  "prompt_sha256": "069e479e26be4ad9cc403e9bf36f437fd2106c36c1487a65d2dca3f843f6157d",
+  "idempotency_key": "mounting-bracket-001-premise-only",
+  "started_at": "2026-08-08T04:30:47.452Z",
+  "start_response": {
+    "status": 201,
+    "body": {
+      "id": "3d5b7e25-30f5-4fe2-b620-ecb6cd66a5a5",
+      "project_id": "f3c7022a-f073-4c08-8547-3c7ec34c9929",
+      "parent_workflow_id": null,
+      "parent_revision_id": null,
+      "revision_id": null,
+      "state": "awaiting_clarification",
+      "route": "validated_cadquery",
+      "user_instruction": "Design a replacement mounting bracket for an e-bike wheel speed sensor. It should attach securely to a bicycle chain stay, keep the sensor aligned with the wheel spokes, and allow attachment using a screw and zip tie. Keep the design compact and practical.",
+      "requirements": {
+        "assumptions": [
+          {
+            "description": "Bicycle chain stay diameter default",
+            "id": "assumption_chain_stay_diameter",
+            "kind": "dimension",
+            "label": "Bicycle chain stay diameter default",
+            "object_type": "chain stay",
+            "operator": "approximately",
+            "raw_evidence": "attach securely to a bicycle chain stay",
+            "requires_approval": false,
+            "source": "ai_assumption",
+            "subject": "chain stay",
+            "target": null,
+            "unit": "mm",
+            "value": 25
+          },
+          {
+            "description": "Wheel speed sensor housing envelope default",
+            "id": "assumption_sensor_dimensions",
+            "kind": "dimension",
+            "label": "Wheel speed sensor housing envelope default",
+            "object_type": "sensor",
+            "operator": "approximately",
+            "raw_evidence": "replacement mounting bracket for an e-bike wheel speed sensor",
+            "requires_approval": false,
+            "source": "ai_assumption",
+            "subject": "sensor",
+            "target": null,
+            "unit": "mm",
+            "value": 20
+          }
+        ],
+        "clarification_questions": [
+          {
+            "category": "mating_dimensions",
+            "id": "q_chain_stay_dimensions",
+            "impact": "Required to size the bracket contour to the specific bicycle frame tubing.",
+            "question": "What is the outer diameter or cross-sectional shape and dimensions of your bicycle chain stay where the bracket will mount?",
+            "reason": null,
+            "related_requirement_id": null
+          },
+          {
+            "category": "mating_dimensions",
+            "id": "q_sensor_dimensions",
+            "impact": "Required to properly design the sensor retention pocket or interface.",
+            "question": "What are the exact dimensions (length, width, thickness) and mounting geometry of the e-bike wheel speed sensor?",
+            "reason": null,
+            "related_requirement_id": null
+          },
+          {
+            "category": "fastener_geometry",
+            "id": "q_screw_designation",
+            "impact": "Required to size the screw hole correctly.",
+            "question": "What is the diameter or designation of the screw being used to attach the bracket?",
+            "reason": null,
+            "related_requirement_id": null
+          }
+        ],
+        "clarification_required": true,
+        "conflicts": [],
+        "critical_dimensions": [
+          {
+            "id": "chain_stay_attachment",
+            "importance": "critical",
+            "kind": "fit",
+            "label": "Chain stay attachment contour",
+            "object_type": "chain stay",
+            "operator": "qualitative",
+            "protected": true,
+            "raw_evidence": "attach securely to a bicycle chain stay",
+            "source": "user",
+            "subject": "bracket",
+            "target": "chain stay",
+            "tolerance": null,
+            "unit": "mm",
+            "value": 0
+          },
+          {
+            "id": "sensor_alignment",
+            "importance": "critical",
+            "kind": "orientation",
+            "label": "Sensor alignment with wheel spokes",
+            "object_type": "sensor",
+            "operator": "qualitative",
+            "protected": true,
+            "raw_evidence": "keep the sensor aligned with the wheel spokes",
+            "source": "user",
+            "subject": "sensor",
+            "target": "wheel spokes",
+            "tolerance": null,
+            "unit": "mm",
+            "value": 0
+          }
+        ],
+        "functional_requirements": [
+          {
+            "description": "Attach securely to a bicycle chain stay",
+            "id": "req_attach_chain_stay",
+            "importance": "critical",
+            "kind": "retention",
+            "object_type": "chain stay",
+            "operator": "present",
+            "protected": true,
+            "raw_evidence": "attach securely to a bicycle chain stay",
+            "source": "user",
+            "subject": "bracket",
+            "target": "chain stay",
+            "type": "retention",
+            "unit": null,
+            "value": true
+          },
+          {
+            "description": "Keep the sensor aligned with the wheel spokes",
+            "id": "req_align_sensor",
+            "importance": "critical",
+            "kind": "orientation",
+            "object_type": "sensor",
+            "operator": "present",
+            "protected": true,
+            "raw_evidence": "keep the sensor aligned with the wheel spokes",
+            "source": "user",
+            "subject": "sensor",
+            "target": "wheel spokes",
+            "type": "orientation",
+            "unit": null,
+            "value": true
+          },
+          {
+            "description": "Allow attachment using a screw and zip tie",
+            "id": "req_screw_ziptie_attachment",
+            "importance": "critical",
+            "kind": "feature",
+            "object_type": "fastener",
+            "operator": "present",
+            "protected": true,
+            "raw_evidence": "allow attachment using a screw and zip tie",
+            "source": "user",
+            "subject": "bracket",
+            "target": "screw and zip tie",
+            "type": "feature_presence",
+            "unit": null,
+            "value": true
+          },
+          {
+            "description": "Keep the design compact and practical",
+            "id": "req_compact_design",
+            "importance": "important",
+            "kind": "qualitative",
+            "object_type": null,
+            "operator": "qualitative",
+            "protected": true,
+            "raw_evidence": "Keep the design compact and practical.",
+            "source": "user",
+            "subject": "bracket",
+            "target": null,
+            "type": "qualitative_behavior",
+            "unit": null,
+            "value": true
+          }
+        ],
+        "generation_attempt_id": "51087f60-8bec-45e8-97fe-42eba1a8a196",
+        "generation_ready": false,
+        "missing_requirements": [
+          {
+            "description": "chain_stay_dimensions",
+            "id": "chain_stay_dimensions",
+            "importance": "critical",
+            "reason": "chain_stay_dimensions",
+            "source": "user"
+          },
+          {
+            "description": "sensor_dimensions",
+            "id": "sensor_dimensions",
+            "importance": "critical",
+            "reason": "sensor_dimensions",
+            "source": "user"
+          },
+          {
+            "description": "screw_designation",
+            "id": "screw_designation",
+            "importance": "critical",
+            "reason": "screw_designation",
+            "source": "user"
+          }
+        ],
+        "object_type": "mounting bracket",
+        "outcome": "clarification_required",
+        "parameters": [],
+        "print_requirements": {},
+        "project_id": "f3c7022a-f073-4c08-8547-3c7ec34c9929",
+        "purpose": "Replacement mounting bracket for an e-bike wheel speed sensor that attaches to a chain stay via screw and zip tie.",
+        "schema_version": "1.0",
+        "supported_scope": true,
+        "units": "mm"
+      },
+      "plan": {},
+      "provenance": {
+        "codex_proxy_used": false,
+        "contract_version": "executable-cadquery-design-contract-v1",
+        "feature_flag": "VOLUNDR_EXECUTABLE_CADQUERY_FLOW_ENABLED",
+        "feature_flag_enabled": true,
+        "provider_id": "gemini_api",
+        "provider_transport": "gemini_api",
+        "source_generation_mode": "complete_source"
+      },
+      "verification": {},
+      "candidate_policy": {},
+      "diagnostics": {},
+      "package_manifest": {},
+      "package_available": false,
+      "outputs": [],
+      "created_at": "2026-08-08T04:30:47.526655",
+      "updated_at": "2026-08-08T04:30:56.223112"
+    }
+  },
+  "initial_workflow": {
+    "id": "3d5b7e25-30f5-4fe2-b620-ecb6cd66a5a5",
+    "project_id": "f3c7022a-f073-4c08-8547-3c7ec34c9929",
+    "revision_id": null,
+    "parent_workflow_id": null,
+    "state": "awaiting_clarification",
+    "route": "validated_cadquery",
+    "user_instruction_sha256": "069e479e26be4ad9cc403e9bf36f437fd2106c36c1487a65d2dca3f843f6157d",
+    "requirements": {
+      "assumptions": [
+        {
+          "description": "Bicycle chain stay diameter default",
+          "id": "assumption_chain_stay_diameter",
+          "kind": "dimension",
+          "label": "Bicycle chain stay diameter default",
+          "object_type": "chain stay",
+          "operator": "approximately",
+          "raw_evidence": "attach securely to a bicycle chain stay",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "chain stay",
+          "target": null,
+          "unit": "mm",
+          "value": 25
+        },
+        {
+          "description": "Wheel speed sensor housing envelope default",
+          "id": "assumption_sensor_dimensions",
+          "kind": "dimension",
+          "label": "Wheel speed sensor housing envelope default",
+          "object_type": "sensor",
+          "operator": "approximately",
+          "raw_evidence": "replacement mounting bracket for an e-bike wheel speed sensor",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "sensor",
+          "target": null,
+          "unit": "mm",
+          "value": 20
+        }
+      ],
+      "clarification_questions": [
+        {
+          "category": "mating_dimensions",
+          "id": "q_chain_stay_dimensions",
+          "impact": "Required to size the bracket contour to the specific bicycle frame tubing.",
+          "question": "What is the outer diameter or cross-sectional shape and dimensions of your bicycle chain stay where the bracket will mount?",
+          "reason": null,
+          "related_requirement_id": null
+        },
+        {
+          "category": "mating_dimensions",
+          "id": "q_sensor_dimensions",
+          "impact": "Required to properly design the sensor retention pocket or interface.",
+          "question": "What are the exact dimensions (length, width, thickness) and mounting geometry of the e-bike wheel speed sensor?",
+          "reason": null,
+          "related_requirement_id": null
+        },
+        {
+          "category": "fastener_geometry",
+          "id": "q_screw_designation",
+          "impact": "Required to size the screw hole correctly.",
+          "question": "What is the diameter or designation of the screw being used to attach the bracket?",
+          "reason": null,
+          "related_requirement_id": null
+        }
+      ],
+      "clarification_required": true,
+      "conflicts": [],
+      "critical_dimensions": [
+        {
+          "id": "chain_stay_attachment",
+          "importance": "critical",
+          "kind": "fit",
+          "label": "Chain stay attachment contour",
+          "object_type": "chain stay",
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": "attach securely to a bicycle chain stay",
+          "source": "user",
+          "subject": "bracket",
+          "target": "chain stay",
+          "tolerance": null,
+          "unit": "mm",
+          "value": 0
+        },
+        {
+          "id": "sensor_alignment",
+          "importance": "critical",
+          "kind": "orientation",
+          "label": "Sensor alignment with wheel spokes",
+          "object_type": "sensor",
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": "keep the sensor aligned with the wheel spokes",
+          "source": "user",
+          "subject": "sensor",
+          "target": "wheel spokes",
+          "tolerance": null,
+          "unit": "mm",
+          "value": 0
+        }
+      ],
+      "functional_requirements": [
+        {
+          "description": "Attach securely to a bicycle chain stay",
+          "id": "req_attach_chain_stay",
+          "importance": "critical",
+          "kind": "retention",
+          "object_type": "chain stay",
+          "operator": "present",
+          "protected": true,
+          "raw_evidence": "attach securely to a bicycle chain stay",
+          "source": "user",
+          "subject": "bracket",
+          "target": "chain stay",
+          "type": "retention",
+          "unit": null,
+          "value": true
+        },
+        {
+          "description": "Keep the sensor aligned with the wheel spokes",
+          "id": "req_align_sensor",
+          "importance": "critical",
+          "kind": "orientation",
+          "object_type": "sensor",
+          "operator": "present",
+          "protected": true,
+          "raw_evidence": "keep the sensor aligned with the wheel spokes",
+          "source": "user",
+          "subject": "sensor",
+          "target": "wheel spokes",
+          "type": "orientation",
+          "unit": null,
+          "value": true
+        },
+        {
+          "description": "Allow attachment using a screw and zip tie",
+          "id": "req_screw_ziptie_attachment",
+          "importance": "critical",
+          "kind": "feature",
+          "object_type": "fastener",
+          "operator": "present",
+          "protected": true,
+          "raw_evidence": "allow attachment using a screw and zip tie",
+          "source": "user",
+          "subject": "bracket",
+          "target": "screw and zip tie",
+          "type": "feature_presence",
+          "unit": null,
+          "value": true
+        },
+        {
+          "description": "Keep the design compact and practical",
+          "id": "req_compact_design",
+          "importance": "important",
+          "kind": "qualitative",
+          "object_type": null,
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": "Keep the design compact and practical.",
+          "source": "user",
+          "subject": "bracket",
+          "target": null,
+          "type": "qualitative_behavior",
+          "unit": null,
+          "value": true
+        }
+      ],
+      "generation_attempt_id": "51087f60-8bec-45e8-97fe-42eba1a8a196",
+      "generation_ready": false,
+      "missing_requirements": [
+        {
+          "description": "chain_stay_dimensions",
+          "id": "chain_stay_dimensions",
+          "importance": "critical",
+          "reason": "chain_stay_dimensions",
+          "source": "user"
+        },
+        {
+          "description": "sensor_dimensions",
+          "id": "sensor_dimensions",
+          "importance": "critical",
+          "reason": "sensor_dimensions",
+          "source": "user"
+        },
+        {
+          "description": "screw_designation",
+          "id": "screw_designation",
+          "importance": "critical",
+          "reason": "screw_designation",
+          "source": "user"
+        }
+      ],
+      "object_type": "mounting bracket",
+      "outcome": "clarification_required",
+      "parameters": [],
+      "print_requirements": {},
+      "project_id": "f3c7022a-f073-4c08-8547-3c7ec34c9929",
+      "purpose": "Replacement mounting bracket for an e-bike wheel speed sensor that attaches to a chain stay via screw and zip tie.",
+      "schema_version": "1.0",
+      "supported_scope": true,
+      "units": "mm"
+    },
+    "plan": {},
+    "design_contract": null,
+    "verification": {},
+    "candidate_policy": {},
+    "diagnostics": {},
+    "package_manifest": {},
+    "package_available": false,
+    "outputs": [],
+    "provenance": {
+      "provider_id": "gemini_api",
+      "provider_transport": "gemini_api",
+      "source_generation_mode": "complete_source",
+      "source_hash": null,
+      "output_ids": null,
+      "accepted_revision_id": null,
+      "automatic_provider_operation_count": null,
+      "automatic_provider_operation_budget": null,
+      "repair_history": []
+    }
+  },
+  "acceptance": null,
+  "final_workflow": {
+    "id": "3d5b7e25-30f5-4fe2-b620-ecb6cd66a5a5",
+    "project_id": "f3c7022a-f073-4c08-8547-3c7ec34c9929",
+    "revision_id": null,
+    "parent_workflow_id": null,
+    "state": "awaiting_clarification",
+    "route": "validated_cadquery",
+    "user_instruction_sha256": "069e479e26be4ad9cc403e9bf36f437fd2106c36c1487a65d2dca3f843f6157d",
+    "requirements": {
+      "assumptions": [
+        {
+          "description": "Bicycle chain stay diameter default",
+          "id": "assumption_chain_stay_diameter",
+          "kind": "dimension",
+          "label": "Bicycle chain stay diameter default",
+          "object_type": "chain stay",
+          "operator": "approximately",
+          "raw_evidence": "attach securely to a bicycle chain stay",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "chain stay",
+          "target": null,
+          "unit": "mm",
+          "value": 25
+        },
+        {
+          "description": "Wheel speed sensor housing envelope default",
+          "id": "assumption_sensor_dimensions",
+          "kind": "dimension",
+          "label": "Wheel speed sensor housing envelope default",
+          "object_type": "sensor",
+          "operator": "approximately",
+          "raw_evidence": "replacement mounting bracket for an e-bike wheel speed sensor",
+          "requires_approval": false,
+          "source": "ai_assumption",
+          "subject": "sensor",
+          "target": null,
+          "unit": "mm",
+          "value": 20
+        }
+      ],
+      "clarification_questions": [
+        {
+          "category": "mating_dimensions",
+          "id": "q_chain_stay_dimensions",
+          "impact": "Required to size the bracket contour to the specific bicycle frame tubing.",
+          "question": "What is the outer diameter or cross-sectional shape and dimensions of your bicycle chain stay where the bracket will mount?",
+          "reason": null,
+          "related_requirement_id": null
+        },
+        {
+          "category": "mating_dimensions",
+          "id": "q_sensor_dimensions",
+          "impact": "Required to properly design the sensor retention pocket or interface.",
+          "question": "What are the exact dimensions (length, width, thickness) and mounting geometry of the e-bike wheel speed sensor?",
+          "reason": null,
+          "related_requirement_id": null
+        },
+        {
+          "category": "fastener_geometry",
+          "id": "q_screw_designation",
+          "impact": "Required to size the screw hole correctly.",
+          "question": "What is the diameter or designation of the screw being used to attach the bracket?",
+          "reason": null,
+          "related_requirement_id": null
+        }
+      ],
+      "clarification_required": true,
+      "conflicts": [],
+      "critical_dimensions": [
+        {
+          "id": "chain_stay_attachment",
+          "importance": "critical",
+          "kind": "fit",
+          "label": "Chain stay attachment contour",
+          "object_type": "chain stay",
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": "attach securely to a bicycle chain stay",
+          "source": "user",
+          "subject": "bracket",
+          "target": "chain stay",
+          "tolerance": null,
+          "unit": "mm",
+          "value": 0
+        },
+        {
+          "id": "sensor_alignment",
+          "importance": "critical",
+          "kind": "orientation",
+          "label": "Sensor alignment with wheel spokes",
+          "object_type": "sensor",
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": "keep the sensor aligned with the wheel spokes",
+          "source": "user",
+          "subject": "sensor",
+          "target": "wheel spokes",
+          "tolerance": null,
+          "unit": "mm",
+          "value": 0
+        }
+      ],
+      "functional_requirements": [
+        {
+          "description": "Attach securely to a bicycle chain stay",
+          "id": "req_attach_chain_stay",
+          "importance": "critical",
+          "kind": "retention",
+          "object_type": "chain stay",
+          "operator": "present",
+          "protected": true,
+          "raw_evidence": "attach securely to a bicycle chain stay",
+          "source": "user",
+          "subject": "bracket",
+          "target": "chain stay",
+          "type": "retention",
+          "unit": null,
+          "value": true
+        },
+        {
+          "description": "Keep the sensor aligned with the wheel spokes",
+          "id": "req_align_sensor",
+          "importance": "critical",
+          "kind": "orientation",
+          "object_type": "sensor",
+          "operator": "present",
+          "protected": true,
+          "raw_evidence": "keep the sensor aligned with the wheel spokes",
+          "source": "user",
+          "subject": "sensor",
+          "target": "wheel spokes",
+          "type": "orientation",
+          "unit": null,
+          "value": true
+        },
+        {
+          "description": "Allow attachment using a screw and zip tie",
+          "id": "req_screw_ziptie_attachment",
+          "importance": "critical",
+          "kind": "feature",
+          "object_type": "fastener",
+          "operator": "present",
+          "protected": true,
+          "raw_evidence": "allow attachment using a screw and zip tie",
+          "source": "user",
+          "subject": "bracket",
+          "target": "screw and zip tie",
+          "type": "feature_presence",
+          "unit": null,
+          "value": true
+        },
+        {
+          "description": "Keep the design compact and practical",
+          "id": "req_compact_design",
+          "importance": "important",
+          "kind": "qualitative",
+          "object_type": null,
+          "operator": "qualitative",
+          "protected": true,
+          "raw_evidence": "Keep the design compact and practical.",
+          "source": "user",
+          "subject": "bracket",
+          "target": null,
+          "type": "qualitative_behavior",
+          "unit": null,
+          "value": true
+        }
+      ],
+      "generation_attempt_id": "51087f60-8bec-45e8-97fe-42eba1a8a196",
+      "generation_ready": false,
+      "missing_requirements": [
+        {
+          "description": "chain_stay_dimensions",
+          "id": "chain_stay_dimensions",
+          "importance": "critical",
+          "reason": "chain_stay_dimensions",
+          "source": "user"
+        },
+        {
+          "description": "sensor_dimensions",
+          "id": "sensor_dimensions",
+          "importance": "critical",
+          "reason": "sensor_dimensions",
+          "source": "user"
+        },
+        {
+          "description": "screw_designation",
+          "id": "screw_designation",
+          "importance": "critical",
+          "reason": "screw_designation",
+          "source": "user"
+        }
+      ],
+      "object_type": "mounting bracket",
+      "outcome": "clarification_required",
+      "parameters": [],
+      "print_requirements": {},
+      "project_id": "f3c7022a-f073-4c08-8547-3c7ec34c9929",
+      "purpose": "Replacement mounting bracket for an e-bike wheel speed sensor that attaches to a chain stay via screw and zip tie.",
+      "schema_version": "1.0",
+      "supported_scope": true,
+      "units": "mm"
+    },
+    "plan": {},
+    "design_contract": null,
+    "verification": {},
+    "candidate_policy": {},
+    "diagnostics": {},
+    "package_manifest": {},
+    "package_available": false,
+    "outputs": [],
+    "provenance": {
+      "provider_id": "gemini_api",
+      "provider_transport": "gemini_api",
+      "source_generation_mode": "complete_source",
+      "source_hash": null,
+      "output_ids": null,
+      "accepted_revision_id": null,
+      "automatic_provider_operation_count": null,
+      "automatic_provider_operation_budget": null,
+      "repair_history": []
+    }
+  },
+  "artifacts": [],
+  "downloaded_artifacts": [],
+  "generation_attempts": [
+    {
+      "attempt_id": "d8caebe9-0e0d-418a-a01d-8fe8a975a800",
+      "attempt_number": 1,
+      "provider_call_count": 1,
+      "provider_retry_count": 0,
+      "content_repair_count": 0,
+      "provider": "gemini_api",
+      "model": "gemini-3.5-flash-lite",
+      "status": "failed",
+      "failure_class": "design_spec_invalid",
+      "prompt_version": "requirements-v4",
+      "started_at": "2026-08-08T04:30:47.557729",
+      "completed_at": "2026-08-08T04:30:51.640509",
+      "duration_ms": 4083,
+      "provider_usage": {
+        "candidatesTokenCount": 1451,
+        "promptTokenCount": 1361,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1361
+          }
+        ],
+        "serviceTier": "standard",
+        "totalTokenCount": 2812
+      },
+      "provider_request_id": null,
+      "routing_metadata": {
+        "actual_model": "gemini-3.5-flash-lite",
+        "fallback_chain": [
+          "gemini-3.5-flash-lite"
+        ],
+        "policy_version": "gemini-stage-routing-v1",
+        "prompt_mode": "requirements",
+        "provider": "gemini_api",
+        "provider_call_count": 1,
+        "provider_retry_count": 0,
+        "routing_reason": "general_model_fallback",
+        "selected_model": "gemini-3.5-flash-lite"
+      },
+      "provider_latency_ms": 4064,
+      "estimated_prompt_tokens": 1319,
+      "estimated_output_tokens": 1274,
+      "resulting_revision_id": null,
+      "provider_response": {
+        "stage": "requirements",
+        "classification": "schema_invalid",
+        "original_response_received": true,
+        "deterministic_normalization": false,
+        "repair_attempted": false,
+        "repair_outcome": null,
+        "final_stage": "requirements"
+      }
+    },
+    {
+      "attempt_id": "51087f60-8bec-45e8-97fe-42eba1a8a196",
+      "attempt_number": 2,
+      "provider_call_count": 1,
+      "provider_retry_count": 0,
+      "content_repair_count": 1,
+      "provider": "gemini_api",
+      "model": "gemini-3.5-flash-lite",
+      "status": "succeeded",
+      "failure_class": "none",
+      "prompt_version": "requirements-v4",
+      "started_at": "2026-08-08T04:30:51.642854",
+      "completed_at": "2026-08-08T04:30:56.206111",
+      "duration_ms": 4563,
+      "provider_usage": {
+        "candidatesTokenCount": 1495,
+        "promptTokenCount": 2708,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2708
+          }
+        ],
+        "serviceTier": "standard",
+        "totalTokenCount": 4203
+      },
+      "provider_request_id": null,
+      "routing_metadata": {
+        "actual_model": "gemini-3.5-flash-lite",
+        "fallback_chain": [
+          "gemini-3.5-flash-lite"
+        ],
+        "policy_version": "gemini-stage-routing-v1",
+        "prompt_mode": "requirements",
+        "provider": "gemini_api",
+        "provider_call_count": 1,
+        "provider_retry_count": 0,
+        "routing_reason": "general_model_fallback",
+        "selected_model": "gemini-3.5-flash-lite"
+      },
+      "provider_latency_ms": 4549,
+      "estimated_prompt_tokens": 2388,
+      "estimated_output_tokens": 1304,
+      "resulting_revision_id": null,
+      "provider_response": {
+        "stage": "requirements",
+        "classification": "valid_after_normalization",
+        "original_response_received": true,
+        "deterministic_normalization": true,
+        "repair_attempted": true,
+        "repair_outcome": null,
+        "final_stage": "accepted"
+      }
+    }
+  ],
+  "reference_only_isolation": {
+    "reference_geometry_sent_in_request": false,
+    "request_body_keys": [
+      "intent",
+      "name"
+    ],
+    "forbidden_reference_identifiers_in_request": []
+  },
+  "finished_at": "2026-08-08T04:30:56.274Z"
+}

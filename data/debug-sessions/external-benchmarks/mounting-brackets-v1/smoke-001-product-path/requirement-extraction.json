@@ -1,0 +1,67 @@
+{
+  "schema_version": "external-cad-benchmark-requirement-extraction-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "mode": "premise_only",
+  "workflow_id": "3d5b7e25-30f5-4fe2-b620-ecb6cd66a5a5",
+  "project_id": "f3c7022a-f073-4c08-8547-3c7ec34c9929",
+  "provider": "gemini_api",
+  "model": "gemini-3.5-flash-lite",
+  "prompt_mode": "requirements",
+  "intent_sha256": "069e479e26be4ad9cc403e9bf36f437fd2106c36c1487a65d2dca3f843f6157d",
+  "object_type": "mounting bracket",
+  "purpose": "Replacement mounting bracket for an e-bike wheel speed sensor that attaches to a chain stay via screw and zip tie.",
+  "origin_and_authority": {
+    "user_requirements": "user_explicit / required",
+    "ai_assumptions": "model_design_choice / flexible",
+    "classification_fields_emitted": false,
+    "classification_note": "No machine/review/informational classification was assigned because clarification was required before contract materialization."
+  },
+  "requirements": {
+    "critical_dimensions": [
+      {
+        "requirement_id": "chain_stay_attachment",
+        "kind": "fit",
+        "value": 0,
+        "unit": "mm",
+        "source": "user",
+        "protected": true,
+        "raw_evidence": "attach securely to a bicycle chain stay",
+        "machine_verifiable_now": false
+      },
+      {
+        "requirement_id": "sensor_alignment",
+        "kind": "orientation",
+        "value": 0,
+        "unit": "mm",
+        "source": "user",
+        "protected": true,
+        "raw_evidence": "keep the sensor aligned with the wheel spokes",
+        "machine_verifiable_now": false
+      }
+    ],
+    "functional_requirements": [
+      {"requirement_id": "req_attach_chain_stay", "kind": "retention", "value": true, "source": "user", "protected": true, "machine_verifiable_now": false},
+      {"requirement_id": "req_align_sensor", "kind": "orientation", "value": true, "source": "user", "protected": true, "machine_verifiable_now": false},
+      {"requirement_id": "req_screw_ziptie_attachment", "kind": "feature_presence", "value": true, "source": "user", "protected": true, "machine_verifiable_now": false},
+      {"requirement_id": "req_compact_design", "kind": "qualitative_behavior", "value": true, "source": "user", "protected": true, "machine_verifiable_now": false}
+    ],
+    "ai_assumptions": [
+      {"requirement_id": "assumption_chain_stay_diameter", "value": 25, "unit": "mm", "source": "ai_assumption", "authority": "flexible"},
+      {"requirement_id": "assumption_sensor_dimensions", "value": 20, "unit": "mm", "source": "ai_assumption", "authority": "flexible"}
+    ]
+  },
+  "missing_requirements": [
+    {"requirement_id": "chain_stay_dimensions", "source": "user", "importance": "critical"},
+    {"requirement_id": "sensor_dimensions", "source": "user", "importance": "critical"},
+    {"requirement_id": "screw_designation", "source": "user", "importance": "critical"}
+  ],
+  "clarification_required": true,
+  "clarification_questions": [
+    {"question_id": "q_chain_stay_dimensions", "question": "What is the outer diameter or cross-sectional shape and dimensions of your bicycle chain stay where the bracket will mount?", "category": "mating_dimensions"},
+    {"question_id": "q_sensor_dimensions", "question": "What are the exact dimensions (length, width, thickness) and mounting geometry of the e-bike wheel speed sensor?", "category": "mating_dimensions"},
+    {"question_id": "q_screw_designation", "question": "What is the diameter or designation of the screw being used to attach the bracket?", "category": "fastener_geometry"}
+  ],
+  "generation_ready": false,
+  "persisted_in_workflow_requirements": true,
+  "hidden_reference_information_used": false
+}

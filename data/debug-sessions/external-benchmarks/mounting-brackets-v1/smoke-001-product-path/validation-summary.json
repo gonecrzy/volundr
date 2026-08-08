@@ -1,0 +1,62 @@
+{
+  "schema_version": "external-cad-benchmark-product-path-validation-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "mode": "premise_only",
+  "decision": "CLARIFICATION_PATH_VALID",
+  "corpus_manifest_injection_absent": true,
+  "project_requirement_path": {
+    "project_service_extract_requirements_ran": true,
+    "design_specification_persisted": true,
+    "requirement_payload_persisted": true,
+    "requirement_ledger_materialized": false,
+    "ledger_skip_reason": "clarification_required_before_contract_materialization",
+    "authoritative_requirements_nonempty": true,
+    "qualitative_premise_facts_preserved": true,
+    "model_assumptions_not_user_required": true
+  },
+  "workflow_service_routing": {
+    "api_read_model_route_label": "validated_cadquery",
+    "executable_feature_flag_enabled": true,
+    "executable_service_provenance_marker": "source_generation_mode=complete_source; contract_version=executable-cadquery-design-contract-v1",
+    "interpretation": "The API read model uses a generic validated_cadquery route label; the persisted executable-only provenance markers confirm the executable service selection."
+  },
+  "clarification_invariants": {
+    "workflow_state": "awaiting_clarification",
+    "questions_persisted": true,
+    "requirement_extraction_provider_calls": 2,
+    "cad_generation_provider_calls": 0,
+    "cad_repair_provider_calls": 0,
+    "fallback_calls": 0,
+    "worker_executions": 0,
+    "step_stl_brep_generated": false,
+    "hidden_reference_information_used": false,
+    "stopped_without_automatic_answer": true
+  },
+  "contract_validation": {
+    "contract_created": false,
+    "contract_source": null,
+    "repeatability_corpus_used": false,
+    "production_ledger_contract_source_would_apply_only_after_clarification": true
+  },
+  "reference_isolation": {
+    "reference_geometry_sent_to_provider": false,
+    "reference_identifiers_in_request": false,
+    "reference_dimensions_in_request": false
+  },
+  "historical_comparison": {
+    "historical_scope": "contract_injected_smoke",
+    "historical_premise_provider_calls": 1,
+    "historical_premise_cad_generation_calls": 1,
+    "historical_worker_executions": 1,
+    "corrected_requirement_extraction_calls": 2,
+    "corrected_cad_generation_calls": 0,
+    "corrected_worker_executions": 0,
+    "interpretation": "The corrected run measures the real clarification boundary and is not an A/B geometry comparison."
+  },
+  "benchmark_harness": {
+    "normal_external_runner_used": true,
+    "benchmark_only_cad_generation_logic": false,
+    "evidence_directory_separate_from_historical_smoke": true
+  },
+  "remaining_evidence_limit": "The live API temporary database was not retained after runner cleanup; safe workflow and generation-attempt evidence is persisted, while direct provider transport rows and the DesignSpecification UUID are not included in the copied read model."
+}

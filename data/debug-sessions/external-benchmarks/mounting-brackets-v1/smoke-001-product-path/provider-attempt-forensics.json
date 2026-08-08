@@ -1,0 +1,43 @@
+{
+  "schema_version": "external-cad-benchmark-product-path-provider-forensics-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "mode": "premise_only",
+  "provider": "gemini_api",
+  "model": "gemini-3.5-flash-lite",
+  "credential_policy": "primary normally; fallback only after HTTP 429",
+  "fallback_calls": 0,
+  "cad_generation_calls": 0,
+  "cad_repair_calls": 0,
+  "requirement_extraction_calls": 2,
+  "attempts": [
+    {
+      "attempt_id": "d8caebe9-0e0d-418a-a01d-8fe8a975a800",
+      "prompt_mode": "requirements",
+      "prompt_version": "requirements-v4",
+      "started_at": "2026-08-08T04:30:47.557729",
+      "status": "failed",
+      "failure_class": "design_spec_invalid",
+      "response_received": true,
+      "response_classification": "schema_invalid",
+      "content_repair_count": 0,
+      "provider_call_count": 1,
+      "transport_request_id": null,
+      "credential_slot": "not exposed in copied safe workflow evidence"
+    },
+    {
+      "attempt_id": "51087f60-8bec-45e8-97fe-42eba1a8a196",
+      "prompt_mode": "requirements",
+      "prompt_version": "requirements-v4",
+      "started_at": "2026-08-08T04:30:51.642854",
+      "status": "succeeded",
+      "failure_class": null,
+      "response_received": true,
+      "response_classification": "valid_after_normalization",
+      "content_repair_count": 1,
+      "provider_call_count": 1,
+      "transport_request_id": null,
+      "credential_slot": "not exposed in copied safe workflow evidence"
+    }
+  ],
+  "interpretation": "The second call was requirement-extraction correction/normalization, not CAD repair. Both calls remained in the requirements stage."
+}

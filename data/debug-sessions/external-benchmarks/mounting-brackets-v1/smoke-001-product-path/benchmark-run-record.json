@@ -1,0 +1,42 @@
+{
+  "schema_version": "external-cad-benchmark-run-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "mode": "premise_only",
+  "intent_sha256": "069e479e26be4ad9cc403e9bf36f437fd2106c36c1487a65d2dca3f843f6157d",
+  "code_commit": "a3c26323a598e5d6480097e89841dc48dd29bc5e",
+  "provider_model_profile": {
+    "provider": "gemini_api",
+    "transport": "Gemini REST API with x-goog-api-key",
+    "requirement_model": "gemini-3.5-flash-lite",
+    "cad_model": "gemini-3.5-flash-lite"
+  },
+  "workflow_id": "3d5b7e25-30f5-4fe2-b620-ecb6cd66a5a5",
+  "project_id": "f3c7022a-f073-4c08-8547-3c7ec34c9929",
+  "revision_id": null,
+  "provider_attempt_ids": [
+    "d8caebe9-0e0d-418a-a01d-8fe8a975a800",
+    "51087f60-8bec-45e8-97fe-42eba1a8a196"
+  ],
+  "provider_calls": 2,
+  "requirement_extraction_calls": 2,
+  "cad_generation_calls": 0,
+  "repair_calls": 0,
+  "fallback_calls": 0,
+  "terminal_stage": "requirements",
+  "terminal_status": "clarification_required",
+  "worker_executions": [],
+  "source_hash": null,
+  "topology": null,
+  "semantic_verification": {
+    "status": "not_run_clarification_required",
+    "total_authoritative_requirements": 6,
+    "machine_pass": 0,
+    "machine_fail": 0,
+    "unverifiable": 0,
+    "review_required": 0,
+    "informational": 0,
+    "unsupported_verifier": 0
+  },
+  "artifact_hashes": {},
+  "reference_geometry_sent_to_provider": false
+}

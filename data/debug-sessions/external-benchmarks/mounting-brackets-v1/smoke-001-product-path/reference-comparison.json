@@ -1,0 +1,12 @@
+{
+  "schema_version": "external-cad-benchmark-reference-comparison-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "mode": "premise_only",
+  "status": "not_run_clarification_required",
+  "reference_geometry_sent_to_provider": false,
+  "reference_part_id": "sensor_bracket",
+  "reference_set_sha256": "1308eab6133020635e988137183c171e839f9fb0df0ed0e1fe3172f257692d60",
+  "canonical_step_sha256": "ba49cf0037e2f1decff2d1e1b4cd987674f0f8be30d6cc71bb9d6901f1079d90",
+  "generated_geometry_metrics": null,
+  "reason": "No generated geometry exists because normal requirement extraction correctly requested clarification."
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": "external-cad-benchmark-smoke-order-v1",
+  "benchmark_project_id": "mounting-bracket-001",
+  "sequential": true,
+  "modes": [
+    "premise_only"
+  ],
+  "provider_calls_requested_by_harness": 1,
+  "reference_geometry_sent_to_provider": false,
+  "live_data_dir": "/tmp/volundr-live-e2e.9dYpnF"
+}
