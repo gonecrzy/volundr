@@ -410,19 +410,31 @@ def _compact_geometry_analysis(value: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _analyze_generated_output(data_dir: Path, output: Any) -> dict[str, Any]:
+def _analyze_generated_output(
+    data_dir: Path,
+    output: Any,
+    api_output: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    api_output = api_output if isinstance(api_output, Mapping) else {}
+    topology_metadata = _json_object(getattr(output, "topology_metadata_json", None))
+    execution_state = getattr(output, "execution_state", None)
+    artifact_available = bool(
+        getattr(output, "step_hash", None)
+        or getattr(output, "brep_hash", None)
+        or getattr(output, "stl_hash", None)
+    )
     values = {
-        "output_id": output.output_id,
-        "required": output.required,
-        "generation_status": output.generation_status,
-        "worker_status": output.worker_status,
-        "state": output.state,
-        "solid_count": output.solid_count,
-        "topology_status": output.topology_status,
-        "semantic_verification": output.semantic_verification,
-        "artifact_available": output.artifact_available,
-        "failure_owner": output.failure_owner,
-        "safe_diagnostic": output.safe_diagnostic,
+        "output_id": getattr(output, "output_id", None),
+        "required": api_output.get("required", getattr(output, "required", None)),
+        "generation_status": api_output.get("generation_status", execution_state),
+        "worker_status": api_output.get("worker_status"),
+        "state": api_output.get("state", execution_state),
+        "solid_count": api_output.get("solid_count", getattr(output, "detected_solid_count", None)),
+        "topology_status": api_output.get("topology_status", topology_metadata.get("outcome")),
+        "semantic_verification": api_output.get("semantic_verification"),
+        "artifact_available": api_output.get("artifact_available", artifact_available),
+        "failure_owner": api_output.get("failure_owner"),
+        "safe_diagnostic": api_output.get("safe_diagnostic"),
         "artifact_hashes": {},
         "geometry": None,
     }
@@ -709,9 +721,18 @@ def _build_cell_record(
     generated_outputs = []
     artifact_hashes: dict[str, str] = {}
     worker_ids: set[str] = set()
+    api_outputs = {
+        str(item.get("output_id")): item
+        for item in payload.get("outputs", [])
+        if isinstance(item, Mapping) and item.get("output_id")
+    }
     if revision is not None:
         for output in revision.outputs:
-            generated = _analyze_generated_output(data_dir, output)
+            generated = _analyze_generated_output(
+                data_dir,
+                output,
+                api_output=api_outputs.get(str(output.output_id)),
+            )
             generated_outputs.append(generated)
             for kind, digest in generated["artifact_hashes"].items():
                 artifact_hashes[f"{output.output_id}:{kind}"] = digest
