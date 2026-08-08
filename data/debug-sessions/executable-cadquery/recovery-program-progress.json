@@ -345,6 +345,52 @@
     "evidence_root": "data/debug-sessions/external-benchmarks/cad-50-v1.1/development-first-pass/",
     "next_action": "Review generic first-blocker clusters before any recovery change; do not run validation or holdout projects."
   },
+  "external_cad_semantic_unverifiable_reconstruction_status": {
+    "status": "complete_reconstructed_no_implementation",
+    "benchmark_id": "external-cad-50-v1.1",
+    "scope": "exactly 16 development cells with failure_class=semantic_requirement_unverifiable",
+    "cell_count": 16,
+    "authoritative_requirement_count": 135,
+    "unsupported_machine_required_count": 107,
+    "review_requirement_count": 28,
+    "primary_categories": {
+      "A_canonicalization_failure": 12,
+      "B_policy_classification_failure": 41,
+      "C_output_identity_or_scope_failure": 43,
+      "D_existing_evidence_routing_failure": 0,
+      "E_legitimate_missing_verifier": 11,
+      "F_correct_review_requirement": 28,
+      "G_true_geometry_failure": 0
+    },
+    "output_identity_audit": {
+      "expected_multi_part_cells": 7,
+      "contract_output_loss_cells": 7,
+      "pre_materialization_output_fields_persisted": false,
+      "fallback_to_object_type_consistent_but_not_directly_observable": true
+    },
+    "envelope_audit": {
+      "source_statement_groups": 32,
+      "scalarized_requirements": 78,
+      "existing_final_mesh_bounds_capability": true
+    },
+    "completion_gate_counterfactual": {
+      "candidate_fully_verified": 0,
+      "candidate_ready_for_review": 3,
+      "candidate_blocked": 13,
+      "generated_geometry_preserved": true,
+      "persisted_runs_mutated": false
+    },
+    "provider_calls": 0,
+    "worker_executions": 0,
+    "validation_access": false,
+    "holdout_access": false,
+    "production_changes": false,
+    "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-semantic-unverifiable-reconstruction.json",
+    "read_only_tool": "backend/scripts/reconstruct_external_cad_semantic_unverifiable.py",
+    "tests": "backend/tests/test_external_cad_semantic_unverifiable_reconstruction.py",
+    "recommended_order": ["A", "B", "C", "E"],
+    "next_action": "Stop for review; do not implement fixes or begin validation/holdout work."
+  },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
     "status": "complete_after_survey_reconciliation",
