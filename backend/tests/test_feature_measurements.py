@@ -77,7 +77,7 @@ def test_slot_measurement_requires_count_dimensions_through_state_and_region() -
     result = measure_slots(
         [
             {"width": 180.4, "depth": 18.1, "through": True, "region": "rear"},
-            {"width": 55.0, "depth": 12.0, "through": True, "region": "rear"},
+            {"width": 180.7, "depth": 17.9, "through": True, "region": "rear"},
         ],
         expected_count=2,
         expected_width=180.0,
@@ -87,8 +87,11 @@ def test_slot_measurement_requires_count_dimensions_through_state_and_region() -
     )
     assert result.satisfied is True
     assert not measure_slots(
-        [{"width": 180.0, "depth": 18.0, "through": False, "region": "rear"}],
-        expected_count=1,
+        [
+            {"width": 180.0, "depth": 18.0, "through": True, "region": "rear"},
+            {"width": 180.0, "depth": 18.0, "through": False, "region": "rear"},
+        ],
+        expected_count=2,
         expected_width=180.0,
         expected_depth=18.0,
     ).satisfied

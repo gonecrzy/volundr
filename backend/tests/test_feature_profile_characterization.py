@@ -63,7 +63,7 @@ def test_through_probe_distinguishes_a_frame_from_a_blind_rectangular_region() -
     assert blind.reason == "blind_or_blocked"
 
 
-def test_sample_group_dimension_matching_is_currently_permissive() -> None:
+def test_sample_group_dimension_matching_requires_every_sample() -> None:
     result = measure_slots(
         [
             {"width": 13.0, "depth": 4.0, "through": True, "region": "north"},
@@ -76,10 +76,11 @@ def test_sample_group_dimension_matching_is_currently_permissive() -> None:
         required_region="north",
     )
 
-    assert result.satisfied is True
+    assert result.satisfied is False
     assert result.measurements["count"] == 2
     assert result.measurements["widths_mm"] == [13.0, 31.0]
     assert result.measurements["depths_mm"] == [4.0, 17.0]
+    assert result.measurements["failed_sample_indices"] == [1]
 
 
 def test_sample_group_count_and_region_are_checked_but_geometry_identity_is_external() -> None:

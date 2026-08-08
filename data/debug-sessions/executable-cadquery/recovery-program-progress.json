@@ -9,7 +9,7 @@
   "origin_experimental_head": "b3baf52 Implement canonical semantic requirement field normalization",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
-  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence acquisition complete with NO-GO for production recovery; separate slot-sample aggregation defect recorded",
+  "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample dimension aggregation false-positive recovered generically with no provider or worker operations",
   "completed_gates": [
     "branch_and_main_divergence_verified",
     "alembic_current_head_check_verified",
@@ -102,6 +102,9 @@
     ,"alembic_phase_1b_verifier_field_checkpoint_clean"
     ,"phase_1b_feature_profile_capability_gap_reconstructed_without_implementation"
     ,"phase_1b_feature_profile_evidence_acquisition_no_go_completed"
+    ,"phase_1b_slot_sample_aggregation_red_then_green_tests_passed"
+    ,"phase_1b_slot_sample_aggregation_recovered_generically"
+    ,"full_backend_phase_1b_slot_sample_aggregation_1487_passed"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -195,10 +198,10 @@
     },
     "new_rule_metric_assignment": "The one cluster-level generic rule is assigned to the first affected project order; it was not counted as eight project-specific rules.",
     "existing_rule_recovery_rate": "not_yet_measured; no provider or worker recovery was authorized in this checkpoint",
-    "remaining_subclusters": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy","slot_sample_dimension_aggregation_false_positive"],
-    "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch"],
+    "remaining_subclusters": ["feature_profile_capability_gap","requirement_has_no_machine_measurement_definition","geometry_owned_measured_discrepancy"],
+    "completed_subclusters": ["contract_policy_field_alias","multi_output_scope_resolution","required_output_identity_verifier_missing","verifier_requirement_field_mismatch","slot_sample_dimension_aggregation_false_positive"],
     "completed_reconstructions": ["feature_profile_capability_gap"],
-    "current_subcluster_status": "feature_profile evidence acquisition complete; NO-GO for production typed profile-group recovery; separate measurement false-positive queued; no production implementation started",
+    "current_subcluster_status": "slot-sample dimension aggregation false-positive recovered at the shared measurement boundary; feature-profile production recovery remains parked after NO-GO; next target is missing machine measurement definition",
     "feature_profile_capability_gap": {
       "affected_findings": 1,
       "projects": ["development-03"],
@@ -234,6 +237,25 @@
       "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-evidence-acquisition.json",
       "characterization_tests": "backend/tests/test_feature_profile_characterization.py",
       "next_action": "isolate the slot-sample aggregation false positive, then reassess a small typed rectangular-opening/recess model only with additional unrelated evidence"
+    },
+    "slot_sample_dimension_aggregation_false_positive": {
+      "status": "complete_recovered_generically",
+      "observed_stage": "semantic_measurement",
+      "failure_class": "measurement_aggregation_false_positive",
+      "first_incorrect_owner": "application geometry measurement primitive",
+      "root_cause": "measure_slots filtered access state before count and used independent any-match aggregation for width and depth",
+      "recovery": "region selects the group; exact nonempty count, through/open, and every requested dimension are verified across all selected samples",
+      "production_callers": ["backend/app/services/geometry/feature_evidence.py::evaluate_feature_evidence"],
+      "synthetic_tests": "14 passed after 9 expected RED failures against the old behavior",
+      "focused_regression": "36 passed across slot aggregation, feature measurements, feature-profile characterization, and feature evidence",
+      "diagnostics": ["expected_width_mm", "expected_depth_mm", "failed_sample_indices", "failure_reasons", "sample_diagnostics"],
+      "provider_calls": 0,
+      "frozen_worker_executions": 0,
+      "frozen_impact": "no defensible frozen replay available; no corpus outcome change claimed",
+      "feature_profile_schema_changed": false,
+      "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-slot-sample-aggregation-recovery.json",
+      "tests": "backend/tests/test_slot_sample_aggregation.py",
+      "next_action": "investigate requirement_has_no_machine_measurement_definition"
     },
     "verifier_field_mismatch": {
       "affected_findings": 4,
@@ -293,8 +315,8 @@
     "target_eventual_independent_pass": "8/8",
     "per_project_tuning_allowed": false
   },
-  "application_fix_count": 18,
-  "application_fix_count_since_previous_checkpoint": 0,
+  "application_fix_count": 19,
+  "application_fix_count_since_previous_checkpoint": 1,
   "gemini_operation_counts": {
     "provider_calls_since_previous_checkpoint": 2,
     "new_calls_in_current_checkpoint": 16,
@@ -313,6 +335,7 @@
     ,"phase_1b_verifier_field_mismatch_provider_calls": 0
     ,"phase_1b_feature_profile_capability_gap_provider_calls": 0
     ,"phase_1b_feature_profile_evidence_acquisition_provider_calls": 0
+    ,"phase_1b_slot_sample_aggregation_provider_calls": 0
   },
   "policy_versions": {
     "recovery": "executable-cadquery-recovery-policy-v1",
@@ -391,6 +414,8 @@
     "phase_1b_feature_profile_capability_gap_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-capability-gap-reconstruction.json",
     "phase_1b_feature_profile_evidence_acquisition": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-feature-profile-evidence-acquisition.json",
     "phase_1b_feature_profile_characterization_tests": "backend/tests/test_feature_profile_characterization.py; 8 passed; combined focused semantic/geometry suite 64 passed",
-    "verification_current_checkpoint": "backend 1465 passed, 1 skipped, 1 warning; frontend 104 passed and production build passed; Alembic current=head=0040 and check clean; feature-profile evidence characterization suite 64 passed; provider_calls=0"
+    "phase_1b_slot_sample_aggregation_recovery": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-slot-sample-aggregation-recovery.json",
+    "phase_1b_slot_sample_aggregation_tests": "backend/tests/test_slot_sample_aggregation.py; 14 synthetic cases; RED 9 failures then GREEN 14 passed",
+    "verification_current_checkpoint": "backend 1487 passed, 1 skipped, 1 warning; focused slot aggregation/feature measurement/feature evidence suite 36 passed; frontend unchanged; provider_calls=0; frozen_worker_executions=0"
   }
 }

@@ -1,0 +1,147 @@
+{
+  "schema_version": "executable-cadquery-phase-1b-slot-sample-aggregation-recovery-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "checkpoint": "slot_sample_dimension_aggregation_false_positive_recovered",
+  "timestamp": "2026-08-08T00:03:03Z",
+  "branch": "experiment/gemini-executable-cadquery-v1",
+  "base_checkpoint": "46b5703 Acquire feature-profile evidence and record NO-GO",
+  "holdout_boundary": {
+    "phase_2_material_inspected": false,
+    "phase_2_paths_enumerated": false,
+    "phase_2_prompts_contracts_sources_artifacts_results_manifests_inspected": false
+  },
+  "defect": {
+    "id": "slot_sample_dimension_aggregation_false_positive",
+    "observed_stage": "semantic_measurement",
+    "failure_class": "measurement_aggregation_false_positive",
+    "first_incorrect_owner": "application geometry measurement primitive",
+    "mechanism": "measure_slots filtered samples by through/open state before counting, then independently accepted any matching width and any matching depth. A group could therefore pass when different samples supplied the matching dimensions, and blind samples could be removed before count verification.",
+    "false_positive_reproduction": {
+      "sample_group": [
+        {"width": 21.0, "depth": 6.0, "through": true, "region": "north"},
+        {"width": 31.0, "depth": 16.0, "through": true, "region": "north"}
+      ],
+      "expected": {"count": 2, "width_mm": 21.0, "depth_mm": 6.0, "tolerance_mm": 0.2, "region": "north"},
+      "old_result": "satisfied=true because width and depth each had one matching value",
+      "correct_result": "satisfied=false because the second selected sample fails both dimensions"
+    }
+  },
+  "current_behavior_reconstruction": {
+    "sample_filtering": "Only dictionary samples were retained; through/open=false samples and samples outside required_region were removed before count and dimension checks.",
+    "region_filtering": "When required_region was supplied, exact string equality selected the region. Nonmatching regions were intentionally excluded by the caller's region selector.",
+    "through_state": "The old implementation required truthy through or open, but because it filtered first, a mixed through/blind input could hide the blind sample and pass a smaller expected count.",
+    "count": "Count was the number of post-through, post-region samples, with exact equality to expected_count. expected_count=0 and an empty group could pass when dimensions were unspecified.",
+    "width": "When expected_width was supplied, any numeric width within tolerance was sufficient.",
+    "depth_length": "The function's canonical input is expected_depth/depth. It did not have an independent length field; callers that use a planar length must map that meaning before this function.",
+    "tolerance": "Absolute tolerance was used, but decimal boundary values could fail due to binary floating-point representation.",
+    "missing_fields": "Missing or nonnumeric dimensions were omitted from aggregate lists, so one remaining matching sample could satisfy a group with missing dimensions.",
+    "mixed_groups": "Width and depth were aggregated independently, allowing width from one sample and depth from another to form a false PASS."
+  },
+  "production_caller_audit": {
+    "callers_found": 1,
+    "callers": [
+      {
+        "path": "backend/app/services/geometry/feature_evidence.py",
+        "function": "evaluate_feature_evidence",
+        "line": 506,
+        "candidate_group": "target.slot_samples or feature.slot_samples supplied by the feature/validation contract",
+        "region": "required_region is passed from target.region when present; this is the legitimate sample-group selector",
+        "output_identity": "The evaluation is already scoped to the requested output_id and mesh; measure_slots intentionally does not infer or assign output identity.",
+        "count_semantics": "expected_count is exact for the selected sample group",
+        "dimension_semantics": "target.width and target.depth are passed as expected_width and expected_depth; every selected sample must satisfy each supplied constraint after the fix",
+        "through_semantics": "measure_slots historically and currently requires through/open for every selected sample",
+        "extra_samples": "Samples outside an explicit required_region are excluded by that selector; extra samples within the selected group cause count failure or sample-constraint failure.",
+        "legacy_permissiveness_dependency": "No second production caller was found. Existing tests encoded the permissive behavior and were corrected to the generic contract."
+      }
+    ],
+    "different_aggregation_contracts_found": false
+  },
+  "corrected_generic_contract": {
+    "selector": "Select the legitimate group from scope/region information only. Dimensions must never select the subset being verified.",
+    "empty_group": "FAIL closed, including expected_count=0, because no qualifying group was observed.",
+    "count": "The selected group must contain exactly expected_count samples; too few and too many fail.",
+    "through": "Every selected sample must be through/open when the measure_slots contract is used; mixed through/blind groups fail.",
+    "dimensions": "For each supplied expected dimension, every selected sample must have a numeric value within the declared absolute tolerance. Missing values fail closed.",
+    "tolerance_boundary": "The declared tolerance remains authoritative; a small comparison epsilon handles decimal floating-point representation without changing the reported tolerance.",
+    "wrong_region": "Nonmatching regions are excluded only when required_region explicitly selects another region; they cannot contaminate that selected group.",
+    "diagnostics": "Retain aggregate measurements and add expected dimensions, failed sample indices, per-sample observed values/states, failed constraints, and top-level failure reasons."
+  },
+  "synthetic_test_matrix": [
+    {"case": "two samples, both dimensions match", "test": "test_all_qualifying_samples_matching_dimensions_pass", "result": "PASS"},
+    {"case": "one sample has wrong width", "test": "test_one_sample_with_wrong_width_fails_the_group", "result": "PASS"},
+    {"case": "one sample has wrong depth", "test": "test_one_sample_with_wrong_depth_fails_the_group", "result": "PASS"},
+    {"case": "one sample has both dimensions wrong", "test": "test_one_sample_with_both_dimensions_wrong_fails_the_group", "result": "PASS"},
+    {"case": "count matches but dimensions are mixed", "test": "test_matching_dimensions_must_be_true_for_every_sample_not_just_the_subset", "result": "PASS"},
+    {"case": "dimensions match but count does not", "test": "test_count_mismatch_fails_even_when_dimensions_match", "result": "PASS"},
+    {"case": "correct region filters unrelated samples", "test": "test_required_region_selects_the_qualifying_group_before_verification", "result": "PASS"},
+    {"case": "wrong-region samples do not contaminate legitimate group", "test": "test_wrong_region_samples_do_not_contaminate_a_selected_group", "result": "PASS"},
+    {"case": "mixed through/blind when through is required", "test": "test_mixed_through_and_blind_samples_fail_when_through_is_required", "result": "PASS"},
+    {"case": "tolerance boundary exactly allowed", "test": "test_dimension_exactly_at_tolerance_boundary_passes", "result": "PASS"},
+    {"case": "outside tolerance", "test": "test_dimension_outside_tolerance_fails", "result": "PASS"},
+    {"case": "missing required sample dimension", "test": "test_missing_required_dimension_fails_closed", "result": "PASS"},
+    {"case": "empty qualifying group", "test": "test_empty_qualifying_group_does_not_pass_zero_count_requirement", "result": "PASS"},
+    {"case": "diagnostics identify failed samples", "test": "test_diagnostics_identify_failed_samples_and_constraints", "result": "PASS"}
+  ],
+  "implementation": {
+    "path": "backend/app/services/geometry/feature_measurements.py",
+    "decision": "Fix at the shared measure_slots boundary; do not add feature-profile schema or caller-specific aggregation modes.",
+    "behavior": "Build the selected group before access/dimension verification, verify exact nonempty count, require all selected samples to satisfy through/open and every requested dimension, and preserve per-sample diagnostics.",
+    "output_identity": "Unchanged; remains an upstream scope responsibility.",
+    "feature_profile_production_behavior": "Unchanged."
+  },
+  "before_after": {
+    "synthetic_red": "The new 14-case suite produced 9 expected failures against the old behavior, including the mixed-dimension false PASS, mixed through/blind false PASS, missing-dimension false PASS, empty-group PASS, missing diagnostics, outside-tolerance false PASS, and decimal-boundary false failure.",
+    "synthetic_green": "14/14 new aggregation tests passed after the fix.",
+    "focused_regression": "36/36 passed across slot aggregation, feature measurements, feature-profile characterization, and feature evidence tests.",
+    "historical_test_updates": [
+      "The existing slot test now uses two matching samples and explicitly asserts a mixed through/blind group fails.",
+      "The prior characterization test now asserts the mixed-dimension group fails and identifies sample index 1; it no longer encodes permissive behavior."
+    ]
+  },
+  "diagnostics": {
+    "preserved": ["count", "expected_count", "widths_mm", "depths_mm", "regions", "through_count", "tolerances.dimension_mm"],
+    "added": ["expected_width_mm", "expected_depth_mm", "failed_sample_indices", "failure_reasons", "sample_diagnostics"],
+    "sample_diagnostics_fields": ["sample_index", "region", "through", "width_mm", "depth_mm", "failed_constraints"]
+  },
+  "frozen_development_impact": {
+    "slot_samples_found_in_allowed_persisted_records": false,
+    "offline_replay": "no defensible frozen replay available",
+    "worker_executions": 0,
+    "provider_calls": 0,
+    "claim": "No development-corpus outcome change is claimed."
+  },
+  "ownership_confirmation": {
+    "observed_stage": "semantic_measurement",
+    "failure_class": "measurement_aggregation_false_positive",
+    "first_incorrect_owner": "application geometry measurement primitive",
+    "upstream_scope_owner": "feature_evidence remains responsible for output/feature scope; no scope defect was introduced or repaired here."
+  },
+  "anti_overfitting": {
+    "passed": true,
+    "project_ids_in_production": false,
+    "frozen_dimensions_in_production": false,
+    "source_or_name_matching": false,
+    "prompt_model_settings_credentials_or_repair_ceiling_changes": false,
+    "feature_profile_schema_changes": false,
+    "holdout_access": false,
+    "synthetic_dimensions_are_arbitrary": true,
+    "generic_rule": "The same group-level all-sample contract applies to any caller-supplied slot/sample group."
+  },
+  "operations": {
+    "provider_operations": 0,
+    "frozen_project_worker_executions": 0,
+    "frozen_project_regenerations": 0,
+    "synthetic_sample_executions": 14
+  },
+  "tests": {
+    "added": ["backend/tests/test_slot_sample_aggregation.py"],
+    "updated": ["backend/tests/test_feature_measurements.py", "backend/tests/test_feature_profile_characterization.py"],
+    "focused_command": "backend/.venv/bin/python -m pytest -q tests/test_slot_sample_aggregation.py tests/test_feature_measurements.py tests/test_feature_profile_characterization.py tests/test_feature_evidence.py",
+    "focused_result": "36 passed",
+    "red_result": "9 failures in the new 14-case suite before production implementation; failures matched the known permissive aggregation and boundary behavior"
+  },
+  "next_cluster": {
+    "feature_profile_capability_gap": "remain parked after prior NO-GO; reassess only if independent evidence changes",
+    "recommended": "requirement_has_no_machine_measurement_definition"
+  }
+}

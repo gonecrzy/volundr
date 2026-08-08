@@ -280,30 +280,85 @@ def measure_slots(
     tolerance: float = 0.2,
     required_region: str | None = None,
 ) -> MeasurementResult:
-    """Measure slot count, dimensions, through state, and optional region."""
+    """Measure one caller-selected slot group without subset-based PASSes.
 
-    sample_list = [sample for sample in samples if isinstance(sample, dict)]
-    valid = [
-        sample for sample in sample_list
-        if bool(sample.get("through", sample.get("open", False)))
+    Region is the only selector this function applies. Once selected, every
+    sample belongs to the group being verified: count, through state, and each
+    requested dimension are group-level constraints. Dimensions therefore
+    cannot select a matching subset and then verify that subset.
+    """
+
+    selected = [
+        (index, sample)
+        for index, sample in enumerate(samples)
+        if isinstance(sample, dict)
         and (required_region is None or str(sample.get("region")) == required_region)
     ]
-    widths = [float(sample["width"]) for sample in valid if _number(sample.get("width")) is not None]
-    depths = [float(sample["depth"]) for sample in valid if _number(sample.get("depth")) is not None]
-    width_ok = expected_width is None or any(abs(value - expected_width) <= tolerance for value in widths)
-    depth_ok = expected_depth is None or any(abs(value - expected_depth) <= tolerance for value in depths)
-    passed = len(valid) == expected_count and width_ok and depth_ok
+    tolerance_value = float(tolerance)
+    comparison_tolerance = max(tolerance_value, 0.0) + 1e-9
+    sample_diagnostics: list[dict[str, Any]] = []
+    widths: list[float] = []
+    depths: list[float] = []
+    for index, sample in selected:
+        through = bool(sample.get("through", sample.get("open", False)))
+        width = _number(sample.get("width"))
+        depth = _number(sample.get("depth"))
+        if width is not None:
+            widths.append(width)
+        if depth is not None:
+            depths.append(depth)
+
+        failed_constraints: list[str] = []
+        if not through:
+            failed_constraints.append("through")
+        if expected_width is not None and (
+            width is None or not math.isclose(width, float(expected_width), rel_tol=0.0, abs_tol=comparison_tolerance)
+        ):
+            failed_constraints.append("width")
+        if expected_depth is not None and (
+            depth is None or not math.isclose(depth, float(expected_depth), rel_tol=0.0, abs_tol=comparison_tolerance)
+        ):
+            failed_constraints.append("depth")
+        sample_diagnostics.append(
+            {
+                "sample_index": index,
+                "region": str(sample.get("region")) if sample.get("region") is not None else None,
+                "through": through,
+                "width_mm": width,
+                "depth_mm": depth,
+                "failed_constraints": failed_constraints,
+            }
+        )
+
+    failed_sample_indices = [
+        int(diagnostic["sample_index"])
+        for diagnostic in sample_diagnostics
+        if diagnostic["failed_constraints"]
+    ]
+    count_matches = bool(selected) and len(selected) == expected_count
+    sample_constraints_match = not failed_sample_indices
+    passed = count_matches and sample_constraints_match
+    failure_reasons: list[str] = []
+    if not count_matches:
+        failure_reasons.append("count")
+    if failed_sample_indices:
+        failure_reasons.append("sample_constraints")
     return MeasurementResult(
         satisfied=passed,
         status="measured" if passed else "not_satisfied",
         reason="slots_verified" if passed else "slot_count_dimension_or_access_failed",
         measurements={
-            "count": len(valid),
+            "count": len(selected),
             "expected_count": expected_count,
+            "expected_width_mm": expected_width,
+            "expected_depth_mm": expected_depth,
             "widths_mm": widths,
             "depths_mm": depths,
-            "regions": sorted({str(sample.get("region")) for sample in valid if sample.get("region") is not None}),
-            "through_count": len(valid),
+            "regions": sorted({str(sample.get("region")) for _, sample in selected if sample.get("region") is not None}),
+            "through_count": sum(1 for diagnostic in sample_diagnostics if diagnostic["through"]),
+            "failed_sample_indices": failed_sample_indices,
+            "failure_reasons": failure_reasons,
+            "sample_diagnostics": sample_diagnostics,
         },
         tolerances={"dimension_mm": tolerance},
     )
