@@ -5,8 +5,8 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "7875e21 Reconstruct external semantic-unverifiable cluster",
-  "origin_experimental_head": "7875e21 Reconstruct external semantic-unverifiable cluster",
+  "experimental_head": "84d0fd0 Recover canonical envelope requirements",
+  "origin_experimental_head": "84d0fd0 Recover canonical envelope requirements",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete; the 30-project development first-pass survey is complete on frozen code checkpoint 8dd0d8d with 60 preserved cells, 54 live workflows, and 6 replacement exclusions; no validation or holdout work has started",
@@ -757,7 +757,7 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "7875e21 Reconstruct external semantic-unverifiable cluster",
+  "latest_substantive_commit": "84d0fd0 Recover canonical envelope requirements",
   "evidence": {
     "methodology_playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
     "methodology_update": "seed stabilization → frozen diverse development corpus → first-blocker survey → generic clustering → breadth-first recovery → policy freeze → unseen holdout",
