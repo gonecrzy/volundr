@@ -5,8 +5,8 @@
   "phase_1_started": true,
   "phase_entry_timestamp": "2026-08-07T04:15:11Z",
   "branch": "experiment/gemini-executable-cadquery-v1",
-  "experimental_head": "88f7b55 Reconstruct B-Rep physical-hole evidence contract",
-  "origin_experimental_head": "88f7b55 Reconstruct B-Rep physical-hole evidence contract",
+  "experimental_head": "e3e42f7 Build external real-world CAD benchmark pilot infrastructure",
+  "origin_experimental_head": "e3e42f7 Build external real-world CAD benchmark pilot infrastructure",
   "main_head": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster",
@@ -484,7 +484,7 @@
     "blind_review_packet": "executable-cadquery-blind-review-packet-v1",
     "blind_review_record": "executable-cadquery-blind-review-record-v1"
   },
-  "latest_substantive_commit": "88f7b55 Reconstruct B-Rep physical-hole evidence contract",
+  "latest_substantive_commit": "e3e42f7 Build external real-world CAD benchmark pilot infrastructure",
   "evidence": {
     "methodology_playbook": "docs/EXECUTABLE_CADQUERY_RECOVERY_PLAYBOOK.md",
     "methodology_update": "seed stabilization → frozen diverse development corpus → first-blocker survey → generic clustering → breadth-first recovery → policy freeze → unseen holdout",
