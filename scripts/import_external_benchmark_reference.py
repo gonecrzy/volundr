@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import one evaluator-only external CAD reference into local benchmark data."""
+"""Import one or more evaluator-only external CAD references into local benchmark data."""
 
 from __future__ import annotations
 
@@ -22,7 +22,22 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--benchmark", required=True, help="benchmark manifest ID")
     parser.add_argument("--project", required=True, help="neutral benchmark project ID")
     parser.add_argument("--source-metadata", required=True, type=Path)
-    parser.add_argument("--reference-file", required=True, type=Path)
+    parser.add_argument(
+        "--reference-file",
+        dest="reference_files",
+        action="append",
+        required=True,
+        type=Path,
+        help="canonical reference file; repeat for explicitly mapped multi-part projects",
+    )
+    parser.add_argument(
+        "--provenance-file",
+        dest="provenance_files",
+        action="append",
+        default=[],
+        type=Path,
+        help="noncanonical provenance file; may be repeated",
+    )
     parser.add_argument(
         "--manifest",
         type=Path,
@@ -45,7 +60,8 @@ def main(argv: list[str] | None = None) -> int:
             benchmark=args.benchmark,
             project=args.project,
             source_metadata_path=args.source_metadata,
-            reference_file=args.reference_file,
+            reference_files=args.reference_files,
+            provenance_files=args.provenance_files,
             manifest_path=manifest_path,
             output_root=args.output_root,
             repository_root=REPO_ROOT,

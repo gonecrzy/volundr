@@ -51,7 +51,7 @@ def _write_cube_stl(path: Path) -> None:
     mesh.export(path, file_type="stl")
 
 
-def test_pilot_manifest_has_five_neutral_placeholder_slots() -> None:
+def test_pilot_manifest_has_five_locked_neutral_projects() -> None:
     manifest = BenchmarkManifest.from_path(PILOT_MANIFEST)
 
     assert manifest.benchmark_id == "mounting-brackets-v1"
@@ -63,8 +63,17 @@ def test_pilot_manifest_has_five_neutral_placeholder_slots() -> None:
         "mounting-bracket-004",
         "mounting-bracket-005",
     ]
-    assert all(project.status == "placeholder" for project in manifest.projects)
+    assert all(project.status == "imported" for project in manifest.projects)
     assert all(project.split_assignment == "pilot" for project in manifest.projects)
+    assert [project.canonical_part_count for project in manifest.projects] == [1, 2, 1, 2, 1]
+    assert manifest.projects[1].reference_output_mapping == {
+        "load_cell_foot": "load_cell_foot",
+        "scale_platform": "scale_platform",
+    }
+    assert manifest.projects[3].reference_output_mapping == {
+        "dial_indicator_mount": "dial_indicator_mount",
+        "rail_clamp": "rail_clamp",
+    }
 
 
 def test_manifest_rejects_duplicate_project_ids() -> None:
@@ -288,4 +297,11 @@ def test_reference_comparison_keeps_requirement_compliance_separate() -> None:
 def test_reference_bytes_live_under_ignored_data_root() -> None:
     gitignore = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")
     assert "data/" in gitignore
-    assert "data/external-benchmarks" not in (REPO_ROOT / "benchmarks/external/mounting-brackets-v1/manifest.json").read_text(encoding="utf-8")
+    manifest = BenchmarkManifest.from_path(PILOT_MANIFEST)
+    reference_paths = [
+        item.relative_path
+        for project in manifest.projects
+        for item in project.reference_files
+    ]
+    assert reference_paths
+    assert all(path.startswith("data/") for path in reference_paths)

@@ -1,10 +1,484 @@
 {
-  "schema_version": "external-cad-benchmark-manifest-v1",
   "benchmark_id": "mounting-brackets-v1",
   "benchmark_version": "1.0.0",
-  "target_project_count": 50,
-  "target_category_count": 10,
+  "acquisition_package": {
+    "filename": "mounting-brackets-pilot-input.zip",
+    "sha256": "6b9274c333f6212b4a5b44b398b632b1af326a5625885f76d734a795223ebe86",
+    "acquired_at": "2026-08-07",
+    "intake_path": "data/external-benchmarks/incoming/mounting-brackets-pilot-input.zip"
+  },
   "pilot_category": "mounting_brackets",
+  "projects": [
+    {
+      "acquired_at": "2026-08-07",
+      "benchmark_id": "mounting-bracket-001",
+      "benchmark_version": "1.0.0",
+      "canonical_part_count": 1,
+      "category": "mounting_brackets",
+      "creator": "Bent Derailleur",
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise": "Design a replacement mounting bracket for an e-bike wheel speed sensor. It should attach securely to a bicycle chain stay, keep the sensor aligned with the wheel spokes, and allow attachment using a screw and zip tie. Keep the design compact and practical.",
+      "provenance_files": [
+        {
+          "file_type": "3mf",
+          "original_filename": "speed-sensor-bracket.3mf",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-001/provenance/speed-sensor-bracket.3mf",
+          "role": "alternate_source_material",
+          "sha256": "ba0168eb9d58a5b20ada3123697d7809fb69c58451c9d442cd8bbe8a93325b9e"
+        },
+        {
+          "file_type": "pdf",
+          "original_filename": "509653-ebike-speed-sensor-bracket-bafangcyc-09ba47ae-6f40-4e15-9e04-015a9ead6956.pdf",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-001/provenance/509653-ebike-speed-sensor-bracket-bafangcyc-09ba47ae-6f40-4e15-9e04-015a9ead6956.pdf",
+          "role": "source_provenance_pdf",
+          "sha256": "241e8a0a1eac9e4a0e4008184b56624950786b22cb3bff417bfdc25b21254539"
+        }
+      ],
+      "reference_files": [
+        {
+          "file_type": "step",
+          "original_filename": "speed-sensor-bracket.step",
+          "part_id": "sensor_bracket",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-001/reference/sensor_bracket.step",
+          "sha256": "ba49cf0037e2f1decff2d1e1b4cd987674f0f8be30d6cc71bb9d6901f1079d90"
+        }
+      ],
+      "reference_set_sha256": "1308eab6133020635e988137183c171e839f9fb0df0ed0e1fe3172f257692d60",
+      "reference_spec": {
+        "facts": [
+          {
+            "id": "output_count",
+            "provenance": "manual_benchmark_annotation",
+            "unit": "count",
+            "value": 1
+          },
+          {
+            "id": "overall_envelope",
+            "provenance": "reference_geometry_measured",
+            "unit": "mm",
+            "value": {
+              "x": 14.0,
+              "y": 13.6627,
+              "z": 26.4999
+            }
+          },
+          {
+            "id": "attachment_methods",
+            "provenance": "creator_documented",
+            "unit": "descriptive",
+            "value": [
+              "one screw",
+              "one zip tie",
+              "self-adhesive tape footprint"
+            ]
+          }
+        ],
+        "mode": "reference_specification",
+        "prompt": "Design a replacement mounting bracket for an e-bike wheel speed sensor. It should attach securely to a bicycle chain stay, keep the sensor aligned with the wheel spokes, and allow attachment using a screw and zip tie. Keep the design compact and practical. For this specification, target one solid output with an overall envelope of approximately 14.0 mm x 13.7 mm x 26.5 mm.",
+        "units": "mm"
+      },
+      "source_site": "Printables",
+      "source_title": "eBike Speed Sensor Bracket (Bafang/CYC)",
+      "source_url": "https://www.printables.com/model/509653",
+      "split_assignment": "pilot",
+      "status": "imported"
+    },
+    {
+      "acquired_at": "2026-08-07",
+      "benchmark_id": "mounting-bracket-002",
+      "benchmark_version": "1.0.0",
+      "canonical_part_count": 2,
+      "category": "mounting_brackets",
+      "creator": "Vendelator",
+      "license": "Public Domain",
+      "premise": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners.",
+      "provenance_files": [
+        {
+          "file_type": "3mf",
+          "original_filename": "HX711_Load_Cell-Foot.3mf",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-002/provenance/HX711_Load_Cell-Foot.3mf",
+          "role": "alternate_source_material",
+          "sha256": "1a3d47a6c1b31f128781d56ea6ec4320bbe0e439a5db0678068410eed57dbc21"
+        },
+        {
+          "file_type": "3mf",
+          "original_filename": "HX711_Load_Cell-Scale.3mf",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-002/provenance/HX711_Load_Cell-Scale.3mf",
+          "role": "alternate_source_material",
+          "sha256": "819daf7a78c0d3fe603965ec1d2912cf9f615ea4772bd0389c5653f55e4f86c4"
+        },
+        {
+          "file_type": "pdf",
+          "original_filename": "374800-load-cell-scale-mount-11105b16-fbdd-4ed7-9f15-68c8a62a6f06.pdf",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-002/provenance/374800-load-cell-scale-mount-11105b16-fbdd-4ed7-9f15-68c8a62a6f06.pdf",
+          "role": "source_provenance_pdf",
+          "sha256": "ea4c74c159ffb66cd4cb866f4a781228802905f71d533f054831ce44cb5cb45e"
+        }
+      ],
+      "reference_files": [
+        {
+          "file_type": "stl",
+          "original_filename": "HX711_Load_Cell--Foot.stl",
+          "part_id": "load_cell_foot",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-002/reference/load_cell_foot.stl",
+          "sha256": "8779962a9bd8529258713641f2f9808934aa0ede85802494584d4edd1bc84c1e"
+        },
+        {
+          "file_type": "stl",
+          "original_filename": "HX711_Load_Cell--Scale.stl",
+          "part_id": "scale_platform",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-002/reference/scale_platform.stl",
+          "sha256": "ee8b891b23f98a4f292bd7ce0a9bb7ae817c0a305f684e26ddbb336871c9e207"
+        }
+      ],
+      "reference_set_sha256": "91ade80b36cb66643af6b8bfbe38e1214a197a668fa07be175c276c672f96b4c",
+      "reference_output_mapping": {
+        "load_cell_foot": "load_cell_foot",
+        "scale_platform": "scale_platform"
+      },
+      "reference_spec": {
+        "facts": [
+          {
+            "id": "output_count",
+            "provenance": "manual_benchmark_annotation",
+            "unit": "count",
+            "value": 2
+          },
+          {
+            "id": "load_cell_hardware",
+            "provenance": "creator_documented",
+            "unit": "descriptive",
+            "value": "M4 screws"
+          },
+          {
+            "id": "load_cell_foot_envelope",
+            "provenance": "reference_geometry_measured",
+            "unit": "mm",
+            "value": {
+              "x": 109.4681,
+              "y": 66.9101,
+              "z": 15.0
+            }
+          },
+          {
+            "id": "scale_platform_envelope",
+            "provenance": "reference_geometry_measured",
+            "unit": "mm",
+            "value": {
+              "x": 80.0,
+              "y": 79.9751,
+              "z": 10.0
+            }
+          },
+          {
+            "id": "screw_head_clearance",
+            "provenance": "creator_documented",
+            "unit": "descriptive",
+            "value": "enlarged openings for typical M4 hex-head fasteners"
+          }
+        ],
+        "mode": "reference_specification",
+        "prompt": "Design a simple two-part mount for testing a common load cell as a small scale. It should include a stable lower foot/base and an upper scale platform connected through the load cell. Use M4 hardware and provide enough clearance around the screw heads for typical M4 hex-head fasteners. The required outputs are a lower load-cell foot and a separate upper scale platform. Target an approximate foot envelope of 109.5 mm x 66.9 mm x 15.0 mm and an approximate platform envelope of 80.0 mm x 80.0 mm x 10.0 mm.",
+        "units": "mm"
+      },
+      "source_site": "Printables",
+      "source_title": "Load Cell Scale Mount",
+      "source_url": "https://www.printables.com/model/374800",
+      "split_assignment": "pilot",
+      "status": "imported"
+    },
+    {
+      "acquired_at": "2026-08-07",
+      "benchmark_id": "mounting-bracket-003",
+      "benchmark_version": "1.0.0",
+      "canonical_part_count": 1,
+      "category": "mounting_brackets",
+      "creator": "NotLikeALeafOnTheWind",
+      "license": "Creative Commons Attribution-NonCommercial 4.0 International",
+      "premise": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical.",
+      "provenance_files": [
+        {
+          "file_type": "pdf",
+          "original_filename": "8524-8020-mount-hc-sr04-ultrasonic-distance-sensor-w-cable-tie-23b1794c-274b-4561-8da7-57acb324942a.pdf",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-003/provenance/8524-8020-mount-hc-sr04-ultrasonic-distance-sensor-w-cable-tie-23b1794c-274b-4561-8da7-57acb324942a.pdf",
+          "role": "source_provenance_pdf",
+          "sha256": "6afff888882a24d2c5555bee3ce7ba2fd645f9d5e6cf607772da5bb597c3a878"
+        }
+      ],
+      "reference_files": [
+        {
+          "file_type": "stl",
+          "original_filename": "8020_mount_hc-sr04_ultrasonic_distance_sensor_w-c.stl",
+          "part_id": "ultrasonic_sensor_mount",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-003/reference/ultrasonic_sensor_mount.stl",
+          "sha256": "5ffe054ae2233a95a7f6c9b15c726f28309d9bd25b4015c2ce6b2c33d65dc015"
+        }
+      ],
+      "reference_set_sha256": "ee3ceaba662f8561636e21f7839104456592b68610bce6bf11e24af3df55d71c",
+      "reference_spec": {
+        "facts": [
+          {
+            "id": "output_count",
+            "provenance": "manual_benchmark_annotation",
+            "unit": "count",
+            "value": 1
+          },
+          {
+            "id": "overall_envelope",
+            "provenance": "reference_geometry_measured",
+            "unit": "mm",
+            "value": {
+              "x": 54.0,
+              "y": 78.3,
+              "z": 50.0
+            }
+          },
+          {
+            "id": "extrusion_family",
+            "provenance": "creator_documented",
+            "unit": "descriptive",
+            "value": "8020 Series 10"
+          },
+          {
+            "id": "sensor_type",
+            "provenance": "creator_documented",
+            "unit": "descriptive",
+            "value": "HC-SR04 ultrasonic distance sensor"
+          }
+        ],
+        "mode": "reference_specification",
+        "prompt": "Design a compact mount for an HC-SR04 ultrasonic distance sensor that can attach to a small 8020-style aluminum extrusion. Include a connection point for a cable tie to manage the sensor wiring, and make the sensor removable without requiring a special removal tool. The mount should also be usable on its own where practical. For this specification, target one solid output with an approximate overall envelope of 54.0 mm x 78.3 mm x 50.0 mm.",
+        "units": "mm"
+      },
+      "source_site": "Printables",
+      "source_title": "8020 mount HC-SR04 Ultrasonic Distance Sensor w-cable tie",
+      "source_url": "https://www.printables.com/model/8524",
+      "split_assignment": "pilot",
+      "status": "imported"
+    },
+    {
+      "acquired_at": "2026-08-07",
+      "benchmark_id": "mounting-bracket-004",
+      "benchmark_version": "1.0.0",
+      "canonical_part_count": 2,
+      "category": "mounting_brackets",
+      "creator": "Bills Workbench",
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise": "Design a two-part dial-indicator mounting system for a small Unimat-style lathe. The mount should clamp securely across the machine's two rails, provide clearance for the lead screw, and support a standard dial indicator. Use M4 hardware for clamping and M6 hardware for attaching the indicator. The separate clamp should also be usable as a carriage or slide stop.",
+      "provenance_files": [
+        {
+          "file_type": "stl",
+          "original_filename": "Dial Indicator Mount V1.1.stl",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/provenance/Dial Indicator Mount V1.1.stl",
+          "role": "noncanonical_older_variant",
+          "sha256": "27c5e1220d05292b0d09bcc6697d7a3993f6d1908223d2f0127db2a2ffdeccba"
+        },
+        {
+          "file_type": "stl",
+          "original_filename": "Dial Indicator Clamp V1.1.stl",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/provenance/Dial Indicator Clamp V1.1.stl",
+          "role": "noncanonical_older_variant",
+          "sha256": "7ca3b1a4eb13541c93c2e788ecee31f85439872b58cd3e5711520df1d348a6b4"
+        },
+        {
+          "file_type": "stl",
+          "original_filename": "Dial Indicator Mount V1.2.stl",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/provenance/Dial Indicator Mount V1.2.stl",
+          "role": "noncanonical_older_variant",
+          "sha256": "4ddaae464cb39fec22f8266eebd993ae53a561a11f6e13b3971a18f76e936d35"
+        },
+        {
+          "file_type": "stl",
+          "original_filename": "Dial Indicator Clamp V1.2.stl",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/provenance/Dial Indicator Clamp V1.2.stl",
+          "role": "noncanonical_older_variant",
+          "sha256": "667f4781c782b0a50f7c0820f38dd055b9ed2868a2881f6a95f1f94e843de838"
+        },
+        {
+          "file_type": "dwg",
+          "original_filename": "Dial Indicator Mount V1.1.dwg",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/provenance/Dial Indicator Mount V1.1.dwg",
+          "role": "noncanonical_source_file",
+          "sha256": "3c289d4d0fe485d856e7b04769ddeae6a6d14c98222ddfbab62697bcc42a28a6"
+        },
+        {
+          "file_type": "dwg",
+          "original_filename": "Dial Indicator Mount V1.2.dwg",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/provenance/Dial Indicator Mount V1.2.dwg",
+          "role": "noncanonical_source_file",
+          "sha256": "1110c92180e5d21444cafa1cb37f1f637ae52fba1fbd402e318e8c30ffe76f5f"
+        },
+        {
+          "file_type": "dwg",
+          "original_filename": "Dial Indicator Mount V1.3.dwg",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/provenance/Dial Indicator Mount V1.3.dwg",
+          "role": "noncanonical_source_file",
+          "sha256": "1bc7ac0723ebace4bf5d979d3e937f25d9004ca9a20ecc7124538f9af0a3f016"
+        },
+        {
+          "file_type": "pdf",
+          "original_filename": "254540-update-dial-indicator-mount-for-unimat-sl-or-db-1512e1bf-dda1-45f2-a5c5-b94dc9966324.pdf",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/provenance/254540-update-dial-indicator-mount-for-unimat-sl-or-db-1512e1bf-dda1-45f2-a5c5-b94dc9966324.pdf",
+          "role": "source_provenance_pdf",
+          "sha256": "9eb87e04d9abb7a3e66ec2475d18390162547f197ba234adecabaa23cc11bc7f"
+        }
+      ],
+      "reference_files": [
+        {
+          "file_type": "stl",
+          "original_filename": "Dial Indicator Mount V1.3.stl",
+          "part_id": "dial_indicator_mount",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/reference/dial_indicator_mount.stl",
+          "sha256": "9f2c151b91f37548a9b6bb4800eaf5cd6cf8e33dbe312b0e2e999cc5b9a2c3f7"
+        },
+        {
+          "file_type": "stl",
+          "original_filename": "Dial Indicator Clamp V1.3.stl",
+          "part_id": "rail_clamp",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-004/reference/rail_clamp.stl",
+          "sha256": "d69b085c8449eea38be859f34854008701a4f5f56dc1b086752315a8c1a4c405"
+        }
+      ],
+      "reference_set_sha256": "4b7c0db7760d4f196e1a339b7042ab4127f300b17286ae3082bcfc0b7b68edb7",
+      "reference_output_mapping": {
+        "dial_indicator_mount": "dial_indicator_mount",
+        "rail_clamp": "rail_clamp"
+      },
+      "reference_spec": {
+        "facts": [
+          {
+            "id": "output_count",
+            "provenance": "manual_benchmark_annotation",
+            "unit": "count",
+            "value": 2
+          },
+          {
+            "id": "dial_indicator_mount_envelope",
+            "provenance": "reference_geometry_measured",
+            "unit": "mm",
+            "value": {
+              "x": 20.0,
+              "y": 97.0,
+              "z": 18.0
+            }
+          },
+          {
+            "id": "rail_clamp_envelope",
+            "provenance": "reference_geometry_measured",
+            "unit": "mm",
+            "value": {
+              "x": 10.0,
+              "y": 72.0,
+              "z": 11.0
+            }
+          },
+          {
+            "id": "hardware",
+            "provenance": "creator_documented",
+            "unit": "descriptive",
+            "value": "M4 clamping hardware and M6 indicator-mounting hardware"
+          },
+          {
+            "id": "lead_screw_clearance",
+            "provenance": "creator_documented",
+            "unit": "boolean",
+            "value": true
+          }
+        ],
+        "mode": "reference_specification",
+        "prompt": "Design a two-part dial-indicator mounting system for a small Unimat-style lathe. The mount should clamp securely across the machine's two rails, provide clearance for the lead screw, and support a standard dial indicator. Use M4 hardware for clamping and M6 hardware for attaching the indicator. The separate clamp should also be usable as a carriage or slide stop. Use the newest two-part design as the target: an indicator-mount envelope of approximately 20.0 mm x 97.0 mm x 18.0 mm and a rail-clamp envelope of approximately 10.0 mm x 72.0 mm x 11.0 mm.",
+        "units": "mm"
+      },
+      "source_site": "Printables",
+      "source_title": "UPDATE: Dial indicator mount for Unimat SL or DB",
+      "source_url": "https://www.printables.com/model/254540",
+      "split_assignment": "pilot",
+      "status": "imported"
+    },
+    {
+      "acquired_at": "2026-08-07",
+      "benchmark_id": "mounting-bracket-005",
+      "benchmark_version": "1.0.0",
+      "canonical_part_count": 1,
+      "category": "mounting_brackets",
+      "creator": "Bert",
+      "license": "Creative Commons Attribution 4.0 International",
+      "premise": "Design a strong mounting bracket for attaching a ButtKicker Mini LFE vibration transducer to a 2-inch round tube on a sim-racing cockpit. The bracket should clamp firmly around the tube and use 1/4-20 bolts. It should provide a rigid mechanical connection suitable for transmitting vibration into the cockpit tubing.",
+      "provenance_files": [
+        {
+          "file_type": "f3d",
+          "original_filename": "buttkicker_mini_lfe_tube_mount_v8.f3d",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-005/provenance/buttkicker_mini_lfe_tube_mount_v8.f3d",
+          "role": "native_cad_provenance",
+          "sha256": "9a816706e748a9719fea9a55f9433d8ae0ef6f5e6c8f7f1a1edadb6de11e68bc"
+        },
+        {
+          "file_type": "pdf",
+          "original_filename": "220421-buttkicker-mini-lfe-sim-racing-rig-tube-mount-6ac84b82-32ac-4d5b-8c86-f6d7fa99da21.pdf",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-005/provenance/220421-buttkicker-mini-lfe-sim-racing-rig-tube-mount-6ac84b82-32ac-4d5b-8c86-f6d7fa99da21.pdf",
+          "role": "source_provenance_pdf",
+          "sha256": "0c12030974c24ced7e257ed31a8ec75b4f4bbb26070ba48a63fa78c0cc969f59"
+        }
+      ],
+      "reference_files": [
+        {
+          "file_type": "stl",
+          "original_filename": "buttkicker_mini_lfe_tube_mount.stl",
+          "part_id": "tube_mount",
+          "relative_path": "data/external-benchmarks/mounting-brackets-v1/mounting-bracket-005/reference/tube_mount.stl",
+          "sha256": "571ec631dd8b8e0e2f941b8124455b8860f20b846eb99a7d9c0a4f0092242b8d"
+        }
+      ],
+      "reference_set_sha256": "9b4a5b2a51d5f7ea5b176bb9e88f06be6cf14cf4b5b4db5f647a5885d93114b5",
+      "reference_spec": {
+        "facts": [
+          {
+            "id": "output_count",
+            "provenance": "manual_benchmark_annotation",
+            "unit": "count",
+            "value": 1
+          },
+          {
+            "id": "overall_envelope",
+            "provenance": "reference_geometry_measured",
+            "unit": "mm",
+            "value": {
+              "x": 122.29,
+              "y": 122.29,
+              "z": 25.0
+            }
+          },
+          {
+            "id": "tube_diameter",
+            "provenance": "creator_documented",
+            "unit": "mm",
+            "value": 50.8
+          },
+          {
+            "id": "fastener",
+            "provenance": "creator_documented",
+            "unit": "descriptive",
+            "value": "1/4-20 bolts"
+          },
+          {
+            "id": "transducer",
+            "provenance": "creator_documented",
+            "unit": "descriptive",
+            "value": "ButtKicker Mini LFE"
+          }
+        ],
+        "mode": "reference_specification",
+        "prompt": "Design a strong mounting bracket for attaching a ButtKicker Mini LFE vibration transducer to a 2-inch round tube on a sim-racing cockpit. The bracket should clamp firmly around the tube and use 1/4-20 bolts. It should provide a rigid mechanical connection suitable for transmitting vibration into the cockpit tubing. For this specification, target one solid output with an approximate envelope of 122.3 mm x 122.3 mm x 25.0 mm and a nominal tube diameter of approximately 50.8 mm.",
+        "units": "mm"
+      },
+      "source_site": "Printables",
+      "source_title": "ButtKicker Mini LFE Sim Racing Rig Tube Mount",
+      "source_url": "https://www.printables.com/model/220421",
+      "split_assignment": "pilot",
+      "status": "imported"
+    }
+  ],
+  "schema_version": "external-cad-benchmark-manifest-v1",
   "split_policy": {
     "allowed_assignments": [
       "development",
@@ -14,86 +488,6 @@
     ],
     "pilot_is_not_a_future_holdout_assignment": true
   },
-  "projects": [
-    {
-      "benchmark_id": "mounting-bracket-001",
-      "benchmark_version": "1.0.0",
-      "category": "mounting_brackets",
-      "source_site": null,
-      "source_url": null,
-      "creator": null,
-      "source_title": null,
-      "license": null,
-      "acquired_at": null,
-      "reference_files": [],
-      "premise": "",
-      "reference_spec": {},
-      "split_assignment": "pilot",
-      "status": "placeholder"
-    },
-    {
-      "benchmark_id": "mounting-bracket-002",
-      "benchmark_version": "1.0.0",
-      "category": "mounting_brackets",
-      "source_site": null,
-      "source_url": null,
-      "creator": null,
-      "source_title": null,
-      "license": null,
-      "acquired_at": null,
-      "reference_files": [],
-      "premise": "",
-      "reference_spec": {},
-      "split_assignment": "pilot",
-      "status": "placeholder"
-    },
-    {
-      "benchmark_id": "mounting-bracket-003",
-      "benchmark_version": "1.0.0",
-      "category": "mounting_brackets",
-      "source_site": null,
-      "source_url": null,
-      "creator": null,
-      "source_title": null,
-      "license": null,
-      "acquired_at": null,
-      "reference_files": [],
-      "premise": "",
-      "reference_spec": {},
-      "split_assignment": "pilot",
-      "status": "placeholder"
-    },
-    {
-      "benchmark_id": "mounting-bracket-004",
-      "benchmark_version": "1.0.0",
-      "category": "mounting_brackets",
-      "source_site": null,
-      "source_url": null,
-      "creator": null,
-      "source_title": null,
-      "license": null,
-      "acquired_at": null,
-      "reference_files": [],
-      "premise": "",
-      "reference_spec": {},
-      "split_assignment": "pilot",
-      "status": "placeholder"
-    },
-    {
-      "benchmark_id": "mounting-bracket-005",
-      "benchmark_version": "1.0.0",
-      "category": "mounting_brackets",
-      "source_site": null,
-      "source_url": null,
-      "creator": null,
-      "source_title": null,
-      "license": null,
-      "acquired_at": null,
-      "reference_files": [],
-      "premise": "",
-      "reference_spec": {},
-      "split_assignment": "pilot",
-      "status": "placeholder"
-    }
-  ]
+  "target_category_count": 10,
+  "target_project_count": 50
 }

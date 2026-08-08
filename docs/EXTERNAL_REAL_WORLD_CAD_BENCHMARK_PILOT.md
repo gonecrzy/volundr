@@ -54,7 +54,8 @@ runtime tree:
 
 ```text
 data/external-benchmarks/mounting-brackets-v1/<project>/
-  reference/reference.stl|step|brep
+  reference/<part_id>.stl|step|brep
+  provenance/<original-source-filename>
   source.json
   premise.txt
   reference-spec.json
@@ -68,9 +69,27 @@ name, local relative path, file type, and SHA-256. No source URL or model is
 invented for an empty pilot slot.
 
 The importer refuses missing or unreadable geometry and never edits the input
-file. It copies bytes into the ignored local reference tree, verifies the copy
+file. It copies bytes into the ignored local reference tree, verifies each copy
 hash, and writes separate provenance, premise, reference-spec, and derived
-fact records.
+fact records. A project may contain one or more explicitly mapped canonical
+parts. Each canonical part has a neutral `part_id`, original filename, file
+type, SHA-256, and derived geometry facts. Noncanonical source files are
+stored under `provenance/` and never affect canonical part count.
+
+The multi-part form is explicit and order-independent:
+
+```json
+{
+  "canonical_reference_parts": [
+    {"part_id": "base", "source_filename": "base.stl"},
+    {"part_id": "platform", "source_filename": "platform.stl"}
+  ]
+}
+```
+
+The importer rejects duplicate part IDs, duplicate source paths, missing
+membership, malformed later parts, and incomplete projects before updating the
+manifest. The original single-file API remains supported.
 
 ## Schema and ingestion
 
@@ -87,6 +106,11 @@ python scripts/import_external_benchmark_reference.py \
   --source-metadata /path/to/source.json \
   --reference-file /path/to/downloaded-model.stl
 ```
+
+Repeat `--reference-file` for a multi-part project and use repeated
+`--provenance-file` arguments for alternate/source files. The metadata must
+map every canonical filename to a unique neutral part ID; input order is not
+used for identity.
 
 STL, STEP, and BREP are supported. STL units are explicitly recorded as
 `assumed_mm` unless specified by benchmark metadata. STEP/BREP units are
@@ -110,6 +134,12 @@ The evaluator stores two independent result families:
   outcomes from the normal Volundr workflow.
 - `reference_similarity`: currently bounding-box error by axis, volume and
   surface-area differences/ratios, and solid-count agreement.
+
+For multi-part projects, comparison requires an explicit reference-part to
+generated-output mapping. It reports project part-count agreement, per-part
+metrics keyed by neutral reference part ID, and aggregate constituent metrics
+separately. It never pairs files alphabetically or merges independent parts
+for ingestion.
 
 Geometric similarity is not CAD correctness. A valid design may differ from a
 creator's reference while satisfying the user's requirements, and a similar

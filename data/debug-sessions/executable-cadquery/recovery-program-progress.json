@@ -116,6 +116,7 @@
     ,"phase_1b_hole_detector_anti_overfitting_passed"
     ,"full_backend_phase_1b_hole_detector_checkpoint_1513_passed"
     ,"external_real_world_benchmark_pilot_infrastructure_built_without_provider_calls"
+    ,"external_real_world_benchmark_mounting_bracket_pilot_locked_without_provider_calls"
   ],
   "blocked_gates": [],
   "superseded_gates": [
@@ -147,15 +148,30 @@
     "status": "stable_seed_checkpoint"
   },
   "external_real_world_benchmark_pilot_status": {
-    "status": "infrastructure_built_pilot_slots_empty",
+    "status": "pilot_locked_and_imported",
     "role": "supplemental_external_real_world_benchmark",
     "benchmark_id": "mounting-brackets-v1",
     "target_project_count": 50,
     "target_category_count": 10,
     "pilot_project_count": 5,
     "pilot_project_ids": ["mounting-bracket-001", "mounting-bracket-002", "mounting-bracket-003", "mounting-bracket-004", "mounting-bracket-005"],
-    "reference_projects_locked": false,
-    "reference_files_imported": 0,
+    "reference_projects_locked": true,
+    "reference_files_imported": 7,
+    "canonical_reference_part_count": 7,
+    "canonical_part_counts_by_project": {
+      "mounting-bracket-001": 1,
+      "mounting-bracket-002": 2,
+      "mounting-bracket-003": 1,
+      "mounting-bracket-004": 2,
+      "mounting-bracket-005": 1
+    },
+    "provenance_files_retained": 16,
+    "acquisition_package": {
+      "filename": "mounting-brackets-pilot-input.zip",
+      "sha256": "6b9274c333f6212b4a5b44b398b632b1af326a5625885f76d734a795223ebe86",
+      "acquired_at": "2026-08-07",
+      "intake_path": "data/external-benchmarks/incoming/mounting-brackets-pilot-input.zip"
+    },
     "provider_calls": 0,
     "benchmark_runs": 0,
     "production_workflow_changes": 0,
@@ -163,7 +179,10 @@
     "manifest": "benchmarks/external/mounting-brackets-v1/manifest.json",
     "design_document": "docs/EXTERNAL_REAL_WORLD_CAD_BENCHMARK_PILOT.md",
     "ingestion_cli": "scripts/import_external_benchmark_reference.py",
-    "next_action": "Lock and import five live mounting-bracket references, then run a bounded smoke benchmark through the normal Volundr CAD workflow."
+    "multi_part_import": "explicit canonical_reference_parts membership; per-part hashes and derived facts; provenance excluded from canonical count",
+    "reference_spec_prompts_locked": true,
+    "smoke_runs": 0,
+    "next_action": "Run Smoke 1 and Smoke 2 for mounting-bracket-001 through the normal Volundr CAD workflow after review of this intake commit."
   },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
@@ -560,7 +579,8 @@
     "phase_1b_hole_detector_characterization_tests": "backend/tests/test_hole_detector_characterization.py; 22 passed including RED reproduction gates after recovery; focused geometry/semantic suite 72 passed",
     "phase_1b_geometry_measurement_characterization": "28 synthetic CadQuery/STL executions; 61 focused existing geometry/semantic tests passed; no production files changed",
     "phase_1b_brep_physical_hole_evidence_contract_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-brep-physical-hole-evidence-contract-reconstruction.json; 16 synthetic B-Rep cases; 23 characterization tests passed; split decision; no production extractor; provider_calls=0; frozen_worker_executions=0",
-    "external_real_world_benchmark_pilot_infrastructure": "docs/EXTERNAL_REAL_WORLD_CAD_BENCHMARK_PILOT.md; benchmarks/external/mounting-brackets-v1/manifest.json; backend/app/services/external_benchmarks; scripts/import_external_benchmark_reference.py; five empty pilot slots; provider_calls=0; benchmark_runs=0",
-    "verification_current_checkpoint": "backend 1546 passed, 1 skipped, 1 warning; external benchmark infrastructure 10 passed; adjacent topology/worker/semantic/geometry suites 58 passed; provider_calls=0; benchmark_runs=0; frozen_worker_executions=0; no production workflow changes"
+    "external_real_world_benchmark_pilot_infrastructure": "docs/EXTERNAL_REAL_WORLD_CAD_BENCHMARK_PILOT.md; benchmarks/external/mounting-brackets-v1/manifest.json; backend/app/services/external_benchmarks; scripts/import_external_benchmark_reference.py; multi-file importer and explicit mapping tests; provider_calls=0; benchmark_runs=0",
+    "external_real_world_benchmark_pilot_lock": "outer ZIP SHA-256 6b9274c333f6212b4a5b44b398b632b1af326a5625885f76d734a795223ebe86; five projects imported; canonical parts=7; provenance files=16; canonical reference bytes remain under ignored data/",
+    "verification_current_checkpoint": "focused external benchmark suite 20 passed; provider_calls=0; benchmark_runs=0; frozen_worker_executions=0; no production CAD generation changes"
   }
 }

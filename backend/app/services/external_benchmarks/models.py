@@ -10,7 +10,9 @@ from typing import Any
 
 
 _PROJECT_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)+$")
+_PART_ID_RE = re.compile(r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$")
 _FILE_TYPE_VALUES = {"stl", "step", "brep"}
+_PROVENANCE_FILE_TYPE_VALUES = {"3mf", "dwg", "f3d", "pdf", "stl", "step", "brep", "unknown"}
 _SPLIT_VALUES = {"pilot", "development", "validation", "holdout"}
 _STATUS_VALUES = {"placeholder", "imported", "ready", "retired"}
 _RUN_MODE_VALUES = {"premise_only", "reference_specification"}
@@ -41,6 +43,7 @@ def _optional_hash(payload: dict[str, Any], key: str) -> str | None:
 
 @dataclass(frozen=True)
 class ReferenceFileRecord:
+    part_id: str
     relative_path: str
     file_type: str
     sha256: str
@@ -48,6 +51,9 @@ class ReferenceFileRecord:
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "ReferenceFileRecord":
+        part_id = _required_string(payload, "part_id")
+        if not _PART_ID_RE.fullmatch(part_id):
+            raise ValueError("part_id must be a neutral lowercase identifier")
         file_type = _required_string(payload, "file_type").lower()
         if file_type not in _FILE_TYPE_VALUES:
             raise ValueError(f"unsupported reference file type: {file_type}")
@@ -55,10 +61,39 @@ class ReferenceFileRecord:
         if sha256 is None:
             raise ValueError("reference file sha256 is required")
         return cls(
+            part_id=part_id,
             relative_path=_required_string(payload, "relative_path"),
             file_type=file_type,
             sha256=sha256,
             original_filename=_required_string(payload, "original_filename"),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class ProvenanceFileRecord:
+    relative_path: str
+    file_type: str
+    sha256: str
+    original_filename: str
+    role: str
+
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> "ProvenanceFileRecord":
+        file_type = _required_string(payload, "file_type").lower()
+        if file_type not in _PROVENANCE_FILE_TYPE_VALUES:
+            raise ValueError(f"unsupported provenance file type: {file_type}")
+        sha256 = _optional_hash(payload, "sha256")
+        if sha256 is None:
+            raise ValueError("provenance file sha256 is required")
+        return cls(
+            relative_path=_required_string(payload, "relative_path"),
+            file_type=file_type,
+            sha256=sha256,
+            original_filename=_required_string(payload, "original_filename"),
+            role=_required_string(payload, "role"),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -77,6 +112,10 @@ class BenchmarkProject:
     license: str | None = None
     acquired_at: str | None = None
     reference_files: tuple[ReferenceFileRecord, ...] = ()
+    provenance_files: tuple[ProvenanceFileRecord, ...] = ()
+    canonical_part_count: int | None = None
+    reference_set_sha256: str | None = None
+    reference_output_mapping: dict[str, str] = field(default_factory=dict)
     premise: str = ""
     reference_spec: dict[str, Any] = field(default_factory=dict)
     split_assignment: str = "pilot"
@@ -103,6 +142,25 @@ class BenchmarkProject:
         files = payload.get("reference_files", [])
         if not isinstance(files, list):
             raise ValueError("reference_files must be a list")
+        provenance_files = payload.get("provenance_files", [])
+        if not isinstance(provenance_files, list):
+            raise ValueError("provenance_files must be a list")
+        canonical_part_count = payload.get("canonical_part_count")
+        if canonical_part_count is not None:
+            canonical_part_count = int(canonical_part_count)
+            if canonical_part_count < 0:
+                raise ValueError("canonical_part_count cannot be negative")
+        reference_output_mapping = payload.get("reference_output_mapping", {})
+        if not isinstance(reference_output_mapping, dict) or any(
+            not isinstance(key, str)
+            or not key.strip()
+            or not isinstance(value, str)
+            or not value.strip()
+            for key, value in reference_output_mapping.items()
+        ):
+            raise ValueError("reference_output_mapping must map non-empty strings to non-empty strings")
+        if len(set(reference_output_mapping.values())) != len(reference_output_mapping):
+            raise ValueError("reference_output_mapping values must be unique")
         return cls(
             benchmark_id=benchmark_id,
             benchmark_version=str(payload.get("benchmark_version", "1.0.0")),
@@ -114,6 +172,12 @@ class BenchmarkProject:
             license=_optional_string(payload, "license"),
             acquired_at=_optional_string(payload, "acquired_at"),
             reference_files=tuple(ReferenceFileRecord.from_dict(item) for item in files),
+            provenance_files=tuple(ProvenanceFileRecord.from_dict(item) for item in provenance_files),
+            canonical_part_count=canonical_part_count,
+            reference_set_sha256=_optional_hash(payload, "reference_set_sha256"),
+            reference_output_mapping={
+                str(key): str(value) for key, value in reference_output_mapping.items()
+            },
             premise=premise,
             reference_spec=reference_spec,
             split_assignment=split_assignment,
@@ -123,6 +187,7 @@ class BenchmarkProject:
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
         payload["reference_files"] = [item.to_dict() for item in self.reference_files]
+        payload["provenance_files"] = [item.to_dict() for item in self.provenance_files]
         return payload
 
 
