@@ -14,12 +14,14 @@ from typing import Any
 
 SEMANTIC_POLICY_VERSION = "executable-cadquery-semantic-policy-v1"
 CANDIDATE_POLICY_VERSION = "executable-cadquery-candidate-policy-v1"
+CONCEPT_POLICY_VERSION = "executable-cadquery-concept-policy-v1"
 
 REQUIREMENT_POLICIES = frozenset({"machine_required", "review_required", "informational"})
 MACHINE_RESULTS = frozenset({"verified", "failed", "unsupported_verifier"})
 CANDIDATE_STATES = frozenset(
     {"candidate_blocked", "candidate_ready_for_review", "candidate_fully_verified"}
 )
+CONCEPT_STATES = frozenset({"concept_unavailable", "concept_available"})
 
 _PASSING_OUTPUT_STATES = frozenset({"completed", "ready", "ready_with_warnings"})
 _PASSING_WORKER_STATES = frozenset({"completed", "ready", "ready_with_warnings"})
@@ -158,6 +160,75 @@ def evaluate_semantic_policy(
         },
     }
     return result
+
+
+def derive_concept_state(
+    *,
+    outputs: Iterable[Mapping[str, Any]],
+    semantic_verification: Mapping[str, Any] | None,
+    clarification_required: bool = False,
+) -> dict[str, Any]:
+    """Derive whether a structurally usable CAD concept exists.
+
+    This is deliberately orthogonal to :func:`derive_candidate_policy`.
+    Semantic failures, unsupported verifiers, review obligations, and output
+    identity blockers do not erase a retrievable, topologically valid CAD
+    artifact.  Conversely, a provider/source/worker/topology/artifact failure
+    cannot be presented as a concept merely because requirements exist.
+    """
+
+    del semantic_verification
+    output_records = [dict(item) for item in outputs if isinstance(item, Mapping)]
+    blockers: list[str] = []
+    available_output_ids: list[str] = []
+    required_outputs = [
+        item for item in output_records if item.get("required", True) is True
+    ]
+
+    if clarification_required:
+        blockers.append("clarification_required")
+    if not required_outputs:
+        blockers.append("no_generated_artifact")
+
+    for output in required_outputs:
+        output_id = str(output.get("output_id") or "unknown_output")
+        artifact_available = output.get("artifact_available") is True
+        if not artifact_available:
+            blockers.append(f"output:{output_id}:artifact_missing")
+        if output.get("artifact_integrity") is False:
+            blockers.append(f"output:{output_id}:artifact_integrity")
+
+        worker_status = str(output.get("worker_status") or "")
+        if worker_status not in _PASSING_WORKER_STATES:
+            blockers.append(f"output:{output_id}:worker:{worker_status or 'missing'}")
+
+        topology_status = str(output.get("topology_status") or "")
+        if topology_status not in _PASSING_TOPOLOGY_STATES:
+            blockers.append(f"output:{output_id}:topology:{topology_status or 'missing'}")
+
+        output_state = str(output.get("state") or "")
+        if output_state in {
+            "pending",
+            "not_generated",
+            "worker_timeout",
+            "invalid_shape",
+            "export_failed",
+            "blocked_by_upstream_failure",
+        }:
+            blockers.append(f"output:{output_id}:state:{output_state}")
+        elif artifact_available and worker_status in _PASSING_WORKER_STATES and topology_status in _PASSING_TOPOLOGY_STATES:
+            available_output_ids.append(output_id)
+
+    blockers = _unique(blockers)
+    state = "concept_unavailable" if blockers else "concept_available"
+    return {
+        "state": state,
+        "concept_state": state,
+        "concept_policy_version": CONCEPT_POLICY_VERSION,
+        "blockers": blockers,
+        "artifact_output_ids": _unique(available_output_ids),
+        "revision_capable": state == "concept_available",
+    }
 
 
 def derive_candidate_policy(

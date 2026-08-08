@@ -152,6 +152,9 @@ def test_sync_maps_blocked_valid_geometry_to_semantic_verification_failure(tmp_p
         assert output.semantic_verification == "failed"
         assert output.artifact_available is True
         assert workflow.state == "verification_failed"
+        read_state = service.read(workflow.id)
+        assert read_state.concept_state == "concept_available"
+        assert read_state.verification["concept_state"]["state"] == "concept_available"
 
 
 def test_sync_preserves_canonical_output_identity_through_verification(tmp_path) -> None:

@@ -49,6 +49,7 @@ export type ValidatedWorkflow = {
   requirements: Record<string, unknown>;
   plan: Record<string, unknown>;
   verification: Record<string, unknown>;
+  concept_state?: "concept_unavailable" | "concept_available" | null;
   candidate_policy: ValidatedCandidatePolicy;
   diagnostics: Record<string, unknown>;
   package_available: boolean;
@@ -261,4 +262,13 @@ export function workflowSummary(workflow: Pick<ValidatedWorkflow, "state" | "out
     return "The workflow could not finish. Review the guidance below.";
   }
   return "Your design is progressing through its checks.";
+}
+
+export function conceptAvailabilitySummary(
+  workflow: Pick<ValidatedWorkflow, "concept_state" | "candidate_policy">,
+): string | null {
+  if (workflow.concept_state === "concept_available" && workflow.candidate_policy.state === "candidate_blocked") {
+    return "A CAD concept is available to inspect and revise; final checks still need attention.";
+  }
+  return null;
 }

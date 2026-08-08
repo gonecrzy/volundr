@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  conceptAvailabilitySummary,
   createValidatedRequestIdentityStore,
   createValidatedWorkflowApi,
   isDefinitiveValidatedRequestError,
@@ -292,6 +293,7 @@ export function ValidatedCadQueryWorkflowView({
       ) : (
         <>
           <p className="validated-workflow-summary">{workflowSummary(workflow)}</p>
+          {conceptAvailabilitySummary(workflow) ? <p className="validated-workflow-concept-notice">{conceptAvailabilitySummary(workflow)}</p> : null}
           {executableProvenance.source_generation_mode === "complete_source" || executableProvenance.source_generation_mode === "complete_source_revision" ? (
             <section className="validated-executable-summary" aria-label="Executable CadQuery experiment">
               <h3>Executable CadQuery experiment</h3>

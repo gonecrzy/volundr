@@ -1,0 +1,166 @@
+{
+  "schema_version": "concept-availability-recovery-v1",
+  "checkpoint": "IMPLEMENT_ORTHOGONAL_CONCEPT_AVAILABILITY",
+  "source_checkpoint": "1c080cb",
+  "purpose": "Represent structurally usable CAD concepts separately from strict final verification.",
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "production_workflow_runs": 0,
+  "previous_conflation_boundary": {
+    "observed": "A valid generated artifact with semantic verification failure was exposed through workflow state verification_failed and candidate policy candidate_blocked, without an explicit concept/artifact dimension.",
+    "impact": "A user-facing consumer could interpret final verification failure as absence of a usable CAD artifact.",
+    "ownership": "Product workflow/API state representation, not semantic verifier permissiveness."
+  },
+  "state_model": {
+    "concept_state": ["concept_unavailable", "concept_available"],
+    "candidate_state_preserved": ["candidate_blocked", "candidate_ready_for_review", "candidate_fully_verified"],
+    "orthogonality_example": {
+      "concept_state": "concept_available",
+      "candidate_state": "candidate_blocked",
+      "meaning": "A retrievable, structurally valid CAD concept exists, while final requirements or review obligations remain unresolved."
+    },
+    "policy_version": "executable-cadquery-concept-policy-v1"
+  },
+  "concept_availability_gate": {
+    "required": [
+      "at least one required generated output record",
+      "artifact_available is true for every required output",
+      "worker status is completed, ready, or ready_with_warnings",
+      "topology status is valid, passed, verified, or ok",
+      "no source/worker/topology/export-invalid state",
+      "artifact integrity is not explicitly false"
+    ],
+    "does_not_require": [
+      "semantic requirements passing",
+      "absence of unsupported verifiers",
+      "absence of review obligations",
+      "reference similarity",
+      "independent final review"
+    ],
+    "fail_closed_states": [
+      "clarification_required",
+      "no_generated_artifact",
+      "artifact_missing",
+      "artifact_integrity",
+      "worker failure or timeout",
+      "invalid topology",
+      "not_generated",
+      "export_failed",
+      "blocked_by_upstream_failure"
+    ],
+    "integrity_note": "The gate consumes the existing persisted artifact_available/evidence fields and explicit integrity failures; the existing artifact reconciliation and artifact endpoint remain responsible for hash/path validation."
+  },
+  "implementation": {
+    "production_files": [
+      "backend/app/services/executable_cadquery/semantic_policy.py",
+      "backend/app/services/executable_cadquery/workflow.py",
+      "backend/app/services/validated_cadquery_workflow.py",
+      "backend/app/schemas/validated_cadquery.py",
+      "frontend/src/validatedCadQueryWorkflow.ts",
+      "frontend/src/ValidatedCadQueryWorkflowView.tsx",
+      "frontend/src/styles.css"
+    ],
+    "behavior": [
+      "derive_concept_state is a separate pure policy function and does not consume semantic status to decide availability.",
+      "Executable and base validated workflows persist concept_state alongside existing verification/candidate data.",
+      "Workflow and verification API responses expose concept_state without removing legacy state or candidate_policy fields.",
+      "The UI states that a concept is inspectable/revisable while final checks need attention when concept_available and candidate_blocked.",
+      "No candidate state, semantic policy, verifier, router, requirement classification, or repair behavior was relaxed."
+    ]
+  },
+  "offline_16_cell_counterfactual": {
+    "source": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-generated-concept-quality-audit/evidence.json and aggregate-report.json",
+    "selection": "exactly the 16 cells with failure_class semantic_requirement_unverifiable",
+    "persisted_geometry_evidence": "All 16 audit records contain generated output evidence with valid topology and persisted STEP/STL/BREP hashes; this is an offline replay of persisted evidence, not regeneration.",
+    "concept_available": 16,
+    "concept_unavailable": 0,
+    "candidate_blocked": 16,
+    "candidate_ready_for_review": 0,
+    "candidate_fully_verified": 0,
+    "cq_audit_comparison": {
+      "CQ3_STRONG_FIRST_CONCEPT": 8,
+      "CQ2_USABLE_NEEDS_REVISION": 6,
+      "CQ1_WEAK_OR_FUNCTIONALLY_WRONG": 2,
+      "CQ0_UNUSABLE_CONCEPT": 0,
+      "NOT_ASSESSABLE": 0,
+      "important_interpretation": "concept_available intentionally includes valid CQ1 artifacts; it makes no quality or functional-correctness claim."
+    },
+    "useful_first_concepts_from_audit": 14,
+    "primarily_certification_or_plumbing_cases": 14,
+    "genuine_generation_failures": 2
+  },
+  "offline_cell_inventory": [
+    {"benchmark_project_id": "adapter-coupler-002", "mode": "premise_only", "cq": "CQ3", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "clamp-clip-001", "mode": "comparison_specification", "cq": "CQ3", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "container-case-001", "mode": "comparison_specification", "cq": "CQ2", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "container-case-002", "mode": "comparison_specification", "cq": "CQ1", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "electronics-enclosure-001", "mode": "comparison_specification", "cq": "CQ3", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "electronics-enclosure-002", "mode": "comparison_specification", "cq": "CQ3", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "functional-assembly-001", "mode": "comparison_specification", "cq": "CQ2", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "functional-assembly-003", "mode": "comparison_specification", "cq": "CQ2", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "holder-organizer-001", "mode": "comparison_specification", "cq": "CQ3", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "holder-organizer-003", "mode": "comparison_specification", "cq": "CQ1", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "jig-guide-003", "mode": "comparison_specification", "cq": "CQ3", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "mounting-bracket-002", "mode": "comparison_specification", "cq": "CQ2", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "mounting-bracket-003", "mode": "comparison_specification", "cq": "CQ2", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "replacement-part-003", "mode": "comparison_specification", "cq": "CQ3", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "stand-support-001", "mode": "comparison_specification", "cq": "CQ2", "concept_state": "concept_available", "candidate_state": "candidate_blocked"},
+    {"benchmark_project_id": "stand-support-003", "mode": "comparison_specification", "cq": "CQ3", "concept_state": "concept_available", "candidate_state": "candidate_blocked"}
+  ],
+  "hard_failure_visibility": {
+    "semantic_failures": "Remain in candidate_policy blockers and semantic findings.",
+    "unsupported_verifiers": "Remain fail-closed and keep candidate_state candidate_blocked.",
+    "output_identity_or_count": "Remains a candidate blocker even when valid artifact geometry makes concept_state available.",
+    "missing_component": "Remains a candidate blocker; concept availability does not imply completeness."
+  },
+  "clarification_and_invalid_geometry": {
+    "clarification_before_generation": "concept_unavailable",
+    "source_or_worker_failure": "concept_unavailable",
+    "invalid_topology": "concept_unavailable",
+    "missing_or_corrupt_artifact": "concept_unavailable",
+    "revision_flow": "Existing bounded revision endpoints remain available for workflows with a retrievable revision/package; no new revision intelligence was added."
+  },
+  "concept_vs_final_guardrail_audit": {
+    "affects_concept_generation_eligibility": false,
+    "affects_clarification_behavior": false,
+    "flexible_or_model_choice_becomes_required": false,
+    "new_hard_requirement_synthesized": false,
+    "premise_only_behavior_changes": false,
+    "final_verification_remains_fail_closed": true,
+    "candidate_policy_currently_conflates_concept_and_final": false,
+    "former_workflow_api_conflation": "The former single workflow-state presentation did not expose the distinction; this checkpoint records it as a separate future product-state concern now addressed by concept_state."
+  },
+  "tests": {
+    "backend_focused": "45 passed",
+    "frontend": "105 passed",
+    "frontend_build": "tsc -b and vite build passed",
+    "coverage": [
+      "valid artifact plus unsupported semantics",
+      "review obligations",
+      "fully verified candidate",
+      "clarification before generation",
+      "source failure",
+      "invalid topology",
+      "missing artifact",
+      "artifact integrity failure",
+      "multi-output identity blocker",
+      "API persistence and revision behavior"
+    ],
+    "provider_calls": 0,
+    "worker_executions": 0
+  },
+  "anti_overfitting": {
+    "project_ids_in_production_logic": false,
+    "benchmark_quality_labels_in_production_logic": false,
+    "reference_geometry_used": false,
+    "semantic_requirements_downgraded": false,
+    "candidate_policy_weakened": false,
+    "recovery_b_c_e_started": false,
+    "validation_or_holdout_access": false
+  },
+  "next_recovery_order": [
+    "Recovery C — output identity/scope",
+    "Recovery B — qualitative/policy classification",
+    "Recovery E — genuine missing deterministic verifiers"
+  ]
+}

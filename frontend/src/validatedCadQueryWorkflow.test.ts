@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  conceptAvailabilitySummary,
   createValidatedWorkflowApi,
   createValidatedRequestIdentityStore,
   outputStateLabel,
@@ -26,6 +27,17 @@ describe("validated CadQuery workflow presentation", () => {
         ],
       }),
     ).toBe("One or more parts are ready; another part needs attention.");
+  });
+
+  it("keeps concept availability distinct from final verification", () => {
+    expect(conceptAvailabilitySummary({
+      concept_state: "concept_available",
+      candidate_policy: { state: "candidate_blocked" },
+    })).toBe("A CAD concept is available to inspect and revise; final checks still need attention.");
+    expect(conceptAvailabilitySummary({
+      concept_state: "concept_unavailable",
+      candidate_policy: { state: "candidate_blocked" },
+    })).toBeNull();
   });
 
   it("keeps workflow requests in the typed API layer with actor and idempotency headers", async () => {

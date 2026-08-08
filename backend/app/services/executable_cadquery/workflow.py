@@ -46,6 +46,7 @@ from app.services.executable_cadquery.semantic import (
     evaluate_executable_cadquery_semantics_for_outputs,
 )
 from app.services.executable_cadquery.semantic_policy import (
+    derive_concept_state,
     derive_candidate_policy,
     evaluate_semantic_policy,
 )
@@ -873,6 +874,10 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
             outputs=candidate_outputs,
             semantic_verification=semantic,
             artifacts=artifact_evidence,
+        )
+        verification["concept_state"] = derive_concept_state(
+            outputs=candidate_outputs,
+            semantic_verification=semantic,
         )
         verification["independent_final_review"] = review
         verification["candidate_policy"] = derive_candidate_policy(
@@ -2032,18 +2037,23 @@ class ExecutableCadQueryWorkflowService(ValidatedCadQueryWorkflowService):
     def _merge_verification(workflow: ValidatedCadQueryWorkflow, semantic: dict[str, Any]) -> None:
         verification = _json_dict(workflow.verification_json)
         verification["semantic_verification"] = semantic
+        outputs = [
+            {
+                "output_id": output.output_id,
+                "required": output.required,
+                "state": output.state,
+                "worker_status": output.worker_status,
+                "topology_status": output.topology_status,
+                "artifact_available": output.artifact_available,
+            }
+            for output in workflow.outputs
+        ]
         verification["candidate_policy"] = derive_candidate_policy(
-            outputs=[
-                {
-                    "output_id": output.output_id,
-                    "required": output.required,
-                    "state": output.state,
-                    "worker_status": output.worker_status,
-                    "topology_status": output.topology_status,
-                    "artifact_available": output.artifact_available,
-                }
-                for output in workflow.outputs
-            ],
+            outputs=outputs,
+            semantic_verification=semantic,
+        )
+        verification["concept_state"] = derive_concept_state(
+            outputs=outputs,
             semantic_verification=semantic,
         )
         workflow.verification_json = json.dumps(verification, sort_keys=True)

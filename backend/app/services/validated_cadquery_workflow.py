@@ -49,6 +49,7 @@ from app.schemas.validated_cadquery import (
 )
 from app.services.projects.export import ExportService
 from app.services.projects.service import ProjectService
+from app.services.executable_cadquery.semantic_policy import derive_concept_state
 from app.services.validated_cadquery_security import canonical_idempotency_hash, safe_relative_artifact_path
 from app.services.validated_cadquery_security import redact_sensitive_text
 
@@ -621,6 +622,23 @@ class ValidatedCadQueryWorkflowService:
         provenance = _json_object(workflow.provenance_json)
         provenance.pop("selected_route", None)
         verification = _json_object(workflow.verification_json)
+        persisted_concept = verification.get("concept_state")
+        if not isinstance(persisted_concept, dict):
+            persisted_concept = derive_concept_state(
+                outputs=[
+                    {
+                        "output_id": output.output_id,
+                        "required": output.required,
+                        "state": output.state,
+                        "worker_status": output.worker_status,
+                        "topology_status": output.topology_status,
+                        "artifact_available": output.artifact_available,
+                    }
+                    for output in workflow.outputs
+                ],
+                semantic_verification=verification.get("semantic_verification"),
+                clarification_required=workflow.state == "awaiting_clarification",
+            )
         return ValidatedWorkflowRead(
             id=workflow.id,
             project_id=workflow.project_id,
@@ -634,6 +652,7 @@ class ValidatedCadQueryWorkflowService:
             plan=_json_object(workflow.plan_json),
             provenance=provenance,
             verification=verification,
+            concept_state=persisted_concept.get("state"),
             candidate_policy=verification.get("candidate_policy", {}),
             diagnostics=_json_object(workflow.diagnostics_json),
             package_manifest=_json_object(workflow.package_manifest_json),
@@ -658,6 +677,7 @@ class ValidatedCadQueryWorkflowService:
             workflow_id=workflow.id,
             state=workflow.state,
             verification=state.verification,
+            concept_state=state.concept_state,
             candidate_policy=state.candidate_policy,
             outputs=state.outputs,
         )
@@ -1299,6 +1319,22 @@ class ValidatedCadQueryWorkflowService:
                 "revision_id": revision.id,
                 "status": "passed" if workflow.state == "candidate_ready" else "partial" if workflow.state == "partially_completed" else "failed",
                 "output_states": {output.output_id: output.state for output in product_outputs},
+                "concept_state": derive_concept_state(
+                    outputs=[
+                        {
+                            "output_id": output.output_id,
+                            "required": output.required,
+                            "state": output.state,
+                            "worker_status": output.worker_status,
+                            "topology_status": output.topology_status,
+                            "artifact_available": output.artifact_available,
+                        }
+                        for output in product_outputs
+                    ],
+                    semantic_verification={
+                        "status": "failed" if workflow.state == "verification_failed" else "passed",
+                    },
+                ),
             },
             sort_keys=True,
         )

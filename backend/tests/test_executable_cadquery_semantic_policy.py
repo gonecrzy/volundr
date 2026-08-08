@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.services.executable_cadquery.semantic_policy import (
+    derive_concept_state,
     derive_candidate_policy,
     evaluate_semantic_policy,
 )
@@ -244,3 +245,95 @@ def test_explicit_review_requirement_stays_ready_for_review() -> None:
     assert result["state"] == "candidate_ready_for_review"
     assert "surface_finish" in result["review_obligations"]
     assert "independent_final_review" in result["review_obligations"]
+
+
+def test_valid_artifact_with_unsupported_semantics_is_concept_available_but_candidate_blocked() -> None:
+    requirement = _requirement("unmeasured_interface")
+    semantic = evaluate_semantic_policy({"status": "passed", "findings": []}, {"requirements": [requirement]})
+
+    concept = derive_concept_state(outputs=[_output()], semantic_verification=semantic)
+    candidate = derive_candidate_policy(outputs=[_output()], semantic_verification=semantic)
+
+    assert concept["state"] == "concept_available"
+    assert concept["concept_state"] == "concept_available"
+    assert concept["revision_capable"] is True
+    assert candidate["state"] == "candidate_blocked"
+    assert "unmeasured_interface" in candidate["blockers"]
+
+
+def test_review_obligation_does_not_make_a_valid_concept_unavailable() -> None:
+    requirement = _requirement("surface_finish", policy="review_required")
+    semantic = evaluate_semantic_policy({"status": "passed", "findings": []}, {"requirements": [requirement]})
+
+    concept = derive_concept_state(outputs=[_output()], semantic_verification=semantic)
+    candidate = derive_candidate_policy(outputs=[_output()], semantic_verification=semantic)
+
+    assert concept["state"] == "concept_available"
+    assert candidate["state"] == "candidate_ready_for_review"
+
+
+def test_fully_verified_candidate_also_has_concept_available_state() -> None:
+    requirement = _requirement("body_dimensions")
+    semantic = evaluate_semantic_policy(_passing_semantics([requirement]), {"requirements": [requirement]})
+
+    concept = derive_concept_state(outputs=[_output()], semantic_verification=semantic)
+    candidate = derive_candidate_policy(
+        outputs=[_output()],
+        semantic_verification=semantic,
+        independent_review={"verdict": "PASS"},
+    )
+
+    assert concept["state"] == "concept_available"
+    assert candidate["state"] == "candidate_fully_verified"
+
+
+def test_clarification_before_generation_is_concept_unavailable() -> None:
+    result = derive_concept_state(outputs=[], semantic_verification=None, clarification_required=True)
+
+    assert result["state"] == "concept_unavailable"
+    assert result["concept_state"] == "concept_unavailable"
+    assert result["revision_capable"] is False
+    assert "clarification_required" in result["blockers"]
+
+
+def test_source_failure_invalid_topology_and_missing_artifact_are_concept_unavailable() -> None:
+    semantic = {"status": "unsupported_verifier"}
+
+    source_failure = derive_concept_state(
+        outputs=[_output(state="not_generated")], semantic_verification=semantic
+    )
+    invalid_topology = derive_concept_state(
+        outputs=[_output(topology="failed")], semantic_verification=semantic
+    )
+    missing_artifact = derive_concept_state(
+        outputs=[_output(artifact=False)], semantic_verification=semantic
+    )
+
+    assert source_failure["state"] == "concept_unavailable"
+    assert invalid_topology["state"] == "concept_unavailable"
+    assert missing_artifact["state"] == "concept_unavailable"
+
+
+def test_multi_output_identity_blocker_does_not_erase_valid_concept_artifact() -> None:
+    semantic = {
+        "status": "failed",
+        "failed": ["required_output_count"],
+        "findings": [],
+    }
+
+    concept = derive_concept_state(outputs=[_output()], semantic_verification=semantic)
+    candidate = derive_candidate_policy(outputs=[_output()], semantic_verification=semantic)
+
+    assert concept["state"] == "concept_available"
+    assert candidate["state"] == "candidate_blocked"
+    assert "required_output_count" in candidate["blockers"]
+
+
+def test_artifact_integrity_failure_is_fail_closed_for_concept_availability() -> None:
+    output = _output()
+    output["artifact_integrity"] = False
+
+    result = derive_concept_state(outputs=[output], semantic_verification={"status": "passed"})
+
+    assert result["state"] == "concept_unavailable"
+    assert "output:primary:artifact_integrity" in result["blockers"]

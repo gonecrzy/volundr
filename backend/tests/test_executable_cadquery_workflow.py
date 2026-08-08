@@ -814,8 +814,10 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             assert payload["provenance"]["source_generation_mode"] == "complete_source"
             assert payload["provenance"]["codex_proxy_used"] is False
             assert payload["state"] == "candidate_ready"
+            assert payload["concept_state"] == "concept_available"
             assert payload["candidate_policy"]["state"] == "candidate_ready_for_review"
             assert payload["verification"]["candidate_policy"] == payload["candidate_policy"]
+            assert payload["verification"]["concept_state"]["state"] == "concept_available"
             assert provider.requests[0].executable_design_contract is not None
             assert provider.requests[0].executable_repair_envelope is None
             assert payload["outputs"]
@@ -846,6 +848,7 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             )
             assert review.status_code == 200, review.text
             assert review.json()["candidate_policy"]["state"] == "candidate_fully_verified"
+            assert review.json()["concept_state"] == "concept_available"
 
             revision = client.post(
                 f"/api/validated-cadquery/workflows/{payload['id']}/revision",
@@ -889,6 +892,7 @@ async def test_executable_flow_uses_gemini_complete_source_and_existing_worker(t
             assert review_fail.status_code == 200, review_fail.text
             review_fail_payload = review_fail.json()
             assert review_fail_payload["candidate_policy"]["state"] == "candidate_blocked"
+            assert review_fail_payload["concept_state"] == "concept_available"
             recovery_decision = review_fail_payload["provenance"]["recovery_decisions"][-1]
             assert recovery_decision["observation"]["failure_class"] == "semantic_requirement_failed"
             assert recovery_decision["recommended_action"] == "gemini_semantic_repair"

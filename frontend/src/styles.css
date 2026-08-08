@@ -2240,6 +2240,11 @@ summary:focus-visible {
   font-size: 1rem;
 }
 
+.validated-workflow-concept-notice {
+  margin: -0.5rem 0 1rem;
+  color: #4f6254;
+}
+
 .validated-executable-summary {
   border: 1px solid #d3ddd5;
   border-radius: 12px;
