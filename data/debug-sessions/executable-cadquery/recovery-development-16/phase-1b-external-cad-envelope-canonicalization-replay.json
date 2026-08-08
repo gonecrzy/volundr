@@ -1,0 +1,1050 @@
+{
+  "cells": [
+    {
+      "benchmark_project_id": "clamp-clip-001",
+      "canonical_bounds_requirements": [],
+      "category_counts_after_a_only": {
+        "A": 3,
+        "B": 1,
+        "F": 2
+      },
+      "counterfactual_requirement_count": 6,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "A": 3,
+        "B": 1,
+        "F": 2
+      },
+      "original_requirement_count": 6,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "container-case-001",
+      "canonical_bounds_requirements": [],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "C": 5,
+        "E": 1,
+        "F": 2
+      },
+      "counterfactual_requirement_count": 8,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "C": 5,
+        "E": 1,
+        "F": 2
+      },
+      "original_requirement_count": 8,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "container-case-002",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "id": "box_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "battery_box_26650",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "box_envelope_x",
+              "box_envelope_y",
+              "box_envelope_z"
+            ],
+            "source_statement_identity": "evidence:Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm."
+          },
+          "raw_evidence": "Output battery_box_26650 should have an overall envelope of approximately 38.79999923706055 mm x 43.719478607177734 mm x 72.5 mm.",
+          "requirement_id": "box_envelope",
+          "scope": "carry_case",
+          "source": "volundr_proposal",
+          "subject": "battery_box_26650",
+          "value": {
+            "depth": 43.719478607177734,
+            "height": 72.5,
+            "width": 38.79999923706055
+          }
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "id": "lid_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "battery_lid",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "lid_envelope_x",
+              "lid_envelope_y",
+              "lid_envelope_z"
+            ],
+            "source_statement_identity": "evidence:Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm."
+          },
+          "raw_evidence": "Output battery_lid should have an overall envelope of approximately 38.79999923706055 mm x 38.79999923706055 mm x 19.0 mm.",
+          "requirement_id": "lid_envelope",
+          "scope": "carry_case",
+          "source": "volundr_proposal",
+          "subject": "battery_lid",
+          "value": {
+            "depth": 38.79999923706055,
+            "height": 19.0,
+            "width": 38.79999923706055
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "B": 9,
+        "F": 2
+      },
+      "counterfactual_requirement_count": 7,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "B": 9,
+        "F": 2
+      },
+      "original_requirement_count": 11,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "electronics-enclosure-001",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "id": "case_bottom_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "case_bottom",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "case_bottom_envelope_x",
+              "case_bottom_envelope_y",
+              "case_bottom_envelope_z"
+            ],
+            "source_statement_identity": "evidence:Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm."
+          },
+          "raw_evidence": "Output case_bottom should have an overall envelope of approximately 84.0 mm x 84.52261352539062 mm x 45.58539581298828 mm.",
+          "requirement_id": "case_bottom_envelope",
+          "scope": "electronics_enclosure",
+          "source": "volundr_proposal",
+          "subject": "case_bottom",
+          "value": {
+            "depth": 84.52261352539062,
+            "height": 45.58539581298828,
+            "width": 84.0
+          }
+        },
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "id": "case_top_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "case_top",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "case_top_envelope_x",
+              "case_top_envelope_y",
+              "case_top_envelope_z"
+            ],
+            "source_statement_identity": "evidence:Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm."
+          },
+          "raw_evidence": "Output case_top should have an overall envelope of approximately 83.98477935791016 mm x 77.09119033813477 mm x 13.0 mm.",
+          "requirement_id": "case_top_envelope",
+          "scope": "electronics_enclosure",
+          "source": "volundr_proposal",
+          "subject": "case_top",
+          "value": {
+            "depth": 77.09119033813477,
+            "height": 13.0,
+            "width": 83.98477935791016
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "B": 7,
+        "C": 1
+      },
+      "counterfactual_requirement_count": 4,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "B": 7,
+        "C": 1
+      },
+      "original_requirement_count": 8,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "electronics-enclosure-002",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "overall_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "lcr_meter_housing",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_height",
+              "envelope_length",
+              "envelope_width"
+            ],
+            "source_statement_identity": "evidence:Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm."
+          },
+          "raw_evidence": "Output lcr_meter_housing should have an overall envelope of approximately 112.5 mm x 66.0 mm x 18.0 mm.",
+          "requirement_id": "overall_envelope",
+          "scope": "lcr_meter_housing",
+          "source": "initial_user",
+          "subject": "lcr_meter_housing",
+          "value": {
+            "depth": 112.5,
+            "height": 18.0,
+            "width": 66.0
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "B": 1,
+        "E": 1,
+        "F": 2
+      },
+      "counterfactual_requirement_count": 5,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "A": 3,
+        "B": 1,
+        "E": 1,
+        "F": 2
+      },
+      "original_requirement_count": 7,
+      "recovered_category_a": [
+        {
+          "canonical_requirement_id": "overall_envelope",
+          "expected": {
+            "depth": 112.5,
+            "height": 18.0,
+            "width": 66.0
+          },
+          "source_requirement_ids": [
+            "envelope_height",
+            "envelope_length",
+            "envelope_width"
+          ],
+          "verification_policy_after_materialization": "final_mesh_bounds"
+        }
+      ]
+    },
+    {
+      "benchmark_project_id": "functional-assembly-001",
+      "canonical_bounds_requirements": [],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "B": 6,
+        "C": 2,
+        "F": 1
+      },
+      "counterfactual_requirement_count": 9,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "B": 6,
+        "C": 2,
+        "F": 1
+      },
+      "original_requirement_count": 9,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "functional-assembly-003",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "envelope_bearing_plate_bottom",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "bearing_plate_bottom",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_bearing_plate_bottom_x",
+              "envelope_bearing_plate_bottom_y",
+              "envelope_bearing_plate_bottom_z"
+            ],
+            "source_statement_identity": "evidence:Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm."
+          },
+          "raw_evidence": "Output bearing_plate_bottom should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.099999904632568 mm.",
+          "requirement_id": "envelope_bearing_plate_bottom",
+          "scope": "peristaltic_pump_assembly",
+          "source": "initial_user",
+          "subject": "bearing_plate_bottom",
+          "value": {
+            "depth": 27.6,
+            "height": 10.1,
+            "width": 24.85
+          }
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "envelope_bearing_plate_top",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "bearing_plate_top",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_bearing_plate_top_x",
+              "envelope_bearing_plate_top_y",
+              "envelope_bearing_plate_top_z"
+            ],
+            "source_statement_identity": "evidence:Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm."
+          },
+          "raw_evidence": "Output bearing_plate_top should have an overall envelope of approximately 24.84999942779541 mm x 27.59956169128418 mm x 10.100000143051147 mm.",
+          "requirement_id": "envelope_bearing_plate_top",
+          "scope": "peristaltic_pump_assembly",
+          "source": "initial_user",
+          "subject": "bearing_plate_top",
+          "value": {
+            "depth": 27.6,
+            "height": 10.1,
+            "width": 24.85
+          }
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "envelope_pump_base",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "pump_base",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_pump_base_x",
+              "envelope_pump_base_y",
+              "envelope_pump_base_z"
+            ],
+            "source_statement_identity": "evidence:Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm."
+          },
+          "raw_evidence": "Output pump_base should have an overall envelope of approximately 45.95392990112305 mm x 46.934804916381836 mm x 16.800000190734863 mm.",
+          "requirement_id": "envelope_pump_base",
+          "scope": "peristaltic_pump_assembly",
+          "source": "initial_user",
+          "subject": "pump_base",
+          "value": {
+            "depth": 46.93,
+            "height": 16.8,
+            "width": 45.95
+          }
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "envelope_pump_mount",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "pump_mount",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_pump_mount_x",
+              "envelope_pump_mount_y",
+              "envelope_pump_mount_z"
+            ],
+            "source_statement_identity": "evidence:Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm."
+          },
+          "raw_evidence": "Output pump_mount should have an overall envelope of approximately 45.97696304321289 mm x 14.988612174987793 mm x 28.000000953674316 mm.",
+          "requirement_id": "envelope_pump_mount",
+          "scope": "peristaltic_pump_assembly",
+          "source": "initial_user",
+          "subject": "pump_mount",
+          "value": {
+            "depth": 14.99,
+            "height": 28.0,
+            "width": 45.98
+          }
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "envelope_pump_spacer",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "pump_spacer",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_pump_spacer_x",
+              "envelope_pump_spacer_y",
+              "envelope_pump_spacer_z"
+            ],
+            "source_statement_identity": "evidence:Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm."
+          },
+          "raw_evidence": "Output pump_spacer should have an overall envelope of approximately 44.95399475097656 mm x 45.93480110168457 mm x 4.0 mm.",
+          "requirement_id": "envelope_pump_spacer",
+          "scope": "peristaltic_pump_assembly",
+          "source": "initial_user",
+          "subject": "pump_spacer",
+          "value": {
+            "depth": 45.93,
+            "height": 4.0,
+            "width": 44.95
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "C": 16,
+        "F": 3
+      },
+      "counterfactual_requirement_count": 9,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "C": 16,
+        "F": 3
+      },
+      "original_requirement_count": 19,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "holder-organizer-001",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "overall_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "trimmer_wall_mount",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_height",
+              "envelope_length",
+              "envelope_width"
+            ],
+            "source_statement_identity": "evidence:overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm"
+          },
+          "raw_evidence": "overall envelope of approximately 99.17847919464111 mm x 135.75859451293945 mm x 50.0 mm",
+          "requirement_id": "overall_envelope",
+          "scope": "trimmer_wall_mount",
+          "source": "initial_user",
+          "subject": "trimmer_wall_mount",
+          "value": {
+            "depth": 99.17847919464111,
+            "height": 50.0,
+            "width": 135.75859451293945
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "E": 1,
+        "F": 2
+      },
+      "counterfactual_requirement_count": 4,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "A": 3,
+        "E": 1,
+        "F": 2
+      },
+      "original_requirement_count": 6,
+      "recovered_category_a": [
+        {
+          "canonical_requirement_id": "overall_envelope",
+          "expected": {
+            "depth": 99.17847919464111,
+            "height": 50.0,
+            "width": 135.75859451293945
+          },
+          "source_requirement_ids": [
+            "envelope_height",
+            "envelope_length",
+            "envelope_width"
+          ],
+          "verification_policy_after_materialization": "final_mesh_bounds"
+        }
+      ]
+    },
+    {
+      "benchmark_project_id": "holder-organizer-003",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "id": "overall_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "blower_wall_mount",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_depth",
+              "envelope_height",
+              "envelope_width"
+            ],
+            "source_statement_identity": "evidence:Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm."
+          },
+          "raw_evidence": "Output blower_wall_mount should have an overall envelope of approximately 114.41399383544922 mm x 76.0 mm x 9.0 mm.",
+          "requirement_id": "overall_envelope",
+          "scope": "blower_wall_mount",
+          "source": "volundr_proposal",
+          "subject": "blower_wall_mount",
+          "value": {
+            "depth": 76.0,
+            "height": 9.0,
+            "width": 114.41399383544922
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "B": 5,
+        "F": 2
+      },
+      "counterfactual_requirement_count": 5,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "B": 5,
+        "F": 2
+      },
+      "original_requirement_count": 7,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "jig-guide-003",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "dim_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "radius_jig",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "dim_envelope_x",
+              "dim_envelope_y",
+              "dim_envelope_z"
+            ],
+            "source_statement_identity": "evidence:Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm."
+          },
+          "raw_evidence": "Output radius_jig should have an overall envelope of approximately 156.97772216796875 mm x 70.7106819152832 mm x 27.000000000000018 mm.",
+          "requirement_id": "dim_envelope",
+          "scope": "router_jig",
+          "source": "initial_user",
+          "subject": "radius_jig",
+          "value": {
+            "depth": 70.7106819152832,
+            "height": 27.000000000000018,
+            "width": 156.97772216796875
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "E": 2
+      },
+      "counterfactual_requirement_count": 3,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "A": 3,
+        "E": 2
+      },
+      "original_requirement_count": 5,
+      "recovered_category_a": [
+        {
+          "canonical_requirement_id": "dim_envelope",
+          "expected": {
+            "depth": 70.7106819152832,
+            "height": 27.000000000000018,
+            "width": 156.97772216796875
+          },
+          "source_requirement_ids": [
+            "dim_envelope_x",
+            "dim_envelope_y",
+            "dim_envelope_z"
+          ],
+          "verification_policy_after_materialization": "final_mesh_bounds"
+        }
+      ]
+    },
+    {
+      "benchmark_project_id": "mounting-bracket-002",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "load_cell_foot_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "load_cell_foot",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "load_cell_foot_envelope_x",
+              "load_cell_foot_envelope_y",
+              "load_cell_foot_envelope_z"
+            ],
+            "source_statement_identity": "evidence:load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm"
+          },
+          "raw_evidence": "load_cell_foot_envelope: {'x': 109.4681, 'y': 66.9101, 'z': 15.0} mm",
+          "requirement_id": "load_cell_foot_envelope",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "load_cell_foot",
+          "value": {
+            "depth": 66.9101,
+            "height": 15.0,
+            "width": 109.4681
+          }
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "scale_platform_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "scale_platform",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "scale_platform_envelope_x",
+              "scale_platform_envelope_y",
+              "scale_platform_envelope_z"
+            ],
+            "source_statement_identity": "evidence:scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm"
+          },
+          "raw_evidence": "scale_platform_envelope: {'x': 80.0, 'y': 79.9751, 'z': 10.0} mm",
+          "requirement_id": "scale_platform_envelope",
+          "scope": "mounting_bracket",
+          "source": "initial_user",
+          "subject": "scale_platform",
+          "value": {
+            "depth": 79.9751,
+            "height": 10.0,
+            "width": 80.0
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "C": 6,
+        "E": 1,
+        "F": 3
+      },
+      "counterfactual_requirement_count": 6,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "C": 6,
+        "E": 1,
+        "F": 3
+      },
+      "original_requirement_count": 10,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "mounting-bracket-003",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "id": "overall_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "ultrasonic_sensor_mount",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "overall_envelope_x",
+              "overall_envelope_y",
+              "overall_envelope_z"
+            ],
+            "source_statement_identity": "evidence:overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm"
+          },
+          "raw_evidence": "overall envelope of approximately 54.00000000000001 mm x 78.30000305175781 mm x 50.000000953674316 mm",
+          "requirement_id": "overall_envelope",
+          "scope": "ultrasonic_sensor_mount",
+          "source": "volundr_proposal",
+          "subject": "ultrasonic_sensor_mount",
+          "value": {
+            "depth": 78.3,
+            "height": 50.0,
+            "width": 54.0
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "B": 5,
+        "E": 1,
+        "F": 3
+      },
+      "counterfactual_requirement_count": 7,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "B": 5,
+        "E": 1,
+        "F": 3
+      },
+      "original_requirement_count": 9,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "replacement-part-003",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "id": "overall_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "dyson_wand_latch",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_height",
+              "envelope_length",
+              "envelope_width"
+            ],
+            "source_statement_identity": "evidence:Output dyson_wand_latch should have an overall envelope of approximately 57.803038609853225 mm x 7.84908338027249 mm x 18.2000002 mm."
+          },
+          "raw_evidence": "Output dyson_wand_latch should have an overall envelope of approximately 57.803038609853225 mm x 7.84908338027249 mm x 18.2000002 mm.",
+          "requirement_id": "overall_envelope",
+          "scope": "dyson_wand_latch",
+          "source": "volundr_proposal",
+          "subject": "dyson_wand_latch",
+          "value": {
+            "depth": 57.803038609853225,
+            "height": 18.2000002,
+            "width": 7.84908338027249
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "B": 3,
+        "F": 1
+      },
+      "counterfactual_requirement_count": 2,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "B": 3,
+        "F": 1
+      },
+      "original_requirement_count": 4,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "stand-support-001",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "envelope_magsafe_mount",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "magsafe_mount",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_magsafe_mount_x",
+              "envelope_magsafe_mount_y",
+              "envelope_magsafe_mount_z"
+            ],
+            "source_statement_identity": "evidence:Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm."
+          },
+          "raw_evidence": "Output magsafe_mount should have an overall envelope of approximately 76.0 mm x 33.23599624633789 mm x 106.61492919921875 mm.",
+          "requirement_id": "envelope_magsafe_mount",
+          "scope": "stand",
+          "source": "initial_user",
+          "subject": "magsafe_mount",
+          "value": {
+            "depth": 33.23599624633789,
+            "height": 106.61492919921875,
+            "width": 76.0
+          }
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "envelope_stand_back",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "stand_back",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_stand_back_x",
+              "envelope_stand_back_y",
+              "envelope_stand_back_z"
+            ],
+            "source_statement_identity": "evidence:Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm."
+          },
+          "raw_evidence": "Output stand_back should have an overall envelope of approximately 86.0 mm x 29.500555992126465 mm x 127.02894592285156 mm.",
+          "requirement_id": "envelope_stand_back",
+          "scope": "stand",
+          "source": "initial_user",
+          "subject": "stand_back",
+          "value": {
+            "depth": 29.500555992126465,
+            "height": 127.02894592285156,
+            "width": 86.0
+          }
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "envelope_stand_base",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "stand_base",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_stand_base_x",
+              "envelope_stand_base_y",
+              "envelope_stand_base_z"
+            ],
+            "source_statement_identity": "evidence:Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm."
+          },
+          "raw_evidence": "Output stand_base should have an overall envelope of approximately 99.99846267700195 mm x 90.0029296875 mm x 20.0 mm.",
+          "requirement_id": "envelope_stand_base",
+          "scope": "stand",
+          "source": "initial_user",
+          "subject": "stand_base",
+          "value": {
+            "depth": 90.0029296875,
+            "height": 20.0,
+            "width": 99.99846267700195
+          }
+        },
+        {
+          "authority": "required",
+          "classification": "machine_required",
+          "id": "envelope_stand_peg",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "stand_peg",
+          "operator": "approximately",
+          "origin": "user_explicit",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_stand_peg_x",
+              "envelope_stand_peg_y",
+              "envelope_stand_peg_z"
+            ],
+            "source_statement_identity": "evidence:Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm."
+          },
+          "raw_evidence": "Output stand_peg should have an overall envelope of approximately 9.599276542663574 mm x 5.0 mm x 9.59963846206665 mm.",
+          "requirement_id": "envelope_stand_peg",
+          "scope": "stand",
+          "source": "initial_user",
+          "subject": "stand_peg",
+          "value": {
+            "depth": 5.0,
+            "height": 9.59963846206665,
+            "width": 9.599276542663574
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "C": 13,
+        "F": 3
+      },
+      "counterfactual_requirement_count": 8,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "C": 13,
+        "F": 3
+      },
+      "original_requirement_count": 16,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "stand-support-003",
+      "canonical_bounds_requirements": [
+        {
+          "authority": "flexible",
+          "classification": "machine_required",
+          "id": "overall_envelope",
+          "kind": "dimension",
+          "label": "Overall envelope",
+          "object_type": "stand",
+          "operator": "approximately",
+          "origin": "model_design_choice",
+          "provenance": {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": [
+              "envelope_depth",
+              "envelope_height",
+              "envelope_width"
+            ],
+            "source_statement_identity": "evidence:66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm"
+          },
+          "raw_evidence": "66.98625373840332 mm x 70.0 mm x 89.3500213623047 mm",
+          "requirement_id": "overall_envelope",
+          "scope": "stand",
+          "source": "volundr_proposal",
+          "subject": "remarkable_stand",
+          "value": {
+            "depth": 70.0,
+            "height": 89.3500213623047,
+            "width": 66.98625373840332
+          }
+        }
+      ],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "B": 3,
+        "E": 2,
+        "F": 1
+      },
+      "counterfactual_requirement_count": 4,
+      "historical_evidence_mutated": false,
+      "mode": "comparison_specification",
+      "original_category_counts": {
+        "B": 3,
+        "E": 2,
+        "F": 1
+      },
+      "original_requirement_count": 6,
+      "recovered_category_a": []
+    },
+    {
+      "benchmark_project_id": "adapter-coupler-002",
+      "canonical_bounds_requirements": [],
+      "category_counts_after_a_only": {
+        "A": 0,
+        "B": 1,
+        "E": 2,
+        "F": 1
+      },
+      "counterfactual_requirement_count": 4,
+      "historical_evidence_mutated": false,
+      "mode": "premise_only",
+      "original_category_counts": {
+        "B": 1,
+        "E": 2,
+        "F": 1
+      },
+      "original_requirement_count": 4,
+      "recovered_category_a": []
+    }
+  ],
+  "holdout_details_loaded": false,
+  "input_failure_class": "semantic_requirement_unverifiable",
+  "interpretation": {
+    "flexible_behavior": "flexible/model-selected envelopes may be tuple-normalized but remain flexible and unprotected; category B is unchanged",
+    "mixed_operator_behavior": "incompatible exact/approximately members remain ungrouped and fail closed",
+    "multi_output_scope_recovery": "not implemented; part-scoped tuples remain blocked by category C where output identity is collapsed",
+    "recovered_a_scope": "single-output or already defensibly scoped envelope facts only",
+    "semantic_status_claim": "no live recovery or candidate PASS is claimed"
+  },
+  "provider_calls": 0,
+  "replay_type": "offline_counterfactual_only",
+  "schema_version": "phase-1b-external-cad-envelope-canonicalization-replay-v1",
+  "summary": {
+    "a_only_candidate_state_counterfactual": {
+      "candidate_blocked": 16,
+      "candidate_fully_verified": 0,
+      "candidate_ready_for_review": 0
+    },
+    "canonical_bounds_requirements_produced": 22,
+    "category_a_requirements_recovered": 9,
+    "category_a_requirements_remaining": 3,
+    "category_b_after": 41,
+    "category_c_after": 43,
+    "category_counts_after_a_only": {
+      "A": 3,
+      "B": 41,
+      "C": 43,
+      "E": 11,
+      "F": 28
+    },
+    "category_counts_before": {
+      "A": 12,
+      "B": 41,
+      "C": 43,
+      "E": 11,
+      "F": 28
+    },
+    "category_e_after": 11,
+    "cell_count": 16,
+    "prior_a_and_b_fixed_counterfactual": {
+      "candidate_blocked": 13,
+      "candidate_ready_for_review": 3
+    },
+    "scalar_requirements_removed_by_canonicalization": 44
+  },
+  "validation_details_loaded": false,
+  "worker_executions": 0
+}

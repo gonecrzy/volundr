@@ -205,6 +205,7 @@ from app.services.workflow.provider_response import analyze_provider_response, c
 from app.services.requirements.trace import (
     RequirementTraceError,
     build_explicit_requirement_inventory,
+    canonicalize_dimension_envelopes,
     inventory_from_design_specification,
     merge_resolved_requirements,
     normalize_requirement_semantics,
@@ -7621,6 +7622,9 @@ class ProjectService:
 
     def _normalize_design_specification_payload(self, payload: dict[str, Any]) -> dict[str, Any]:
         normalized = dict(payload)
+        normalized["critical_dimensions"] = canonicalize_dimension_envelopes(
+            normalized.get("critical_dimensions") or []
+        )
         normalized["parameters"] = [
             self._normalize_design_parameter(item, index)
             for index, item in enumerate(normalized.get("parameters") or [])

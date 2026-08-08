@@ -317,6 +317,8 @@ def _product_contract_requirement(
     for key in ("kind", "operator", "subject", "object_type", "raw_evidence"):
         if item.get(key) is not None:
             requirement[key] = deepcopy(item[key])
+    if item.get("provenance") is not None:
+        requirement["provenance"] = deepcopy(item["provenance"])
     return requirement
 
 

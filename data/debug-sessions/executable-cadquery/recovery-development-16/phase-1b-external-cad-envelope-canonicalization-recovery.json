@@ -1,0 +1,139 @@
+{
+  "schema_version": "phase-1b-external-cad-envelope-canonicalization-recovery-v1",
+  "status": "offline_recovery_complete_pending_live_confirmation",
+  "recovery_category": "A_canonicalization_failure_only",
+  "historical_evidence_preserved": true,
+  "input_reconstruction": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-semantic-unverifiable-reconstruction.json",
+  "earliest_canonicalization_loss_boundary": {
+    "boundary": "DesignSpecification critical_dimensions to RequirementLedger specification adapter",
+    "trace": [
+      "ProjectService.extract_requirements",
+      "accepted DesignSpecification",
+      "ProjectService._normalize_design_specification_payload",
+      "RequirementLedgerStore.ensure_from_specification",
+      "active_requirements",
+      "build_executable_cadquery_product_contract",
+      "final_mesh_bounds semantic dispatch"
+    ],
+    "observed_loss": "one shared envelope source fact was represented as three scalar dimension records before contract materialization"
+  },
+  "canonical_representation": {
+    "requirement_id": "stable_group_id_without_axis_suffix",
+    "kind": "dimension",
+    "value": {
+      "width": "canonical x/width value",
+      "depth": "canonical y/length/depth value",
+      "height": "canonical z/height value"
+    },
+    "verification_policy": "final_mesh_bounds assigned by existing contract materializer",
+    "orientation_behavior": "no geometry rotation or axis inference beyond vocabulary normalization"
+  },
+  "grouping_rule": {
+    "requires": [
+      "explicit envelope signal in generic ID/label/evidence",
+      "shared raw/source statement or explicit source group identity",
+      "same scope/target/subject/object/component identity",
+      "exactly one width/depth/height role after width/length/height/x/y/z normalization",
+      "compatible source, authority, explicitness, protected state, unit, tolerance, operator, and importance"
+    ],
+    "ambiguous_behavior": "leave scalar requirements unchanged",
+    "mixed_exact_approximate_behavior": "leave scalar requirements unchanged",
+    "unrelated_dimension_behavior": "leave scalar requirements unchanged"
+  },
+  "authority_provenance": {
+    "user_explicit_preserved": true,
+    "flexible_model_choice_preserved": true,
+    "protected_fact_count_for_canonical_user_envelope": 1,
+    "protected_fact_count_for_canonical_flexible_envelope": 0,
+    "source_raw_evidence_preserved": true,
+    "source_requirement_ids_preserved_in_provenance": true,
+    "approximate_exact_semantics_preserved": true
+  },
+  "offline_replay": {
+    "replay_evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-envelope-canonicalization-replay.json",
+    "cell_count": 16,
+    "canonical_bounds_requirements_produced": 22,
+    "scalar_requirements_reduced": 44,
+    "category_a_requirements_recovered": 9,
+    "category_a_requirements_remaining": 3,
+    "remaining_category_a_reason": "clamp-clip-001 envelope members contain incompatible exact and approximately operators",
+    "category_b_after": 41,
+    "category_c_after": 43,
+    "category_e_after": 11,
+    "a_only_candidate_counterfactual": {
+      "candidate_fully_verified": 0,
+      "candidate_ready_for_review": 0,
+      "candidate_blocked": 16
+    },
+    "previous_a_and_b_fixed_counterfactual_preserved": {
+      "candidate_fully_verified": 0,
+      "candidate_ready_for_review": 3,
+      "candidate_blocked": 13
+    },
+    "live_outcome_claimed": false
+  },
+  "multi_output_boundary": {
+    "category_c_implemented": false,
+    "part_scoped_tuples": "remain blocked where output identity is collapsed",
+    "output_identity_recovery": "not changed"
+  },
+  "concept_vs_final_guardrail_audit": {
+    "concept_generation_eligibility_changed": false,
+    "clarification_behavior_changed": false,
+    "flexible_model_choice_became_required": false,
+    "new_hard_requirement_synthesized": false,
+    "premise_only_behavior_changed": false,
+    "final_verification_remains_fail_closed": true,
+    "candidate_policy_changed": false,
+    "current_candidate_policy_conflation": true,
+    "future_policy_item": "existing candidate/completion policy can conflate useful concept existence with fully verified final design; not changed in Recovery A"
+  },
+  "repeatability_compatibility": {
+    "corpus_contract_injection_changed": false,
+    "frozen_contract_materialization_path_changed": false,
+    "production_requirement_path_only": true
+  },
+  "production_files_changed": [
+    "backend/app/schemas/project.py",
+    "backend/app/services/requirements/trace.py",
+    "backend/app/services/projects/requirement_ledger.py",
+    "backend/app/services/projects/service.py",
+    "backend/app/services/executable_cadquery/contract.py"
+  ],
+  "analysis_tools_added": [
+    "backend/scripts/replay_external_cad_envelope_recovery.py"
+  ],
+  "tests": {
+    "focused": "71 passed",
+    "full_backend": "1600 tests collected and completed without failure under PYTHONPATH=.:backend",
+    "provider_calls": 0,
+    "worker_executions": 0
+  },
+  "anti_overfitting": {
+    "project_specific_rules": false,
+    "benchmark_ids_in_production_logic": false,
+    "frozen_dimensions_in_production_logic": false,
+    "prompt_model_settings_changed": false,
+    "reference_geometry_consumed": false,
+    "validation_access": false,
+    "holdout_access": false
+  },
+  "proposed_minimal_live_confirmation": {
+    "mode": "one normal production-requirement-path synthetic or approved development confirmation",
+    "provider_calls": 1,
+    "repairs": 0,
+    "worker_replay": "only if explicitly authorized after review",
+    "required_assertions": [
+      "DesignSpecification persists one canonical bounds tuple",
+      "ledger persists one active canonical bounds requirement",
+      "contract assigns final_mesh_bounds",
+      "one protected fact is emitted for user-explicit tuple",
+      "no reference/corpus contract injection",
+      "no changes to B/C/E behavior"
+    ],
+    "execution_status": "not_run_in_this_checkpoint"
+  },
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "next_action": "review Recovery A offline evidence before any minimal live confirmation; stop before Recovery C"
+}

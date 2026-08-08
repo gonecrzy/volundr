@@ -4,7 +4,7 @@ import hashlib
 import json
 import re
 from copy import deepcopy
-from typing import Any
+from typing import Any, Mapping, Sequence
 
 
 AUTHORITY_RANKS = {
@@ -29,6 +29,15 @@ AUTHORITY_BY_SOURCE = {
 }
 
 DIMENSION_NAMES = ("width", "depth", "height")
+ENVELOPE_AXIS_ALIASES = {
+    "width": "width",
+    "length": "depth",
+    "depth": "depth",
+    "height": "height",
+    "x": "width",
+    "y": "depth",
+    "z": "height",
+}
 FEATURE_WORDS = ("lid", "label_tabs", "tabs", "label tabs")
 ID_ALIASES = {
     "rows": "row_count",
@@ -174,7 +183,195 @@ def merge_resolved_requirements(items: list[dict[str, Any]]) -> list[dict[str, A
         existing = resolved.get(item_id)
         if existing is None or _rank(item) < _rank(existing):
             resolved[item_id] = item
-    return [resolved[key] for key in sorted(resolved)]
+    return canonicalize_dimension_envelopes([resolved[key] for key in sorted(resolved)])
+
+
+def canonicalize_dimension_envelopes(
+    items: Sequence[Any],
+) -> list[Any]:
+    """Preserve one explicit overall-envelope fact as one bounds tuple.
+
+    Grouping is intentionally conservative.  A candidate must have an
+    explicit envelope signal, a shared source-statement/group identity, one
+    output/subject scope, and compatible authority/operator/tolerance
+    semantics.  Dimensions that do not satisfy all of those conditions stay
+    independent rather than being guessed into a bounding-box requirement.
+    """
+
+    copied = [deepcopy(item) for item in items]
+    buckets: dict[tuple[Any, ...], list[tuple[int, str, dict[str, Any]]]] = {}
+    for index, item in enumerate(copied):
+        if not isinstance(item, Mapping):
+            continue
+        axis = _envelope_axis(item)
+        if axis is None or not _is_envelope_candidate(item):
+            continue
+        source_identity = _envelope_source_identity(item)
+        if source_identity is None:
+            continue
+        buckets.setdefault(
+            (
+                source_identity,
+                _envelope_scope(item),
+                _envelope_semantics(item),
+            ),
+            [],
+        ).append((index, axis, item))
+
+    replacements: dict[int, dict[str, Any]] = {}
+    consumed: set[int] = set()
+    for members in buckets.values():
+        if len(members) != 3 or {axis for _, axis, _ in members} != {"width", "depth", "height"}:
+            continue
+        canonical = _canonical_envelope(members)
+        first_index = min(index for index, _, _ in members)
+        replacements[first_index] = canonical
+        consumed.update(index for index, _, _ in members if index != first_index)
+
+    result: list[Any] = []
+    for index, item in enumerate(copied):
+        if index in consumed:
+            continue
+        result.append(replacements.get(index, item))
+    return result
+
+
+def _is_envelope_candidate(item: Mapping[str, Any]) -> bool:
+    kind = str(item.get("kind") or "").lower()
+    requirement_type = str(item.get("type") or item.get("requirement_type") or "").lower()
+    if kind and kind != "dimension":
+        return False
+    if requirement_type and not (
+        "dimension" in requirement_type
+        or requirement_type in {"size", "exact_dimension", "minimum_dimension", "maximum_dimension"}
+    ):
+        return False
+    value = item.get("value")
+    if value is None or isinstance(value, bool):
+        return False
+    try:
+        float(value)
+    except (TypeError, ValueError):
+        return False
+    text = " ".join(
+        str(item.get(key) or "")
+        for key in ("requirement_id", "id", "label", "raw_evidence", "description")
+    ).lower()
+    return any(marker in text for marker in ("envelope", "bounding box", "bounding_box", "overall dimensions"))
+
+
+def _envelope_axis(item: Mapping[str, Any]) -> str | None:
+    explicit_axis = str(item.get("axis") or "").strip().lower()
+    if explicit_axis in ENVELOPE_AXIS_ALIASES:
+        return ENVELOPE_AXIS_ALIASES[explicit_axis]
+    tokens = re.findall(r"[a-z0-9]+", " ".join(
+        str(item.get(key) or "")
+        for key in ("requirement_id", "id", "label")
+    ).lower())
+    if "thickness" in tokens:
+        return None
+    for token in reversed(tokens):
+        if token in ENVELOPE_AXIS_ALIASES:
+            return ENVELOPE_AXIS_ALIASES[token]
+    return None
+
+
+def _envelope_source_identity(item: Mapping[str, Any]) -> str | None:
+    for key in ("envelope_group_id", "source_group_id", "constraint_group_id", "source_fact_id"):
+        value = item.get(key)
+        if value is not None and str(value).strip():
+            return f"group:{str(value).strip()}"
+    raw_evidence = item.get("raw_evidence")
+    if raw_evidence is None:
+        evidence = item.get("evidence")
+        if isinstance(evidence, Mapping):
+            raw_evidence = evidence.get("raw_evidence") or evidence.get("request_excerpt")
+        elif evidence is not None:
+            raw_evidence = evidence
+    if raw_evidence is not None and str(raw_evidence).strip():
+        return f"evidence:{re.sub(r'\s+', ' ', str(raw_evidence).strip())}"
+    return None
+
+
+def _envelope_scope(item: Mapping[str, Any]) -> tuple[str, ...]:
+    return tuple(
+        str(item.get(key) or "").strip().lower()
+        for key in ("scope", "target", "subject", "object_type", "component_id", "output_id")
+    )
+
+
+def _canonical_operator(item: Mapping[str, Any]) -> str:
+    operator = str(item.get("operator") or "").strip().lower()
+    if operator in {"approx", "approximately", "about", "around", "roughly", "~"}:
+        return "approximately"
+    if operator in {"exact", "equals", "equal"}:
+        return "exact"
+    raw = str(item.get("raw_evidence") or item.get("evidence") or "").lower()
+    if re.search(r"\b(?:approximately|approximate|about|around|roughly)\b", raw):
+        return "approximately"
+    return operator or "unspecified"
+
+
+def _semantic_value(value: Any) -> str:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return f"{float(value):.12g}"
+    return str(value or "").strip().lower()
+
+
+def _envelope_semantics(item: Mapping[str, Any]) -> tuple[str, ...]:
+    return (
+        str(item.get("source") or "").strip().lower(),
+        str(item.get("authority") or "").strip().lower(),
+        str(item.get("explicit") if item.get("explicit") is not None else "").strip().lower(),
+        str(item.get("protected") if item.get("protected") is not None else "").strip().lower(),
+        str(item.get("unit") or "").strip().lower(),
+        _semantic_value(item.get("tolerance")),
+        _canonical_operator(item),
+        str(item.get("importance") or "").strip().lower(),
+    )
+
+
+def _canonical_envelope(members: list[tuple[int, str, dict[str, Any]]]) -> dict[str, Any]:
+    ordered = {axis: item for _, axis, item in members}
+    first = deepcopy(ordered["width"])
+    source_ids = sorted(str(item.get("requirement_id") or item.get("id")) for _, _, item in members)
+    base_id = _envelope_base_id(source_ids)
+    operator = _canonical_operator(first)
+    first["requirement_id"] = base_id
+    first["id"] = base_id
+    first["label"] = "Overall envelope"
+    first["value"] = {
+        "width": ordered["width"].get("value"),
+        "depth": ordered["depth"].get("value"),
+        "height": ordered["height"].get("value"),
+    }
+    first["kind"] = "dimension"
+    if operator != "unspecified":
+        first["operator"] = operator
+    else:
+        first.pop("operator", None)
+    provenance = first.get("provenance")
+    provenance = deepcopy(provenance) if isinstance(provenance, Mapping) else {}
+    provenance.update(
+        {
+            "canonicalization": "overall_envelope_tuple_v1",
+            "source_requirement_ids": source_ids,
+            "source_statement_identity": _envelope_source_identity(first),
+        }
+    )
+    first["provenance"] = provenance
+    return first
+
+
+def _envelope_base_id(source_ids: list[str]) -> str:
+    first = source_ids[0]
+    tokens = re.findall(r"[a-z0-9]+", first.lower())
+    while tokens and tokens[-1] in {"width", "length", "depth", "height", "x", "y", "z"}:
+        tokens.pop()
+    base = "_".join(tokens).strip("_")
+    if base in {"", "envelope", "overall"}:
+        return "overall_envelope"
+    return base
 
 
 def validate_requirement_extraction_trace(

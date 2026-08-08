@@ -26,6 +26,7 @@ from app.models.clarification_answer import ClarificationAnswer
 from app.models.project_message import ProjectMessage
 from app.services.requirements.trace import (
     build_explicit_requirement_inventory,
+    canonicalize_dimension_envelopes,
     normalize_requirement_semantics,
 )
 
@@ -53,7 +54,7 @@ def build_requirement_ledger(
     originating_revision_id: str | None = None,
 ) -> dict[str, Any]:
     records: list[dict[str, Any]] = []
-    for item in requirements:
+    for item in canonicalize_dimension_envelopes(requirements):
         normalized = _normalize_requirement(
             item,
             default_source="initial_user",
@@ -649,11 +650,14 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
     for item in specification.get("explicit_requirements", []) or []:
         if isinstance(item, dict):
             items.append({**item, "source": "initial_user", "explicit": True})
-    for collection_name, default_type in (
-        ("critical_dimensions", "exact_dimension"),
-        ("functional_requirements", "qualitative_behavior"),
+    critical_dimensions = canonicalize_dimension_envelopes(
+        [item for item in specification.get("critical_dimensions", []) or [] if isinstance(item, dict)]
+    )
+    for collection_name, default_type, collection in (
+        ("critical_dimensions", "exact_dimension", critical_dimensions),
+        ("functional_requirements", "qualitative_behavior", specification.get("functional_requirements", []) or []),
     ):
-        for item in specification.get(collection_name, []) or []:
+        for item in collection:
             if not isinstance(item, dict):
                 continue
             raw_value = item.get("value")
@@ -670,6 +674,7 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
                             "classification",
                             "policy",
                             "verification_policy",
+                            "provenance",
                         )
                         if item.get(key) is not None
                     },

@@ -391,6 +391,34 @@
     "recommended_order": ["A", "B", "C", "E"],
     "next_action": "Stop for review; do not implement fixes or begin validation/holdout work."
   },
+  "external_cad_envelope_canonicalization_recovery_status": {
+    "status": "offline_recovered_pending_live_confirmation",
+    "recovery_category": "A_canonicalization_failure_only",
+    "implementation": "shared envelope tuple canonicalization before ledger/contract materialization",
+    "a_requirements_recovered_offline": 9,
+    "a_requirements_remaining": 3,
+    "canonical_bounds_requirements_produced": 22,
+    "remaining_b_after": 41,
+    "remaining_c_after": 43,
+    "remaining_e_after": 11,
+    "provider_calls": 0,
+    "worker_executions": 0,
+    "production_behavior_scope": "no clarification, concept eligibility, candidate policy, B, C, D, E, F, or G changes",
+    "concept_vs_final_guardrail": "verified; flexible envelopes remain unprotected and final verification remains fail-closed",
+    "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-envelope-canonicalization-recovery.json",
+    "replay": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-external-cad-envelope-canonicalization-replay.json",
+    "tests": "backend/tests/test_requirement_envelope_canonicalization.py; focused 71 passed; full backend 1600 tests completed",
+    "production_files": [
+      "backend/app/schemas/project.py",
+      "backend/app/services/requirements/trace.py",
+      "backend/app/services/projects/requirement_ledger.py",
+      "backend/app/services/projects/service.py",
+      "backend/app/services/executable_cadquery/contract.py"
+    ],
+    "validation_access": false,
+    "holdout_access": false,
+    "next_action": "review offline evidence and authorize at most one minimal live confirmation; do not begin Recovery C"
+  },
   "development_survey_status": {
     "phase": "phase_1a_frozen_first_blocker_survey",
     "status": "complete_after_survey_reconciliation",

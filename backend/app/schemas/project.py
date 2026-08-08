@@ -234,7 +234,7 @@ class DesignDimension(BaseModel):
 
     id: str = Field(min_length=1)
     label: str = Field(min_length=1)
-    value: float | int | str | bool | None = None
+    value: float | int | str | bool | dict[str, float | int | str | bool | None] | None = None
     unit: str | None = None
     tolerance: float | int | str | None = None
     source: RequirementSource
