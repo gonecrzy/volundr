@@ -1,0 +1,91 @@
+{
+  "benchmark_id": "mounting-bracket-001",
+  "model": {
+    "model_id": "509653",
+    "requested_url": "https://www.printables.com/model/509653-ebike-speed-sensor-bracket-bafangcyc",
+    "expected_title": "eBike Speed Sensor Bracket (Bafang/CYC)",
+    "expected_creator": "Bent Derailleur"
+  },
+  "acquisition": {
+    "outcome": "blocked_by_anti_bot",
+    "started_at": "2026-08-08T03:41:49Z",
+    "stopped_at": "2026-08-08T03:42:02Z",
+    "final_page_url": "https://www.printables.com/model/509653-ebike-speed-sensor-bracket-bafangcyc",
+    "final_page_title": "Attention Required! | Cloudflare",
+    "http_status": 403,
+    "page_identity_verified": false,
+    "download_action_exposed": false,
+    "normal_download_completed": false,
+    "download_suggested_filename": null,
+    "download_url": null,
+    "downloaded_zip_sha256": null,
+    "downloaded_zip_bytes": null,
+    "login_required": false,
+    "captcha_encountered": false,
+    "anti_bot_challenge_encountered": true,
+    "rate_limit_encountered": false,
+    "cloudflare_ray_id": "a27b81f0aa4d0c0a",
+    "redirects": [],
+    "stop_reason": "Printables returned a Cloudflare security block before the model page or Download UI was available. No bypass, authentication attempt, private endpoint, or retry was performed."
+  },
+  "browser": {
+    "automation": "Playwright CLI",
+    "playwright_cli_version": "0.1.18",
+    "browser_version": "not exposed by the CLI run",
+    "session": "anonymous default session",
+    "workflow": [
+      "open exact model URL",
+      "inspect page title and status",
+      "capture accessibility snapshot",
+      "capture screenshot",
+      "stop on anti-bot block"
+    ],
+    "selectors_used": [],
+    "download_event_captured": false,
+    "evidence": {
+      "snapshot": "data/external-benchmarks/acquisition-tests/printables-509653/browser/page-snapshot.yml",
+      "console_log": "data/external-benchmarks/acquisition-tests/printables-509653/browser/console.log",
+      "screenshot": "data/external-benchmarks/acquisition-tests/printables-509653/browser/cloudflare-block.png"
+    }
+  },
+  "package": {
+    "downloaded_members": [],
+    "extracted_filenames": [],
+    "extracted_member_sha256": {}
+  },
+  "manual_acquisition_comparison": {
+    "classification": "INCOMPARABLE",
+    "reason": "No new ZIP was downloaded, so extracted package correspondence cannot be established for this browser attempt.",
+    "comparison_only_source": "data/external-benchmarks/incoming/mounting-brackets-pilot-input/mounting-brackets-pilot-input/mounting-bracket-001/ebike-speed-sensor-bracket-bafangcyc-model_files.zip",
+    "manual_zip_sha256": "3c9abcd1fa12a4b1473b813f31f6ad3e8f17f8a449b4ce5388149c8da91dbd23",
+    "manual_members": [
+      {
+        "filename": "speed-sensor-bracket.step",
+        "bytes": 61039,
+        "sha256": "ba49cf0037e2f1decff2d1e1b4cd987674f0f8be30d6cc71bb9d6901f1079d90",
+        "role": "canonical_model_file"
+      },
+      {
+        "filename": "speed-sensor-bracket.3mf",
+        "bytes": 108251,
+        "sha256": "ba0168eb9d58a5b20ada3123697d7809fb69c58451c9d442cd8bbe8a93325b9e",
+        "role": "provenance_model_file"
+      },
+      {
+        "filename": "509653-ebike-speed-sensor-bracket-bafangcyc-09ba47ae-6f40-4e15-9e04-015a9ead6956.pdf",
+        "bytes": 503584,
+        "sha256": "241e8a0a1eac9e4a0e4008184b56624950786b22cb3bff417bfdc25b21254539",
+        "role": "provenance_metadata"
+      }
+    ],
+    "locked_reference_unchanged": true
+  },
+  "tooling": {
+    "reusable_acquisition_script_added": false,
+    "reason": "The normal Download UI was not reached, so a reusable downloader was not validated or added.",
+    "provider_calls": 0,
+    "worker_executions": 0,
+    "benchmark_cad_runs": 0,
+    "go_no_go": "NO-GO for anonymous controlled sequential acquisition in this environment until the anti-bot block is resolved through an allowed normal-browser path"
+  }
+}
