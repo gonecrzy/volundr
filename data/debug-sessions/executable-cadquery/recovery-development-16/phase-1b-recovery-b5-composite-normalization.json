@@ -1,0 +1,235 @@
+{
+  "schema_version": "phase-1b-recovery-b5-composite-normalization-v1",
+  "phase": "phase_1b_cluster_driven_recovery_development",
+  "status": "implemented_offline_verified",
+  "decision": "RECOVERY_B5_NORMALIZATION_CONFIRMED",
+  "provider_calls": 0,
+  "worker_executions": 0,
+  "historical_evidence_mutated": false,
+  "validation_access": false,
+  "holdout_access": false,
+  "normalization_boundary": {
+    "boundary": "accepted DesignSpecification payload normalization",
+    "implementation": "normalize_composite_requirement_parts runs before ledger policy dispatch and executable contract materialization",
+    "service_hook": "ProjectService._normalize_design_specification_payload",
+    "ledger_defense": "RequirementLedgerStore/build_requirement_ledger applies the same idempotent normalizer for direct specification paths",
+    "ownership": "requirement normalization, not semantic verification or candidate policy"
+  },
+  "source_contract": {
+    "field": "semantic_parts",
+    "required_for_split": [
+      "shared source_fact_id on the parent record",
+      "at least two structured parts",
+      "stable part id per part",
+      "semantic_role per part",
+      "independent=true per part",
+      "no conflicting per-part source_fact_id"
+    ],
+    "fail_closed": "missing, malformed, duplicate, non-independent, or conflicting parts retain the original composite record",
+    "prose_inference": false,
+    "shared_message_or_subject_grouping": false,
+    "dimension_name_grouping": false
+  },
+  "representation_before": {
+    "recovery_c_synthetic": {
+      "requirement_id": "req_printable_wall_and_clearance",
+      "kind": "feature",
+      "operator": "present",
+      "value": true,
+      "source": "user",
+      "explicit": true,
+      "authority": "explicit",
+      "protected": true,
+      "classification": "machine_required",
+      "raw_evidence": "Choose a reasonable printable wall thickness and lid clearance.",
+      "source_fact_id": "fact_wall_clearance",
+      "source_fact_type": "other",
+      "source_fact_evidence": "Choose a reasonable printable wall thickness and lid clearance.",
+      "problem": "delegated wall thickness, delegated lid clearance, and qualitative printability shared one protected machine-required record"
+    },
+    "historical_instrument": {
+      "requirement_id": "req_instrument_usability",
+      "raw_evidence": "encloses the instrument while keeping it usable",
+      "problem": "structural containment and qualitative usability were represented as one semantic record"
+    }
+  },
+  "representation_after": {
+    "recovery_c_synthetic": [
+      {
+        "requirement_id": "req_printable_wall_and_clearance_wall_thickness",
+        "composite_part_id": "wall_thickness",
+        "semantic_role": "delegated_choice",
+        "kind": "dimension",
+        "type": "design_parameter",
+        "operator": "delegated",
+        "source": "user",
+        "explicit": false,
+        "authority": "flexible",
+        "protected": false,
+        "output_scope": "box_body only when explicitly supplied; otherwise unresolved",
+        "authority_semantics": "user delegated the choice; a later numeric selection is model design state"
+      },
+      {
+        "requirement_id": "req_printable_wall_and_clearance_lid_clearance",
+        "composite_part_id": "lid_clearance",
+        "semantic_role": "delegated_choice",
+        "kind": "clearance",
+        "type": "clearance",
+        "operator": "delegated",
+        "source": "user",
+        "explicit": false,
+        "authority": "flexible",
+        "protected": false,
+        "output_scope": "unresolved unless extraction supplies a unique output/relationship scope"
+      },
+      {
+        "requirement_id": "req_printable_wall_and_clearance_printability",
+        "composite_part_id": "printability",
+        "semantic_role": "qualitative_objective",
+        "kind": "qualitative",
+        "type": "qualitative_behavior",
+        "operator": "qualitative",
+        "source": "user",
+        "explicit": true,
+        "authority": "explicit",
+        "protected": true,
+        "classification": "machine_required",
+        "policy_note": "classification is deliberately unchanged; B1/B2 routing remains unopened"
+      }
+    ],
+    "shared_provenance": {
+      "source_fact_id": "fact_wall_clearance",
+      "source_fact_type": "other",
+      "source_fact_evidence": "Choose a reasonable printable wall thickness and lid clearance.",
+      "parent_requirement_id": "req_printable_wall_and_clearance",
+      "normalization": "semantic_parts_v1"
+    },
+    "historical_instrument_counterfactual": [
+      {
+        "requirement_id": "req_instrument_usability_containment",
+        "semantic_role": "structural_intent",
+        "source": "user",
+        "explicit": true,
+        "protected": true,
+        "future_policy_owner": "B4 or existing structural verifier, not routed here"
+      },
+      {
+        "requirement_id": "req_instrument_usability_usability",
+        "semantic_role": "qualitative_objective",
+        "source": "user",
+        "explicit": true,
+        "protected": true,
+        "future_policy_owner": "B1/B2 decision, not routed here"
+      }
+    ]
+  },
+  "authority_rules": {
+    "explicit_user_fixed_value": "preserve explicit=true, authority=explicit, and existing protection semantics",
+    "user_delegated_choice": "preserve user-authored delegation provenance, but set explicit=false, authority=flexible, protected=false",
+    "model_proposal_or_assumption": "remain flexible and unprotected",
+    "qualitative_user_objective": "preserve user provenance and independent semantic record; do not assign B1/B2/B4 policy in B5",
+    "source_fact_identity": "links records from one source statement only; never upgrades authority or protection",
+    "policy_fields": "classification, policy, and verification_policy are carried forward unchanged for later B routing"
+  },
+  "deterministic_ids": {
+    "strategy": "canonical_requirement_id(parent_requirement_id + '_' + canonical_part_id)",
+    "parent_link": "parent_requirement_id and source_requirement_id are retained",
+    "part_link": "composite_part_id and semantic_role are retained",
+    "stability": "identical structured input produces byte-equivalent split records",
+    "collision_behavior": "duplicate canonical part IDs fail closed and retain the original composite"
+  },
+  "offline_replay": {
+    "historical_b_requirement_count_before": 41,
+    "additional_recovery_c_synthetic_count_before": 1,
+    "combined_count_before": 42,
+    "structured_composites_replayed": 2,
+    "historical_b5_count_after_normalization": 0,
+    "historical_normalized_record_count": 42,
+    "combined_normalized_record_count": 45,
+    "records_added_by_split": 3,
+    "current_policy_classification_distribution": {
+      "machine_required": 45,
+      "review_required": 0,
+      "informational": 0,
+      "unchanged_by_b5": true
+    },
+    "authority_distribution": {
+      "flexible": 33,
+      "explicit": 12,
+      "other": 0
+    },
+    "protected_distribution": {
+      "true": 1,
+      "false": 44,
+      "note": "The one protected split record is the explicit qualitative printability objective; delegated numeric choices are unprotected. Historical B inventory protection counts follow the preserved reconstruction representation."
+    },
+    "future_policy_mapping_not_applied": {
+      "B1_review_required_candidates": 9,
+      "B2_informational_design_objective_candidates": 1,
+      "B3_flexible_model_choice_candidates": 33,
+      "B4_machine_required_retain_candidates": 2,
+      "B5_composite_split_required": 0,
+      "B6_insufficient_evidence": 0,
+      "note": "These are semantic follow-on owners from the frozen reconstruction, not production policy changes in this checkpoint."
+    },
+    "recovery_c_synthetic": {
+      "historical_live_record_rewritten": false,
+      "structured_counterfactual": "three independent records; two flexible/unprotected delegated choices and one independent qualitative user objective",
+      "candidate_policy": "not recomputed",
+      "expected_next_policy_effect": "delegated choices no longer appear as user-protected facts; qualitative printability remains pending B1/B2 routing"
+    }
+  },
+  "recovery_compatibility": {
+    "recovery_a": "canonical envelope grouping remains source-fact, scope, authority, operator, tolerance, and unit constrained; flexible/model-selected envelopes remain flexible and unprotected",
+    "recovery_c": "explicit part output_id/scope is retained; absent or ambiguous output scope is not invented and never falls back to output one",
+    "concept_state": "unchanged; valid artifacts can remain concept_available regardless of unresolved semantic policy",
+    "candidate_final_policy": "unchanged; no unsupported requirement becomes PASS and no hard requirement is downgraded"
+  },
+  "anti_laxness_audit": {
+    "explicit_2_mm_clearance": "remains explicit/required/protected",
+    "explicit_wall_minimum": "remains explicit/required/protected",
+    "explicit_dimensions": "not downgraded",
+    "output_identity": "not downgraded; output scope remains separate from semantic splitting",
+    "explicit_feature_presence": "not downgraded",
+    "unsupported_hard_requirements": "do not PASS",
+    "policy_defaults": "not changed"
+  },
+  "anti_overconstraint_audit": {
+    "model_selected_dimensions": "not protected",
+    "delegated_choices": "do not require clarification solely to select a value",
+    "qualitative_adjectives": "not converted into fabricated numeric constraints",
+    "premise_only": "no reference geometry or benchmark facts consumed",
+    "comparison_specification": "remains a separate evaluator-controlled input mode"
+  },
+  "production_files": [
+    "backend/app/schemas/project.py",
+    "backend/app/services/ai/gemini_cli.py",
+    "backend/app/services/requirements/trace.py",
+    "backend/app/services/projects/requirement_ledger.py",
+    "backend/app/services/projects/service.py"
+  ],
+  "tests": {
+    "focused": "backend/tests/test_composite_requirement_normalization.py: 11 passed",
+    "adjacent": "63 passed, 1 warning",
+    "full_backend": "1638 passed, 1 skipped, 1 warning",
+    "coverage": [
+      "delegated wall/clearance choices",
+      "explicit numeric values",
+      "structural/usability split",
+      "fail-closed uncertain composites",
+      "deterministic IDs",
+      "source-fact preservation",
+      "output-scope preservation",
+      "legacy policy preservation",
+      "ledger reload",
+      "Recovery-A flexible authority",
+      "prompt/schema contract"
+    ]
+  },
+  "evidence_sources": [
+    "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b-policy-boundary-reconstruction.json",
+    "data/debug-sessions/executable-cadquery/recovery-development-16/recovery-c-live-two-output-confirmation-rerun/raw-live-evidence.json",
+    "backend/tests/test_composite_requirement_normalization.py"
+  ],
+  "recommended_next_step": "Stop for review; implement B1/B2/B3/B4 policy routing as separate generic recovery work. Do not begin Recovery E."
+}

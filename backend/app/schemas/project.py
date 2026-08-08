@@ -243,6 +243,7 @@ class DesignDimension(BaseModel):
     source_fact_id: str | None = None
     source_fact_type: str | None = None
     source_fact_evidence: str | None = None
+    semantic_parts: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class DesignParameter(BaseModel):
@@ -259,6 +260,42 @@ class DesignParameter(BaseModel):
     explanation: str | None = None
 
 
+class DesignRequirementPart(BaseModel):
+    """One independently actionable semantic part of an extracted fact."""
+
+    model_config = ConfigDict(extra="allow")
+
+    id: str = Field(min_length=1)
+    semantic_role: str = Field(min_length=1)
+    independent: bool = True
+    description: str | None = None
+    kind: str | None = None
+    type: str | None = None
+    operator: str | None = None
+    value: Any = None
+    unit: str | None = None
+    tolerance: float | int | str | None = None
+    source: str | None = None
+    authority: str | None = None
+    explicit: bool | None = None
+    protected: bool | None = None
+    delegated: bool = False
+    classification: str | None = None
+    policy: str | None = None
+    verification_policy: str | None = None
+    subject: str | None = None
+    object_type: str | None = None
+    target: str | None = None
+    scope: str | None = None
+    output_id: str | None = None
+    component_id: str | None = None
+    raw_evidence: str | None = None
+    source_fact_id: str | None = None
+    source_fact_type: str | None = None
+    source_fact_evidence: str | None = None
+    provenance: dict[str, Any] = Field(default_factory=dict)
+
+
 class DesignFunctionalRequirement(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -270,6 +307,7 @@ class DesignFunctionalRequirement(BaseModel):
     source_fact_id: str | None = None
     source_fact_type: str | None = None
     source_fact_evidence: str | None = None
+    semantic_parts: list[DesignRequirementPart] = Field(default_factory=list)
 
 
 class DesignAssumption(BaseModel):

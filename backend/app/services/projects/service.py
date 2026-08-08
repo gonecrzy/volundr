@@ -208,6 +208,7 @@ from app.services.requirements.trace import (
     canonicalize_dimension_envelopes,
     inventory_from_design_specification,
     merge_resolved_requirements,
+    normalize_composite_requirement_parts,
     normalize_requirement_semantics,
     requirement_trace_payload,
     validate_design_plan_trace,
@@ -7623,7 +7624,7 @@ class ProjectService:
     def _normalize_design_specification_payload(self, payload: dict[str, Any]) -> dict[str, Any]:
         normalized = dict(payload)
         normalized["critical_dimensions"] = canonicalize_dimension_envelopes(
-            normalized.get("critical_dimensions") or []
+            normalize_composite_requirement_parts(normalized.get("critical_dimensions") or [])
         )
         declared_outputs = normalized.get("outputs")
         if not isinstance(declared_outputs, list) or not declared_outputs:
@@ -7642,7 +7643,11 @@ class ProjectService:
         ]
         normalized["functional_requirements"] = [
             self._normalize_functional_requirement(item, index)
-            for index, item in enumerate(normalized.get("functional_requirements") or [])
+            for index, item in enumerate(
+                normalize_composite_requirement_parts(
+                    normalized.get("functional_requirements") or []
+                )
+            )
         ]
         normalized["assumptions"] = [
             self._normalize_design_assumption(item, index)

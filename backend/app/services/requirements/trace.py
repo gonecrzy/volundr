@@ -137,6 +137,166 @@ def normalize_requirement_semantics(item: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def normalize_composite_requirement_parts(items: Sequence[Any]) -> list[Any]:
+    """Split only explicitly structured, independently actionable requirement parts.
+
+    Extraction may represent one user source fact as several semantic parts.
+    This normalizer deliberately does not infer parts from prose, shared
+    messages, subjects, dimension names, or conjunctions.  Without a
+    structured ``semantic_parts`` declaration carrying stable part IDs and
+    independent semantics, the original record is retained unchanged.
+    """
+
+    result: list[Any] = []
+    for raw_item in items:
+        if not isinstance(raw_item, Mapping):
+            result.append(deepcopy(raw_item))
+            continue
+        parts = raw_item.get("semantic_parts")
+        if not _valid_composite_parts(raw_item, parts):
+            result.append(deepcopy(raw_item))
+            continue
+        result.extend(_split_composite_requirement(raw_item, parts))
+    return result
+
+
+def _valid_composite_parts(item: Mapping[str, Any], parts: Any) -> bool:
+    source_fact_id = _source_fact_value(item, "source_fact_id")
+    if not isinstance(source_fact_id, str) or not source_fact_id.strip():
+        return False
+    if not isinstance(parts, list) or len(parts) < 2:
+        return False
+    part_ids: set[str] = set()
+    for part in parts:
+        if not isinstance(part, Mapping):
+            return False
+        part_id = canonical_requirement_id(str(part.get("id") or part.get("part_id") or ""))
+        role = str(part.get("semantic_role") or "").strip()
+        if not part_id or not role or part.get("independent") is False or part_id in part_ids:
+            return False
+        part_ids.add(part_id)
+        part_source_fact_id = part.get("source_fact_id")
+        if part_source_fact_id is not None and str(part_source_fact_id).strip() != source_fact_id:
+            return False
+    return True
+
+
+def _split_composite_requirement(
+    item: Mapping[str, Any],
+    parts: list[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    parent_id = canonical_requirement_id(str(item.get("requirement_id") or item.get("id") or ""))
+    source_fact_id = str(_source_fact_value(item, "source_fact_id"))
+    source_fact_type = _source_fact_value(item, "source_fact_type")
+    source_fact_evidence = _source_fact_value(item, "source_fact_evidence")
+    shared_fields = {
+        "source_fact_id": source_fact_id,
+        **({"source_fact_type": source_fact_type} if source_fact_type is not None else {}),
+        **({"source_fact_evidence": source_fact_evidence} if source_fact_evidence is not None else {}),
+    }
+    result: list[dict[str, Any]] = []
+    for part in parts:
+        part_id = canonical_requirement_id(str(part.get("id") or part.get("part_id")))
+        requirement_id = canonical_requirement_id(f"{parent_id}_{part_id}")
+        normalized = deepcopy(dict(item))
+        normalized.pop("semantic_parts", None)
+        for key in (
+            "description",
+            "label",
+            "value",
+            "unit",
+            "tolerance",
+            "kind",
+            "type",
+            "operator",
+            "classification",
+            "policy",
+            "verification_policy",
+            "target",
+            "scope",
+            "output_id",
+            "component_id",
+            "subject",
+            "object_type",
+        ):
+            normalized.pop(key, None)
+        for key, value in part.items():
+            if key not in {"id", "part_id", "semantic_role", "independent"}:
+                normalized[key] = deepcopy(value)
+        for key in ("classification", "policy", "verification_policy", "subject", "object_type"):
+            if key not in part and item.get(key) is not None:
+                normalized[key] = deepcopy(item[key])
+        normalized.update(
+            {
+                "id": requirement_id,
+                "requirement_id": requirement_id,
+                "parent_requirement_id": parent_id,
+                "source_requirement_id": parent_id,
+                "composite_part_id": part_id,
+                "semantic_role": str(part["semantic_role"]),
+                **shared_fields,
+            }
+        )
+        normalized["label"] = str(
+            part.get("label") or part.get("description") or _human_label(part_id)
+        )
+        if part.get("description") is not None:
+            normalized["description"] = str(part["description"])
+        provenance = normalized.get("provenance")
+        provenance = deepcopy(provenance) if isinstance(provenance, Mapping) else {}
+        provenance.update(
+            {
+                "composite_normalization": "semantic_parts_v1",
+                "parent_requirement_id": parent_id,
+                "composite_part_id": part_id,
+                "semantic_role": str(part["semantic_role"]),
+            }
+        )
+        normalized["provenance"] = provenance
+        _apply_composite_authority(normalized, item, part)
+        result.append(normalized)
+    return result
+
+
+def _apply_composite_authority(
+    normalized: dict[str, Any],
+    parent: Mapping[str, Any],
+    part: Mapping[str, Any],
+) -> None:
+    role = str(part.get("semantic_role") or "").strip().lower()
+    declared_authority = str(part.get("authority") or "").strip().lower()
+    delegated = bool(part.get("delegated")) or role in {
+        "delegated_choice",
+        "model_choice",
+        "design_choice",
+    } or declared_authority in {"flexible", "provisional", "proposed"}
+    source = str(part.get("source") or parent.get("source") or "user")
+    if delegated:
+        normalized["source"] = source
+        normalized["authority"] = "flexible"
+        normalized["explicit"] = False
+        normalized["protected"] = False
+        normalized.setdefault("provenance", {})["authority_semantics"] = "user_delegated_choice"
+        return
+
+    explicit = part.get("explicit")
+    if explicit is None:
+        explicit = parent.get("explicit")
+    if explicit is None:
+        explicit = source in {"user", "clarification"}
+    normalized["source"] = source
+    normalized["explicit"] = bool(explicit)
+    normalized["authority"] = str(
+        part.get("authority")
+        or parent.get("authority")
+        or ("explicit" if explicit else AUTHORITY_BY_SOURCE.get(source, "ai_assumption"))
+    )
+    protected = part.get("protected")
+    if protected is None:
+        protected = parent.get("protected") if explicit else False
+    normalized["protected"] = bool(protected)
+
+
 def default_item(
     requirement_id: str,
     value: float | int | str | bool,

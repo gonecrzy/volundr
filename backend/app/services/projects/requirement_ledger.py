@@ -27,6 +27,7 @@ from app.models.project_message import ProjectMessage
 from app.services.requirements.trace import (
     build_explicit_requirement_inventory,
     canonicalize_dimension_envelopes,
+    normalize_composite_requirement_parts,
     normalize_requirement_semantics,
 )
 
@@ -54,7 +55,8 @@ def build_requirement_ledger(
     originating_revision_id: str | None = None,
 ) -> dict[str, Any]:
     records: list[dict[str, Any]] = []
-    for item in canonicalize_dimension_envelopes(requirements):
+    normalized_requirements = normalize_composite_requirement_parts(requirements)
+    for item in canonicalize_dimension_envelopes(normalized_requirements):
         normalized = _normalize_requirement(
             item,
             default_source="initial_user",
@@ -639,6 +641,12 @@ class RequirementLedgerStore:
                             "classification",
                             "policy",
                             "verification_policy",
+                            "authority",
+                            "protected",
+                            "parent_requirement_id",
+                            "source_requirement_id",
+                            "composite_part_id",
+                            "semantic_role",
                         )
                         if item.get(key) is not None
                     },
@@ -680,6 +688,13 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
                             "classification",
                             "policy",
                             "verification_policy",
+                            "authority",
+                            "protected",
+                            "parent_requirement_id",
+                            "source_requirement_id",
+                            "composite_part_id",
+                            "semantic_role",
+                            "semantic_parts",
                             "provenance",
                         )
                         if item.get(key) is not None
@@ -691,10 +706,10 @@ def _requirements_from_specification(specification: dict[str, Any]) -> list[dict
                     "unit": item.get("unit"),
                     "tolerance": item.get("tolerance"),
                     "source": "initial_user" if item.get("source") == "user" else "volundr_proposal",
-                    "explicit": item.get("source") == "user",
+                    "explicit": item.get("explicit", item.get("source") == "user"),
                 }
             )
-    return items
+    return normalize_composite_requirement_parts(items)
 
 
 def _semantic_reconciliation_changes(
@@ -790,6 +805,12 @@ def _entry_payload(row: RequirementLedgerEntry) -> dict[str, Any]:
                         "source_fact_type": semantic.get("source_fact_type"),
                         "source_fact_evidence": semantic.get("source_fact_evidence"),
                         "classification": semantic.get("classification"),
+                        "authority": semantic.get("authority"),
+                        "protected": semantic.get("protected"),
+                        "parent_requirement_id": semantic.get("parent_requirement_id"),
+                        "source_requirement_id": semantic.get("source_requirement_id"),
+                        "composite_part_id": semantic.get("composite_part_id"),
+                        "semantic_role": semantic.get("semantic_role"),
         "policy": semantic.get("policy"),
         "verification_policy": semantic.get("verification_policy"),
         "created_at": row.created_at.isoformat() if row.created_at else None,
@@ -884,6 +905,12 @@ def _normalize_requirement(
         "classification",
         "policy",
         "verification_policy",
+        "authority",
+        "protected",
+        "parent_requirement_id",
+        "source_requirement_id",
+        "composite_part_id",
+        "semantic_role",
     ):
         if item.get(key) is not None:
             normalized[key] = item[key]

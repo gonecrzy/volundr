@@ -11,16 +11,44 @@
   "common_ancestor": "d4d0bb50998741feb49a5d79468c45a78ef13f56",
   "worktree_status": "Phase 1A authoritative matrix preserved; Phase 1B feature-profile evidence remains NO-GO and parked; slot-sample aggregation recovered generically; missing-machine-measurement findings split with topology routing recovered; development-05 zero-call source/artifact forensics completed without authoritative source or geometry recovery, so historical ownership remains parked and split from the generic hole-detector false-positive subcluster; mounting-bracket-001 historical smoke remains contract_injected_smoke; corrected premise-only product_requirement_path_smoke stopped validly at clarification_required with no CAD generation or worker execution; external-cad-50-v1 corpus is frozen with 50 projects, 10 categories, balanced 30/10/10 split, and protected holdout metadata; external-cad-50-v1.1 comparison-specification qualification is complete; the 30-project development first-pass survey is complete on frozen code checkpoint 8dd0d8d with 60 preserved cells, 54 live workflows, and 6 replacement exclusions; Recovery C subject-only scope live confirmation completed with two required named outputs and a passed body-bounds finding; no validation or holdout work has started",
   "current_recovery_checkpoint": {
-    "name": "recovery_b_qualitative_authority_policy",
-    "status": "reconstructed_no_implementation",
-    "decision": "RECOVERY_B_MULTIPLE_BOUNDARIES",
+    "name": "recovery_b5_composite_requirement_normalization",
+    "status": "implemented_offline_verified",
+    "decision": "RECOVERY_B5_NORMALIZATION_CONFIRMED",
     "historical_b_requirement_count": 41,
     "after_recovery_a_and_c_count": 41,
     "combined_audit_count_including_recovery_c_synthetic": 42,
+    "combined_normalized_requirement_count": 45,
+    "composite_records_split": 2,
+    "delegated_choice_records_flexible_unprotected": 2,
     "provider_calls": 0,
     "worker_executions": 0,
-    "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b-policy-boundary-reconstruction.json",
-    "next_action": "Stop for review; implement composite normalization, authority preservation, and B1/B2/B3/B4 policy routing as separate generic recoveries; do not begin Recovery E"
+    "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b5-composite-normalization.json",
+    "next_action": "Stop for review; implement B1/B2/B3/B4 policy routing separately; do not begin Recovery E"
+  },
+  "external_cad_recovery_b5_composite_normalization_status": {
+    "status": "implemented_offline_verified",
+    "benchmark_id": "external-cad-50-v1.1",
+    "scope": "generic composite requirement normalization and authority/protection preservation only",
+    "decision": "RECOVERY_B5_NORMALIZATION_CONFIRMED",
+    "historical_b_requirement_count": 41,
+    "combined_audit_count_including_recovery_c_synthetic": 42,
+    "combined_normalized_requirement_count": 45,
+    "composite_records_split": 2,
+    "policy_routing_changed": false,
+    "provider_calls": 0,
+    "worker_executions": 0,
+    "validation_access": false,
+    "holdout_access": false,
+    "production_files_changed": [
+      "backend/app/schemas/project.py",
+      "backend/app/services/ai/gemini_cli.py",
+      "backend/app/services/requirements/trace.py",
+      "backend/app/services/projects/requirement_ledger.py",
+      "backend/app/services/projects/service.py"
+    ],
+    "evidence": "data/debug-sessions/executable-cadquery/recovery-development-16/phase-1b-recovery-b5-composite-normalization.json",
+    "tests": "11 focused; 63 adjacent; 1638 backend passed, 1 skipped",
+    "next_action": "Stop for review; implement B1/B2/B3/B4 policy routing separately; do not begin Recovery E"
   },
   "completed_gates": [
     "branch_and_main_divergence_verified",
@@ -140,6 +168,7 @@
     ,"phase_1b_recovery_c_single_live_confirmation_completed"
     ,"phase_1b_recovery_c_subject_only_scope_live_confirmation_passed"
     ,"phase_1b_recovery_b_policy_boundary_reconstructed_without_implementation"
+    ,"phase_1b_recovery_b5_composite_normalization_offline_verified"
   ],
   "blocked_gates": [],
   "superseded_gates": [
