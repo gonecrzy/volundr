@@ -5,14 +5,16 @@ import { expect, test } from "@playwright/test";
 
 const prompt =
   "Design a two-piece desktop storage box consisting of a separately printable box body and a separately printable lid. Keep the body approximately 80 mm wide by 60 mm deep by 30 mm high. Choose a reasonable printable wall thickness and lid clearance.";
-const evidenceRoot = path.resolve(
-  "..",
-  "data",
-  "debug-sessions",
-  "executable-cadquery",
-  "recovery-development-16",
-  "recovery-c-live-two-output-confirmation",
-);
+const evidenceRoot = process.env.VOLUNDR_RECOVERY_C_EVIDENCE_ROOT
+  ? path.resolve(process.env.VOLUNDR_RECOVERY_C_EVIDENCE_ROOT)
+  : path.resolve(
+      "..",
+      "data",
+      "debug-sessions",
+      "executable-cadquery",
+      "recovery-development-16",
+      "recovery-c-live-two-output-confirmation-rerun",
+    );
 
 function sha256(value: string | Buffer): string {
   return createHash("sha256").update(value).digest("hex");
@@ -117,7 +119,7 @@ test("confirms first-class logical outputs through the normal product path", asy
     "utf8",
   );
 
-  const idempotencyKey = "recovery-c-two-output-synthetic";
+  const idempotencyKey = "recovery-c-two-output-synthetic-rerun";
   const startedAt = new Date().toISOString();
   const response = await page.request.post("/api/validated-cadquery/designs", {
     headers: { "Idempotency-Key": idempotencyKey },
